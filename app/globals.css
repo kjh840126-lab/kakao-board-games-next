@@ -1,23 +1,30 @@
+/* 1. 외부 CDN 폰트 불러오기를 맨 최상단에 배치 */
 @import url("https://t1.daumcdn.net/kakao_game/kakao/font/font.css");
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 @import "tailwindcss";
 
-@layer base {
-  *, ::after, ::before {
-    box-sizing: border-box;
-  }
-  
-  html, body {
-    font-family: "Kakao", "KakaoBig", "Pretendard Variable", Pretendard, -apple-system, sans-serif !important;
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    -webkit-tap-highlight-color: transparent;
-  }
+/* 2. 사파리 웹킷 폰트 부드럽게 처리 및 폰트 패밀리 지정 */
+:root {
+  --font-sans: "Kakao", "KakaoBig", "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
 }
 
-/* 폰트 크게 모드 설정 시 전체 rem 단위를 115%로 확장 (카드 세부항목 일괄 확대) */
+html, body {
+  font-family: var(--font-sans) !important;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased; /* 사파리 폰트 렌더링 필수 속성 */
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*, ::after, ::before {
+  box-sizing: border-box;
+  font-family: inherit; /* 모든 하위 요소에 폰트 강제 상속 */
+}
+
+/* 폰트 크게 모드 설정 시 전체 rem 단위를 115%로 확장 */
 html.text-large {
   font-size: 115% !important;
 }

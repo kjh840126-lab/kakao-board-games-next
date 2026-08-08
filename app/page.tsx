@@ -81,12 +81,10 @@ export default function MainPage() {
 
   const [currentUser, setCurrentUser] = useState<UserData | null>(null);
   
-  // 로그인 및 회원가입 관련 상태값
   const [authTab, setAuthTab] = useState<'login' | 'signup'>('login');
   const [loginId, setLoginId] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
-  // 회원가입 폼 상태
   const [signUpForm, setSignUpForm] = useState({
     userId: '',
     name: '',
@@ -246,9 +244,13 @@ export default function MainPage() {
       if (rentalsData) setRentals(rentalsData.map(r => ({ rentalId: r.rental_id, userId: r.user_id, gameId: r.game_id, gameTitle: r.game_title, status: r.status, startDate: r.start_date, endDate: r.end_date, returnedAt: r.returned_at })));
       if (ratingsData) setAllRatings(ratingsData.map(r => ({ userId: r.user_id, gameId: r.game_id, score: Number(r.score) })));
       if (gamesData) {
-        setGames(gamesData.map(g => ({
+        const mappedGames = gamesData.map(g => ({
           gameId: g.game_id, title: g.title, status: g.status, minPlayers: g.min_players, maxPlayers: g.max_players, playTime: Number(g.play_time) || 30, difficulty: Number(g.difficulty) || 2.0, imageUrl: g.image_url || 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=300', description: g.description || '', isVisible: g.is_visible || g.isVisible || 'Y', genres: Array.isArray(g.genres) ? g.genres : typeof g.genres === 'string' ? g.genres.split(',').map((s: string) => s.trim()) : ['보드게임'], createdAt: g.created_at || new Date().toISOString(), releaseYear: Number(g.release_year) || currentYear, bggRating: Number(g.bgg_rating) || 7.0
-        })));
+        }));
+        setGames(mappedGames);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('kakao_bg_games_cache', JSON.stringify(mappedGames));
+        }
       }
       if (noticeData) setNoticeList(noticeData.map(n => ({ noticeId: n.notice_id, title: n.title, content: n.content, createdAt: n.created_at?.split('T')[0] || today })));
       if (reportsData) setReportList(reportsData.map(r => ({ reportId: r.report_id || r.id, userId: r.user_id, category: r.category || '신고/건의', title: r.title, content: r.content, createdAt: r.created_at?.replace('T', ' ').substring(0, 16) || today, isRead: !!r.is_read })));
@@ -279,7 +281,7 @@ export default function MainPage() {
 
   const removeFromCart = (gameId: string) => setCart(cart.filter((item: Game) => item.gameId !== gameId));
 
-  // 🔴 실시간 상태 반영을 위해 즉시 State 업데이트 처리
+  // 🔴 [최종 해결] 대여 시 브라우저 캐시 삭제 및 즉시 로컬 State 변경 (0초 반영)
   const processCheckout = async () => {
     if (!currentUser) return;
 
@@ -324,13 +326,18 @@ export default function MainPage() {
 
       if (gameError) throw gameError;
 
-      // 3) 로컬 State에 즉시 반영 (새로고침 우회)
-      setGames(prevGames => 
-        prevGames.map(game => 
-          cartGameIds.includes(game.gameId) ? { ...game, status: '대여중' } : game
-        )
+      // ⚡ 3) [핵심 해결 1] 로컬 games State를 '대여중'으로 즉시 변경
+      const updatedGames = games.map(game => 
+        cartGameIds.includes(game.gameId) ? { ...game, status: '대여중' as GameStatus } : game
       );
+      setGames(updatedGames);
 
+      // ⚡ [핵심 해결 2] 구형 캐시가 화면을 덮어쓰지 못하도록 브라우저 캐시도 즉시 갱신
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('kakao_bg_games_cache', JSON.stringify(updatedGames));
+      }
+
+      // ⚡ [핵심 해결 3] 내 대여 목록 rentals State에도 방금 대여한 항목 즉시 추가
       if (insertedData) {
         const mappedNewRentals: Rental[] = insertedData.map(r => ({
           rentalId: r.rental_id,
@@ -349,6 +356,8 @@ export default function MainPage() {
       
       setCart([]); 
       setIsCartOpen(false);
+
+      // 백그라운드 재조회
       await fetchInitialData(); 
     } catch (err: any) {
       console.error('대여 처리 실패:', err);

@@ -230,6 +230,7 @@ export default function MainPage() {
 
   const removeFromCart = (gameId: string) => setCart(cart.filter((item: Game) => item.gameId !== gameId));
 
+  // 🔴 [핵심 로직] 대여 즉시 0초 만에 '대여중' 뱃지 변경 처리
   const processCheckout = async () => {
     if (!currentUser) return;
 
@@ -253,16 +254,26 @@ export default function MainPage() {
     }));
 
     try {
+      // 1) Supabase rentals 테이블 추가
       const { data: insertedData, error: rentalError } = await supabase.from('rentals').insert(newRentalsToInsert).select();
       if (rentalError) throw rentalError;
 
+      // 2) Supabase games 테이블 '대여중'으로 상태 업데이트
       const { error: gameError } = await supabase.from('games').update({ status: '대여중' }).in('game_id', cartGameIds);
       if (gameError) throw gameError;
 
-      const updatedGames = games.map(game => cartGameIds.includes(game.gameId) ? { ...game, status: '대여중' as GameStatus } : game);
+      // ⚡ 3) [핵심] 리액트 메모리상의 games State를 즉시 '대여중'으로 변환 (0초 변경)
+      const updatedGames = games.map(game => 
+        cartGameIds.includes(game.gameId) ? { ...game, status: '대여중' as GameStatus } : game
+      );
       setGames(updatedGames);
-      if (typeof window !== 'undefined') localStorage.setItem('kakao_bg_games_cache', JSON.stringify(updatedGames));
 
+      // ⚡ 4) [핵심] 구형 브라우저 캐시가 재조회 전 화면을 덮어쓰지 않게 캐시도 즉시 업데이트
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('kakao_bg_games_cache', JSON.stringify(updatedGames));
+      }
+
+      // ⚡ 5) 내 대여 목록(rentals)에도 즉시 추가
       if (insertedData) {
         const mappedNewRentals: Rental[] = insertedData.map(r => ({
           rentalId: r.rental_id, userId: r.user_id, gameId: r.game_id, gameTitle: r.game_title, status: r.status, startDate: r.start_date, endDate: r.end_date, returnedAt: r.returned_at
@@ -273,6 +284,8 @@ export default function MainPage() {
       alert(`보드게임 ${cart.length}건이 ${rentalDays}일간 대여되었습니다.`); 
       setCart([]); 
       setIsCartOpen(false);
+
+      // 6) DB 최신화
       fetchInitialData(); 
     } catch (err: any) {
       alert('대여 처리 중 오류가 발생했습니다: ' + (err.message || err));
@@ -453,7 +466,7 @@ export default function MainPage() {
 
   if (!mounted) return null;
 
-  // 1. 비로그인 사용자 -> AuthScreen 컴포넌트 렌더링
+  // 1. 비로그인 -> 로그인/회원가입 전용 화면
   if (!currentUser) {
     return (
       <AuthScreen 
@@ -475,7 +488,7 @@ export default function MainPage() {
     );
   }
 
-  // 2. 로그인 사용자 -> 메인 화면 & 탭 및 모달 렌더링
+  // 2. 로그인 완료 -> 메인 서비스 화면
   return (
     <div className="min-h-screen w-full relative bg-white text-slate-900 text-xs">
       <FixedHeader isHeaderAdminTheme={isHeaderAdminTheme} isIosDevice={isIosDevice} currentUser={currentUser} today={today} unreadReportsCount={unreadReportsCount} setIsAdminReportDrawerOpen={setIsAdminReportDrawerOpen} setIsSettingsOpen={setIsSettingsOpen} headerRef={headerRef} />
@@ -500,7 +513,7 @@ export default function MainPage() {
         </div>
       )}
 
-      {/* 모달 및 드로어 모음 컴포넌트 */}
+      {/* 모달 및 드로어 모음 */}
       <ModalsContainer 
         isAdminReportDrawerOpen={isAdminReportDrawerOpen} setIsAdminReportDrawerOpen={setIsAdminReportDrawerOpen} selectedReport={selectedReport} reports={reports} unreadReportsCount={unreadReportsCount} handleMarkReportAsRead={handleMarkReportAsRead} handleMarkAllReportsAsRead={handleMarkAllReportsAsRead}
         isSettingsOpen={isSettingsOpen} setIsSettingsOpen={setIsSettingsOpen} currentUser={currentUser} setEditName={setEditName} setNewPasswordInput={setNewPasswordInput} setNewPasswordConfirmInput={setNewPasswordConfirmInput} setIsEditProfileOpen={setIsEditProfileOpen} setIsFavoritesModalOpen={setIsFavoritesModalOpen} setIsMyRatingsModalOpen={setIsMyRatingsModalOpen} userFavorites={userFavorites} myRatingGamesList={myRatingGamesList} setReportForm={setReportForm} setIsReportModalOpen={setIsReportModalOpen} fontSize={fontSize} setFontSize={setFontSize} handleLogout={handleLogout}

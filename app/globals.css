@@ -1,42 +1,42 @@
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 @import "tailwindcss";
 
-/* 사파리 CORS 차단 방지용 카카오 폰트 direct 선언 */
+/* 💡 카카오 공식 웹폰트 @font-face 직접 선언 (사파리 CORS/최적화 블록 완전 우회) */
 @font-face {
-  font-family: "Kakao";
-  src: url("https://t1.daumcdn.net/kakao_game/kakao/font/KakaoRegular.woff2") format("woff2"),
-       url("https://t1.daumcdn.net/kakao_game/kakao/font/KakaoRegular.woff") format("woff");
+  font-family: 'Kakao';
+  font-style: normal;
   font-weight: 400;
-  font-style: normal;
+  src: url('https://t1.daumcdn.net/kakao_game/kakao/font/KakaoRegular.woff2') format('woff2'),
+       url('https://t1.daumcdn.net/kakao_game/kakao/font/KakaoRegular.woff') format('woff');
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Kakao";
-  src: url("https://t1.daumcdn.net/kakao_game/kakao/font/KakaoBold.woff2") format("woff2"),
-       url("https://t1.daumcdn.net/kakao_game/kakao/font/KakaoBold.woff") format("woff");
-  font-weight: 700;
+  font-family: 'Kakao';
   font-style: normal;
+  font-weight: 700;
+  src: url('https://t1.daumcdn.net/kakao_game/kakao/font/KakaoBold.woff2') format('woff2'),
+       url('https://t1.daumcdn.net/kakao_game/kakao/font/KakaoBold.woff') format('woff');
   font-display: swap;
 }
 
 @font-face {
-  font-family: "KakaoBig";
-  src: url("https://t1.daumcdn.net/kakao_game/kakao/font/KakaoBigBold.woff2") format("woff2"),
-       url("https://t1.daumcdn.net/kakao_game/kakao/font/KakaoBigBold.woff") format("woff");
-  font-weight: 700;
+  font-family: 'KakaoBig';
   font-style: normal;
+  font-weight: 700;
+  src: url('https://t1.daumcdn.net/kakao_game/kakao/font/KakaoBigBold.woff2') format('woff2'),
+       url('https://t1.daumcdn.net/kakao_game/kakao/font/KakaoBigBold.woff') format('woff');
   font-display: swap;
 }
 
-/* Tailwind v4 폰트 등록 */
+/* Tailwind v4 폰트 시스템 덮어쓰기 */
 @theme {
-  --font-sans: "Kakao", "KakaoBig", "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+  --font-sans: 'Kakao', 'KakaoBig', 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
 }
 
-/* 사파리 강제 스타일 적용 */
+/* 사파리 폰트 강제 적용 및 렌더링 최적화 */
 html, body {
-  font-family: var(--font-sans) !important;
+  font-family: 'Kakao', 'KakaoBig', 'Pretendard Variable', Pretendard, -apple-system, sans-serif !important;
   width: 100%;
   height: 100%;
   margin: 0;
@@ -47,16 +47,16 @@ html, body {
 }
 
 *, ::after, ::before, button, input, select, textarea {
-  font-family: var(--font-sans) !important;
+  font-family: 'Kakao', 'KakaoBig', 'Pretendard Variable', Pretendard, -apple-system, sans-serif !important;
   box-sizing: border-box;
 }
 
-/* 폰트 크게 모드 */
+/* 폰트 크게 모드 설정 시 전체 rem 단위를 115%로 확장 */
 html.text-large {
   font-size: 115% !important;
 }
 
-/* 라이트 모드 글자색 고정 */
+/* 라이트 모드 카드의 글자색 강제 진하게 고정 */
 html:not(.dark) main h3,
 html:not(.dark) main h4 {
   color: #0f172a !important;

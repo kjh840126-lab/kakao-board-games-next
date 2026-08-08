@@ -148,12 +148,20 @@ export default function MainPage() {
 
   useEffect(() => { if (mounted) fetchInitialData(); }, [mounted]);
 
+  // ⚡ 탭 전환 시 mainScrollRef 내부의 독립 스크롤 위치 유지
   const handleTabChange = useCallback((newTab: 'games' | 'returns' | 'ranking' | 'sites' | 'admin') => {
     if (newTab === activeTab) return;
-    scrollPositions.current[activeTab] = window.scrollY;
+    if (mainScrollRef.current) {
+      scrollPositions.current[activeTab] = mainScrollRef.current.scrollTop;
+    }
     setActiveTab(newTab);
     if (typeof window !== 'undefined') localStorage.setItem('kakao_bg_activeTab', newTab);
-    requestAnimationFrame(() => { window.scrollTo(0, scrollPositions.current[newTab] || 0); });
+    
+    requestAnimationFrame(() => {
+      if (mainScrollRef.current) {
+        mainScrollRef.current.scrollTop = scrollPositions.current[newTab] || 0;
+      }
+    });
   }, [activeTab]);
 
   const recentNoticesList = useMemo(() => (notices || []).slice(0, 5), [notices]);
@@ -470,15 +478,22 @@ export default function MainPage() {
   }
 
   return (
-    <div className="min-h-screen w-full relative bg-white text-slate-900 text-xs">
-      {/* 📌 상단 네비게이션 fixed 고정 */}
-      <FixedHeader isHeaderAdminTheme={isHeaderAdminTheme} isIosDevice={isIosDevice} currentUser={currentUser} today={today} unreadReportsCount={unreadReportsCount} setIsAdminReportDrawerOpen={setIsAdminReportDrawerOpen} setIsSettingsOpen={setIsSettingsOpen} headerRef={headerRef} />
+    // ⚡ 네이버 모바일 방식: 최상위 div에 h-screen 및 overflow-hidden을 주어 브라우저 전체 스크롤을 원천 차단
+    <div className="h-screen w-full flex flex-col overflow-hidden bg-white text-slate-900 text-xs relative">
+      
+      {/* 1. 상단 네비게이션 (절대 안 움직임, flex-shrink-0) */}
+      <div className="flex-shrink-0 z-40">
+        <FixedHeader isHeaderAdminTheme={isHeaderAdminTheme} isIosDevice={isIosDevice} currentUser={currentUser} today={today} unreadReportsCount={unreadReportsCount} setIsAdminReportDrawerOpen={setIsAdminReportDrawerOpen} setIsSettingsOpen={setIsSettingsOpen} headerRef={headerRef} />
+      </div>
 
-      {/* 📌 가변 본문 스크롤 영역 */}
+      {/* 2. 본문 영역 (여기서만 overflow-y-auto 독립 스크롤 작동 -> 네이버 모바일 방식) */}
       <main 
         ref={mainScrollRef} 
-        style={{ paddingTop: isLargeFont ? (isIosDevice ? '122px' : '110px') : (isIosDevice ? '104px' : '92px'), paddingBottom: '80px' }} 
-        className="w-full py-4 px-4 bg-white text-slate-900 text-xs transition-all relative"
+        style={{ 
+          paddingTop: isLargeFont ? (isIosDevice ? '122px' : '110px') : (isIosDevice ? '104px' : '92px'), 
+          paddingBottom: '80px' 
+        }} 
+        className="flex-1 w-full py-4 px-4 overflow-y-auto bg-white text-slate-900 text-xs transition-all relative"
       >
         <div className={activeTab === 'games' ? 'block' : 'hidden'}>
           <GamesTab games={games} rentals={rentals} userFavorites={userFavorites} allRatings={allRatings} currentUser={currentUser} today={today} isIosDevice={isIosDevice} isLargeFont={isLargeFont} recentNoticesList={recentNoticesList} noticeIndex={noticeIndex} isNoticeTransition={isNoticeTransition} handleNoticeClick={handleNoticeClick} toggleCartItem={toggleCartItem} toggleFavorite={toggleFavorite} cart={cart} setRatingModalGame={setRatingModalGame} setSelectedScore={setSelectedScore} />
@@ -515,8 +530,10 @@ export default function MainPage() {
         isSiteModalOpen={isSiteModalOpen} setIsSiteModalOpen={setIsSiteModalOpen} editingSite={editingSite} setEditingSite={setEditingSite} saveSite={saveSite}
       />
 
-      {/* 📌 하단 네비게이션 fixed 고정 */}
-      <FixedBottomNav isIosDevice={isIosDevice} activeTab={activeTab} isAdmin={isAdmin} unreadReportsCount={unreadReportsCount} handleTabChange={handleTabChange} />
+      {/* 3. 하단 네비게이션 (절대 안 움직임, flex-shrink-0) */}
+      <div className="flex-shrink-0 z-40">
+        <FixedBottomNav isIosDevice={isIosDevice} activeTab={activeTab} isAdmin={isAdmin} unreadReportsCount={unreadReportsCount} handleTabChange={handleTabChange} />
+      </div>
     </div>
   );
 }

@@ -1,13 +1,13 @@
-/* 1. 외부 CDN 폰트 불러오기를 맨 최상단에 배치 */
 @import url("https://t1.daumcdn.net/kakao_game/kakao/font/font.css");
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 @import "tailwindcss";
 
-/* 2. 사파리 웹킷 폰트 부드럽게 처리 및 폰트 패밀리 지정 */
-:root {
+/* 1. Tailwind v4 엔진에 카카오/프리텐다드 폰트를 1순위 기본 폰트로 등록 */
+@theme {
   --font-sans: "Kakao", "KakaoBig", "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
 }
 
+/* 2. 사파리 폰트 렌더링 최적화 및 강제 상속 */
 html, body {
   font-family: var(--font-sans) !important;
   width: 100%;
@@ -15,13 +15,14 @@ html, body {
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
-  -webkit-font-smoothing: antialiased; /* 사파리 폰트 렌더링 필수 속성 */
+  -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-*, ::after, ::before {
+/* 버튼, 인풋 등 모든 요소까지 폰트가 잘리지 않고 적용되도록 설정 */
+*, ::after, ::before, button, input, select, textarea {
+  font-family: var(--font-sans) !important;
   box-sizing: border-box;
-  font-family: inherit; /* 모든 하위 요소에 폰트 강제 상속 */
 }
 
 /* 폰트 크게 모드 설정 시 전체 rem 단위를 115%로 확장 */

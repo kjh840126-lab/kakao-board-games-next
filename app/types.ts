@@ -1,6 +1,6 @@
-export type Role = '일반회원' | '관리자' | '탈퇴회원';
-export type GameStatus = '대여가능' | '대여중' | '대여불가';
-export type RentalStatus = '대여중' | '반납완료';
+export type Role = '일반회원' | '관리자' | '마스터' | '탈퇴회원' | '탈퇴';
+
+export type GameStatus = '대여가능' | '대여중';
 
 export interface UserData {
   userId: string;
@@ -29,10 +29,6 @@ export interface Game {
   createdAt: string;
   releaseYear: number;
   bggRating: number;
-  rentalCount?: number;
-  recentRentalCount?: number;
-  userAvgRating?: number;
-  userRatingCount?: number;
 }
 
 export interface Rental {
@@ -40,10 +36,10 @@ export interface Rental {
   userId: string;
   gameId: string;
   gameTitle: string;
-  status: RentalStatus;
+  status: '대여중' | '반납완료';
   startDate: string;
   endDate: string;
-  returnedAt: string | null;
+  returnedAt?: string;
 }
 
 export interface Notice {

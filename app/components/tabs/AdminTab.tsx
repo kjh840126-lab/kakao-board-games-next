@@ -38,7 +38,8 @@ export const AdminTab = memo(({
     }
   };
 
-  const isMaster = currentUser?.role === '마스터';
+  // 🔻 타입 불일치 에러 방지를 위해 as string 단언 적용
+  const isMaster = (currentUser?.role as string) === '마스터';
 
   return (
     <div className="space-y-4 mt-0.5 w-full">
@@ -239,7 +240,7 @@ export const AdminTab = memo(({
         </div>
       )}
 
-      {/* D. 회원 관리 (직관적 아이콘 전용 버튼 적용) */}
+      {/* D. 회원 관리 */}
       {adminSubTab === 'userAdmin' && (
         <div className="space-y-4 w-full">
           <div className="flex justify-between items-center h-10 pb-2 border-b border-slate-200/80">
@@ -252,10 +253,12 @@ export const AdminTab = memo(({
           
           <div className="space-y-3 w-full">
             {filteredUserAdminList.map((u: UserData) => {
-              const isMasterRole = u.role === '마스터';
-              const isAdminRole = u.role === '관리자';
-              const isUserRole = u.role === '일반회원';
-              const isQuitRole = u.role === '탈퇴회원' || u.role === '탈퇴';
+              // 🔻 타입 불일치 에러 방지를 위해 as string 단언 적용
+              const roleStr = u.role as string;
+              const isMasterRole = roleStr === '마스터';
+              const isAdminRole = roleStr === '관리자';
+              const isUserRole = roleStr === '일반회원';
+              const isQuitRole = roleStr === '탈퇴회원' || roleStr === '탈퇴';
               const penaltyScore = Number(u.penaltyPoints || 0);
 
               return (
@@ -290,7 +293,6 @@ export const AdminTab = memo(({
                       <p className="text-slate-400 text-xs">{u.name} | {u.email}</p>
                     </div>
 
-                    {/* 🔻 [수정] 폰트 크기와 무관하게 깨지지 않는 컴팩트 아이콘 전용 버튼 */}
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       {/* 마스터 전용: 관리자를 일반회원으로 전환 */}
                       {isMaster && isAdminRole && (

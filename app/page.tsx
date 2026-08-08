@@ -108,7 +108,6 @@ export default function MainPage() {
 
   const [isIosDevice, setIsIosDevice] = useState(false);
 
-  // 🔻 스크롤 위치 보존을 위한 각 탭별 Y위치 기록 레퍼런스
   const scrollPositions = useRef<{ [key: string]: number }>({
     games: 0,
     returns: 0,
@@ -162,20 +161,16 @@ export default function MainPage() {
 
   useEffect(() => { if (mounted) fetchInitialData(); }, [mounted]);
 
-  // 🔻 [핵심] 탭 변경 시 현재 스크롤 Y위치를 저장하고 전환할 탭의 스크롤 위치를 복원
   const handleTabChange = useCallback((newTab: 'games' | 'returns' | 'ranking' | 'sites' | 'admin') => {
     if (newTab === activeTab) return;
 
-    // 1. 이전 탭의 현재 스크롤 위치 저장
     scrollPositions.current[activeTab] = window.scrollY;
 
-    // 2. 탭 전환
     setActiveTab(newTab);
     if (typeof window !== 'undefined') {
       localStorage.setItem('kakao_bg_activeTab', newTab);
     }
 
-    // 3. 전환될 탭의 기존 스크롤 위치로 즉시 이동
     requestAnimationFrame(() => {
       const savedY = scrollPositions.current[newTab] || 0;
       window.scrollTo(0, savedY);
@@ -448,7 +443,8 @@ export default function MainPage() {
 
   const calculateEndDate = () => { const d = new Date(); d.setDate(d.getDate() + rentalDays); return d.toISOString().split('T')[0]; };
   
-  const isAdmin = currentUser?.role === '관리자' || currentUser?.role === '마스터';
+  // 🔻 타입 단언을 통해 '마스터' / '관리자' 체크 타입 에러 방지
+  const isAdmin = (currentUser?.role as string) === '관리자' || (currentUser?.role as string) === '마스터';
   const unreadReportsCount = reports.filter((r: ReportData) => !r.isRead).length;
 
   if (!mounted) return null;
@@ -481,7 +477,6 @@ export default function MainPage() {
         headerRef={headerRef} 
       />
 
-      {/* 🔻 [핵심 수정] 탭 컴포넌트들을 완전히 언마운트하지 않고 display: none 토글 처리하여 스크롤 위치 및 DOM 상태 유지 */}
       <main 
         ref={mainScrollRef} 
         style={{ 
@@ -588,7 +583,6 @@ export default function MainPage() {
           </div>
 
           <div className="flex-1 p-4 overflow-y-auto space-y-5">
-            {/* 계정 설정 */}
             <div className="space-y-2">
               <h4 className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 text-xs"><User size={14} /> 계정 설정</h4>
               <button onClick={() => { if (currentUser) { setEditName(currentUser.name); setNewPasswordInput(''); setNewPasswordConfirmInput(''); setIsEditProfileOpen(true); setIsSettingsOpen(false); } }} className="w-full p-2.5 rounded-xl border text-left flex justify-between items-center cursor-pointer bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100 transition">
@@ -597,7 +591,6 @@ export default function MainPage() {
               </button>
             </div>
 
-            {/* 나의 활동 */}
             <div className="space-y-2 pt-2 border-t border-slate-100">
               <h4 className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 text-xs"><Heart size={14} className="text-rose-500" /> 나의 활동</h4>
               
@@ -622,7 +615,6 @@ export default function MainPage() {
               </button>
             </div>
 
-            {/* 고객지원 */}
             <div className="space-y-2 pt-2 border-t border-slate-100">
               <h4 className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 text-xs"><Siren size={14} /> 고객지원</h4>
               <button onClick={() => { setReportForm({ title: '', content: '', category: '' }); setIsReportModalOpen(true); setIsSettingsOpen(false); }} className="w-full p-2.5 rounded-xl border text-left flex justify-between items-center cursor-pointer bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100 transition">
@@ -631,7 +623,6 @@ export default function MainPage() {
               </button>
             </div>
 
-            {/* 글자 크기 */}
             <div className="space-y-2 pt-2 border-t border-slate-100">
               <h4 className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 text-xs"><Type size={14} /> 글자 크기</h4>
               <div className="flex p-1 rounded-xl bg-slate-100">
@@ -640,7 +631,6 @@ export default function MainPage() {
               </div>
             </div>
 
-            {/* 로그아웃 버튼 */}
             <div className="pt-2 border-t border-slate-100 flex justify-end">
               <button onClick={handleLogout} className="px-3 py-1.5 rounded-xl font-normal transition flex items-center gap-1.5 border border-slate-200 bg-slate-50 text-slate-500 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 cursor-pointer text-xs">
                 <LogOut size={13} /> 로그아웃
@@ -858,7 +848,6 @@ export default function MainPage() {
               <button onClick={() => setIsGameModalOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button>
             </div>
             <form onSubmit={saveGame} className="space-y-3">
-              {/* 이미지 URL */}
               <div>
                 <label className="font-bold block mb-1 flex items-center gap-1">
                   <Image size={13} className="text-slate-500" /> 이미지 URL
@@ -866,7 +855,6 @@ export default function MainPage() {
                 <input type="url" placeholder="https://example.com/image.jpg" value={editingGame.imageUrl} onChange={(e) => setEditingGame({ ...editingGame, imageUrl: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" />
               </div>
 
-              {/* 이미지 미리보기 */}
               {editingGame.imageUrl && (
                 <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center gap-3">
                   <img src={editingGame.imageUrl} alt="미리보기" className="w-12 h-12 object-cover rounded-xl bg-white border border-slate-200 flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=300'; }} />
@@ -874,7 +862,6 @@ export default function MainPage() {
                 </div>
               )}
 
-              {/* 보드게임 ID & 게임명 */}
               <div className="flex gap-2">
                 <div className="w-[35%]">
                   <label className="font-bold block mb-1">보드게임 ID</label>
@@ -886,7 +873,6 @@ export default function MainPage() {
                 </div>
               </div>
 
-              {/* 출시년도, 플레이타임, 난이도 */}
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="font-bold block mb-1 flex items-center gap-0.5">
@@ -908,7 +894,6 @@ export default function MainPage() {
                 </div>
               </div>
 
-              {/* 최소인원, 최대인원, BGG평점, 노출여부 */}
               <div className="grid grid-cols-4 gap-1.5">
                 <div>
                   <label className="font-bold block mb-1 text-[11px]">최소인원</label>
@@ -931,7 +916,6 @@ export default function MainPage() {
                 </div>
               </div>
 
-              {/* 장르 선택 (최대 4개) */}
               <div className="space-y-1.5 pt-1">
                 <div className="flex justify-between items-center">
                   <label className="font-bold block flex items-center gap-1">

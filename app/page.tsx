@@ -279,19 +279,17 @@ export default function MainPage() {
 
   const removeFromCart = (gameId: string) => setCart(cart.filter((item: Game) => item.gameId !== gameId));
 
-  // 🔴 빌드 에러 해결된 대여 처리 함수
+  // 🔴 대여 수량 체크 및 알림 문구 수정 완료 (대여/신청 중 -> 대여 중)
   const processCheckout = async () => {
     if (!currentUser) return;
 
-    // 1. 현재 사용자가 이미 대여중이거나 대여신청한 수량 계산 (Includes 구문으로 TS2367 방지)
     const activeRentalsCount = rentals.filter((r: Rental) => {
       const activeStatuses: string[] = ['대여중', '대여신청', '승인대기'];
       return r.userId === currentUser.userId && activeStatuses.includes(r.status);
     }).length;
 
-    // 2. 현재 수량 + 장바구니 수량이 3개를 초과하는지 검증
     if (activeRentalsCount + cart.length > 3) {
-      alert(`1인당 최대 3개까지만 대여(신청 포함)가 가능합니다.\n현재 대여/신청 중: ${activeRentalsCount}개 / 장바구니: ${cart.length}개`);
+      alert(`1인당 최대 3개까지만 대여(신청 포함)가 가능합니다.\n현재 대여 중: ${activeRentalsCount}개 / 장바구니: ${cart.length}개`);
       return;
     }
 

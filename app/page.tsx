@@ -14,7 +14,7 @@ import { AdminTab } from './components/tabs/AdminTab';
 import { 
   ShoppingCart, Siren, Settings, Bell, X, ChevronDown, 
   ChevronRight, Heart, Star, User, LogOut, Type, Calendar, Trash2,
-  Image, Clock, Brain, Tag
+  Image, Clock, Brain, Tag, LogIn, UserPlus
 } from 'lucide-react';
 
 const ALLOWED_EMAIL_DOMAINS = ['kakaocorp.com', 'kakaoenterprise.com', 'kakaomobility.com', 'kakaopaycorp.com', 'kakaoent.com'];
@@ -80,8 +80,22 @@ export default function MainPage() {
   const [expandedNoticeId, setExpandedNoticeId] = useState<number | null>(null);
 
   const [currentUser, setCurrentUser] = useState<UserData | null>(null);
+  
+  // 로그인 및 회원가입 관련 상태값
+  const [authTab, setAuthTab] = useState<'login' | 'signup'>('login');
   const [loginId, setLoginId] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+
+  // 회원가입 폼 상태
+  const [signUpForm, setSignUpForm] = useState({
+    userId: '',
+    name: '',
+    emailPrefix: '',
+    emailDomain: 'kakaocorp.com',
+    password: '',
+    passwordConfirm: '',
+  });
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
 
   const [cart, setCart] = useState<Game[]>([]);
   const [rentalDays, setRentalDays] = useState<number>(7);
@@ -265,15 +279,15 @@ export default function MainPage() {
 
   const removeFromCart = (gameId: string) => setCart(cart.filter((item: Game) => item.gameId !== gameId));
 
-  // 🔴 [핵심 제약 조건 적용] 대여 중 + 대여신청 건수 + 이번 대여 건수 > 3개 초과 시 대여 차단
+  // 🔴 빌드 에러 해결된 대여 처리 함수
   const processCheckout = async () => {
     if (!currentUser) return;
 
-    // 1. 현재 사용자가 이미 대여중이거나 대여신청한 수량 계산
-    const activeRentalsCount = rentals.filter((r: Rental) => 
-      r.userId === currentUser.userId && 
-      (r.status === '대여중' || r.status === '대여신청' || r.status === '승인대기')
-    ).length;
+    // 1. 현재 사용자가 이미 대여중이거나 대여신청한 수량 계산 (Includes 구문으로 TS2367 방지)
+    const activeRentalsCount = rentals.filter((r: Rental) => {
+      const activeStatuses: string[] = ['대여중', '대여신청', '승인대기'];
+      return r.userId === currentUser.userId && activeStatuses.includes(r.status);
+    }).length;
 
     // 2. 현재 수량 + 장바구니 수량이 3개를 초과하는지 검증
     if (activeRentalsCount + cart.length > 3) {
@@ -353,7 +367,69 @@ export default function MainPage() {
     e.preventDefault();
     const user = users.find((u) => u.userId === loginId.trim().toLowerCase() && u.passwordHash === loginPassword);
     if (!user) { alert('아이디 또는 비밀번호 오류'); return; }
-    setCurrentUser(user); localStorage.setItem('kakao_boardgame_user', JSON.stringify(user));
+    
+    await supabase.from('users').update({ last_login_at: today }).eq('user_id', user.userId);
+    user.lastLoginAt = today;
+    
+    setCurrentUser(user); 
+    localStorage.setItem('kakao_boardgame_user', JSON.stringify(user));
+  };
+
+  const handleCheckEmail = async () => {
+    const email = `${signUpForm.emailPrefix.trim()}@${signUpForm.emailDomain}`;
+    if (!signUpForm.emailPrefix.trim()) {
+      alert('이메일 아이디를 입력해 주세요.');
+      return;
+    }
+    const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (existing) {
+      alert('이미 등록된 이메일 주소입니다.');
+      setIsEmailVerified(false);
+    } else {
+      alert('사용 가능한 이메일입니다.');
+      setIsEmailVerified(true);
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const userId = signUpForm.userId.trim().toLowerCase();
+    const name = signUpForm.name.trim();
+    const email = `${signUpForm.emailPrefix.trim()}@${signUpForm.emailDomain}`;
+    
+    if (!userId) { alert('아이디(LDAP)를 입력해 주세요.'); return; }
+    if (!name) { alert('이름을 입력해 주세요.'); return; }
+    if (!isEmailVerified) { alert('이메일 중복 확인을 진행해 주세요.'); return; }
+    if (!signUpForm.password) { alert('비밀번호를 입력해 주세요.'); return; }
+    if (signUpForm.password !== signUpForm.passwordConfirm) { alert('비밀번호가 일치하지 않습니다.'); return; }
+
+    const existingUser = users.find(u => u.userId === userId);
+    if (existingUser) { alert('이미 존재하는 아이디입니다.'); return; }
+
+    try {
+      const { error } = await supabase.from('users').insert([
+        {
+          user_id: userId,
+          name: name,
+          email: email,
+          password_hash: signUpForm.password,
+          role: '일반',
+          created_at: new Date().toISOString(),
+          last_login_at: today,
+        }
+      ]);
+
+      if (error) throw error;
+
+      alert('회원가입이 완료되었습니다! 로그인해 주세요.');
+      await fetchInitialData();
+      setAuthTab('login');
+      setLoginId(userId);
+      setLoginPassword('');
+    } catch (err: any) {
+      console.error(err);
+      alert('회원가입 실패: ' + err.message);
+    }
   };
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -477,16 +553,199 @@ export default function MainPage() {
 
   if (!mounted) return null;
 
+  // 로그인 / 회원가입 페이지 UI
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-slate-50 flex justify-center items-center p-4">
-        <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-6 text-xs">
-          <h2 className="font-bold text-center text-lg mb-4 text-slate-900">로그인</h2>
-          <form onSubmit={handleLogin} className="space-y-3">
-            <input type="text" required placeholder="아이디" value={loginId} onChange={(e) => setLoginId(e.target.value.toLowerCase())} className="w-full border border-slate-200 p-3 rounded-xl text-slate-900" />
-            <input type="password" required placeholder="비밀번호" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} className="w-full border border-slate-200 p-3 rounded-xl text-slate-900" />
-            <button type="submit" className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl cursor-pointer">로그인</button>
-          </form>
+      <div className="min-h-screen bg-slate-100 flex justify-center items-center p-4">
+        <div className="w-full max-w-sm bg-white rounded-3xl shadow-xl overflow-hidden text-xs border border-slate-100">
+          
+          {/* 노란색 브랜드 상단 배너 영역 */}
+          <div className="bg-[#FEE500] p-8 flex flex-col items-center justify-center relative">
+            <img 
+              src={LOGIN_LOGO_URL} 
+              alt="KAKAO BOARD GAMES" 
+              className="w-48 h-auto object-contain drop-shadow-sm select-none"
+              onError={(e) => {
+                (e.target as HTMLElement).style.display = 'none';
+              }}
+            />
+            <div className="text-center font-black text-slate-900 text-2xl tracking-tighter mt-2">
+              <span className="text-sky-600">KAKAO</span> BOARD GAMES
+            </div>
+          </div>
+
+          {/* 탭 헤더 (로그인 / 회원가입) */}
+          <div className="flex border-b border-slate-200 bg-white">
+            <button
+              type="button"
+              onClick={() => setAuthTab('login')}
+              className={`flex-1 py-3.5 font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                authTab === 'login'
+                  ? 'border-b-2 border-slate-900 text-slate-900 bg-white'
+                  : 'text-slate-400 bg-slate-50 hover:text-slate-600'
+              }`}
+            >
+              <LogIn size={15} /> 로그인
+            </button>
+            <button
+              type="button"
+              onClick={() => setAuthTab('signup')}
+              className={`flex-1 py-3.5 font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                authTab === 'signup'
+                  ? 'border-b-2 border-slate-900 text-slate-900 bg-white'
+                  : 'text-slate-400 bg-slate-50 hover:text-slate-600'
+              }`}
+            >
+              <UserPlus size={15} /> 회원가입
+            </button>
+          </div>
+
+          {/* 1. 로그인 폼 */}
+          {authTab === 'login' && (
+            <div className="p-6 space-y-4 bg-white">
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <label className="font-extrabold text-slate-900 block mb-1.5">아이디 (LDAP)</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="hayden.hoi"
+                    value={loginId}
+                    onChange={(e) => setLoginId(e.target.value.toLowerCase())}
+                    className="w-full border-0 bg-[#B8C2D1]/50 focus:bg-white focus:ring-2 focus:ring-slate-900 p-3.5 rounded-2xl text-slate-900 placeholder-slate-400 font-medium transition"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="font-extrabold text-slate-900">비밀번호</label>
+                    <button
+                      type="button"
+                      onClick={() => alert('관리자에게 문의해 주세요.')}
+                      className="text-[11px] text-slate-500 underline hover:text-slate-900"
+                    >
+                      비밀번호를 잊으셨나요?
+                    </button>
+                  </div>
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••••••"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    className="w-full border-0 bg-[#B8C2D1]/50 focus:bg-white focus:ring-2 focus:ring-slate-900 p-3.5 rounded-2xl text-slate-900 placeholder-slate-400 font-medium transition"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-[#0F172A] hover:bg-slate-800 text-white font-bold py-3.5 rounded-2xl cursor-pointer transition shadow-md mt-2"
+                >
+                  로그인
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* 2. 회원가입 폼 */}
+          {authTab === 'signup' && (
+            <div className="p-6 space-y-3.5 bg-white">
+              <form onSubmit={handleSignUp} className="space-y-3">
+                <div>
+                  <label className="font-extrabold text-slate-900 block mb-1">아이디 (LDAP)</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="예: new.kakao"
+                    value={signUpForm.userId}
+                    onChange={(e) => setSignUpForm({ ...signUpForm, userId: e.target.value.toLowerCase() })}
+                    className="w-full border border-slate-200 bg-white focus:ring-2 focus:ring-slate-900 p-3 rounded-xl text-slate-900 placeholder-slate-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-extrabold text-slate-900 block mb-1">이름</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="홍길동"
+                    value={signUpForm.name}
+                    onChange={(e) => setSignUpForm({ ...signUpForm, name: e.target.value })}
+                    className="w-full border border-slate-200 bg-white focus:ring-2 focus:ring-slate-900 p-3 rounded-xl text-slate-900 placeholder-slate-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-extrabold text-slate-900 block mb-1">이메일 주소</label>
+                  <div className="flex gap-1.5 items-center">
+                    <input
+                      type="text"
+                      required
+                      placeholder="이메일 아이디"
+                      value={signUpForm.emailPrefix}
+                      onChange={(e) => {
+                        setSignUpForm({ ...signUpForm, emailPrefix: e.target.value });
+                        setIsEmailVerified(false);
+                      }}
+                      className="flex-1 min-w-0 border border-slate-200 bg-white focus:ring-2 focus:ring-slate-900 p-3 rounded-xl text-slate-900 placeholder-slate-400"
+                    />
+                    <span className="text-slate-400 font-bold">@</span>
+                    <select
+                      value={signUpForm.emailDomain}
+                      onChange={(e) => {
+                        setSignUpForm({ ...signUpForm, emailDomain: e.target.value });
+                        setIsEmailVerified(false);
+                      }}
+                      className="border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-slate-900 p-3 rounded-xl text-slate-900 font-semibold cursor-pointer"
+                    >
+                      {ALLOWED_EMAIL_DOMAINS.map(domain => (
+                        <option key={domain} value={domain}>{domain}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCheckEmail}
+                    className="w-full mt-2 bg-[#0F172A] text-white font-bold py-2.5 rounded-xl cursor-pointer hover:bg-slate-800 transition"
+                  >
+                    이메일 중복 확인
+                  </button>
+                </div>
+
+                <div>
+                  <label className="font-extrabold text-slate-900 block mb-1">비밀번호</label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="비밀번호 입력"
+                    value={signUpForm.password}
+                    onChange={(e) => setSignUpForm({ ...signUpForm, password: e.target.value })}
+                    className="w-full border border-slate-200 bg-white focus:ring-2 focus:ring-slate-900 p-3 rounded-xl text-slate-900 placeholder-slate-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-extrabold text-slate-900 block mb-1">비밀번호 확인</label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="비밀번호 재입력"
+                    value={signUpForm.passwordConfirm}
+                    onChange={(e) => setSignUpForm({ ...signUpForm, passwordConfirm: e.target.value })}
+                    className="w-full border border-slate-200 bg-white focus:ring-2 focus:ring-slate-900 p-3 rounded-xl text-slate-900 placeholder-slate-400"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-[#DCE2EC] text-slate-600 font-bold py-3.5 rounded-2xl cursor-pointer hover:bg-slate-900 hover:text-white transition shadow-sm mt-2"
+                >
+                  가입 완료하기
+                </button>
+              </form>
+            </div>
+          )}
+
         </div>
       </div>
     );

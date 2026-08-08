@@ -1,13 +1,19 @@
-@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 @import "tailwindcss";
 
-/* 💡 카카오 공식 웹폰트 @font-face 직접 선언 (사파리 CORS/최적화 블록 완전 우회) */
+/* 1. 실제 보유하신 3개의 카카오 폰트 파일 매핑 (public/fonts/ 위치 기준) */
+@font-face {
+  font-family: 'Kakao';
+  font-style: normal;
+  font-weight: 300;
+  src: url('/fonts/KakaoLight.woff2') format('woff2');
+  font-display: swap;
+}
+
 @font-face {
   font-family: 'Kakao';
   font-style: normal;
   font-weight: 400;
-  src: url('https://t1.daumcdn.net/kakao_game/kakao/font/KakaoRegular.woff2') format('woff2'),
-       url('https://t1.daumcdn.net/kakao_game/kakao/font/KakaoRegular.woff') format('woff');
+  src: url('/fonts/KakaoRegular.woff2') format('woff2');
   font-display: swap;
 }
 
@@ -15,28 +21,27 @@
   font-family: 'Kakao';
   font-style: normal;
   font-weight: 700;
-  src: url('https://t1.daumcdn.net/kakao_game/kakao/font/KakaoBold.woff2') format('woff2'),
-       url('https://t1.daumcdn.net/kakao_game/kakao/font/KakaoBold.woff') format('woff');
+  src: url('/fonts/KakaoBold.woff2') format('woff2');
   font-display: swap;
 }
 
+/* KakaoBig을 사용하는 곳이 있다면 KakaoBold로 호환되도록 설정 */
 @font-face {
   font-family: 'KakaoBig';
   font-style: normal;
   font-weight: 700;
-  src: url('https://t1.daumcdn.net/kakao_game/kakao/font/KakaoBigBold.woff2') format('woff2'),
-       url('https://t1.daumcdn.net/kakao_game/kakao/font/KakaoBigBold.woff') format('woff');
+  src: url('/fonts/KakaoBold.woff2') format('woff2');
   font-display: swap;
 }
 
-/* Tailwind v4 폰트 시스템 덮어쓰기 */
+/* 2. Tailwind v4 기본 폰트 등록 */
 @theme {
-  --font-sans: 'Kakao', 'KakaoBig', 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+  --font-sans: 'Kakao', 'KakaoBig', -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
 }
 
-/* 사파리 폰트 강제 적용 및 렌더링 최적화 */
+/* 3. 사파리 전체 렌더링 적용 */
 html, body {
-  font-family: 'Kakao', 'KakaoBig', 'Pretendard Variable', Pretendard, -apple-system, sans-serif !important;
+  font-family: 'Kakao', 'KakaoBig', -apple-system, BlinkMacSystemFont, sans-serif !important;
   width: 100%;
   height: 100%;
   margin: 0;
@@ -46,8 +51,9 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* 모든 자식 요소(버튼, 입력창 등)까지 폰트 강제 상속 */
 *, ::after, ::before, button, input, select, textarea {
-  font-family: 'Kakao', 'KakaoBig', 'Pretendard Variable', Pretendard, -apple-system, sans-serif !important;
+  font-family: 'Kakao', 'KakaoBig', -apple-system, BlinkMacSystemFont, sans-serif !important;
   box-sizing: border-box;
 }
 

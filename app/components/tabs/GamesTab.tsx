@@ -37,7 +37,7 @@ const StarRating = memo(({ rating = 0, size = 12, colorClass = "text-rose-500" }
 });
 StarRating.displayName = 'StarRating';
 
-// 🔻 [핵심] 탭 이동 시에도 초기 셔플 순서를 유지하기 위한 모듈 캐시 변수
+// 셔플 캐시 변수
 let cachedShuffledGames: Game[] | null = null;
 let lastGamesLength = 0;
 
@@ -55,11 +55,10 @@ export const GamesTab = memo(({
   const isFilterActive = playerFilter > 0 || genreFilter !== '' || difficultyFilter !== 'all';
   const resetFilters = () => { setPlayerFilter(0); setGenreFilter(''); setDifficultyFilter('all'); };
 
-  // 🔻 [수정] 새로고침(페이지 리로드) 시에만 새로 섞고, 탭 이동 시에는 캐시된 셔플 배열 유지
+  // 초기 셔플 배열 유지
   const randomizedGames = useMemo(() => {
     if (!games || games.length === 0) return [];
     
-    // 게임 데이터 개수가 바뀌었거나(최초 데이터 로드) 캐시가 없을 때만 딱 1번 셔플
     if (!cachedShuffledGames || lastGamesLength !== games.length) {
       const array = [...games];
       for (let i = array.length - 1; i > 0; i--) {
@@ -160,6 +159,7 @@ export const GamesTab = memo(({
           <div className="text-center py-12 border border-dashed border-slate-300/40 text-slate-400 rounded-2xl w-full text-xs">보드게임이 없습니다.</div>
         ) : (
           filteredGameList.map((game: Game) => {
+            // 🔴 게임의 status가 '대여가능'인지 직관적으로 판단
             const isAvailable = game.status === '대여가능';
             const isSelectedInCart = cart.some((item: Game) => item.gameId === game.gameId);
             const isFav = userFavorites.includes(game.gameId);
@@ -201,10 +201,16 @@ export const GamesTab = memo(({
                     <button onClick={() => toggleFavorite(game.gameId)} className="p-1.5 rounded-xl font-bold border cursor-pointer border-slate-200 bg-slate-50 flex items-center justify-center">
                       <Heart size={16} className={isFav ? "fill-rose-500 text-rose-500" : "text-slate-400"} />
                     </button>
+                    
+                    {/* 🔴 대여 가능 여부에 따라 버튼 / 뱃지 노출 */}
                     {isAvailable ? (
-                      <button onClick={() => toggleCartItem(game)} className={`px-3.5 py-1.5 rounded-xl font-bold text-xs cursor-pointer ${isSelectedInCart ? 'bg-slate-900 text-white' : 'bg-[#FEE500] text-slate-900'}`}>{isSelectedInCart ? '선택취소' : '대여가능'}</button>
+                      <button onClick={() => toggleCartItem(game)} className={`px-3.5 py-1.5 rounded-xl font-bold text-xs cursor-pointer ${isSelectedInCart ? 'bg-slate-900 text-white' : 'bg-[#FEE500] text-slate-900'}`}>
+                        {isSelectedInCart ? '선택취소' : '대여가능'}
+                      </button>
                     ) : (
-                      <span className="px-2.5 py-1 rounded-xl font-bold border inline-block text-xs bg-slate-100 text-slate-500 border-slate-200/80">대여중</span>
+                      <span className="px-2.5 py-1 rounded-xl font-bold border inline-block text-xs bg-slate-100 text-slate-500 border-slate-200/80">
+                        대여중
+                      </span>
                     )}
                   </div>
                 </div>

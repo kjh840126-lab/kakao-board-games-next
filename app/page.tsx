@@ -230,7 +230,7 @@ export default function MainPage() {
 
   const removeFromCart = (gameId: string) => setCart(cart.filter((item: Game) => item.gameId !== gameId));
 
-  // 🔴 [핵심 로직] 대여 즉시 0초 만에 '대여중' 뱃지 변경 처리
+  // 🔴 대여 즉시 화면 0초 변경
   const processCheckout = async () => {
     if (!currentUser) return;
 
@@ -254,26 +254,20 @@ export default function MainPage() {
     }));
 
     try {
-      // 1) Supabase rentals 테이블 추가
+      // 1) DB 저장
       const { data: insertedData, error: rentalError } = await supabase.from('rentals').insert(newRentalsToInsert).select();
       if (rentalError) throw rentalError;
 
-      // 2) Supabase games 테이블 '대여중'으로 상태 업데이트
       const { error: gameError } = await supabase.from('games').update({ status: '대여중' }).in('game_id', cartGameIds);
       if (gameError) throw gameError;
 
-      // ⚡ 3) [핵심] 리액트 메모리상의 games State를 즉시 '대여중'으로 변환 (0초 변경)
-      const updatedGames = games.map(game => 
-        cartGameIds.includes(game.gameId) ? { ...game, status: '대여중' as GameStatus } : game
+      // ⚡ 2) UI 상태 즉시 변경 (0초 반영)
+      setGames(prevGames => 
+        prevGames.map(game => 
+          cartGameIds.includes(game.gameId) ? { ...game, status: '대여중' as GameStatus } : game
+        )
       );
-      setGames(updatedGames);
 
-      // ⚡ 4) [핵심] 구형 브라우저 캐시가 재조회 전 화면을 덮어쓰지 않게 캐시도 즉시 업데이트
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('kakao_bg_games_cache', JSON.stringify(updatedGames));
-      }
-
-      // ⚡ 5) 내 대여 목록(rentals)에도 즉시 추가
       if (insertedData) {
         const mappedNewRentals: Rental[] = insertedData.map(r => ({
           rentalId: r.rental_id, userId: r.user_id, gameId: r.game_id, gameTitle: r.game_title, status: r.status, startDate: r.start_date, endDate: r.end_date, returnedAt: r.returned_at
@@ -284,9 +278,6 @@ export default function MainPage() {
       alert(`보드게임 ${cart.length}건이 ${rentalDays}일간 대여되었습니다.`); 
       setCart([]); 
       setIsCartOpen(false);
-
-      // 6) DB 최신화
-      fetchInitialData(); 
     } catch (err: any) {
       alert('대여 처리 중 오류가 발생했습니다: ' + (err.message || err));
     }
@@ -342,12 +333,9 @@ export default function MainPage() {
     e.preventDefault();
     const user = users.find((u) => u.userId === loginId.trim().toLowerCase() && u.passwordHash === loginPassword);
     if (!user) { alert('아이디 또는 비밀번호 오류'); return; }
-    
     await supabase.from('users').update({ last_login_at: today }).eq('user_id', user.userId);
     user.lastLoginAt = today;
-    
-    setCurrentUser(user); 
-    localStorage.setItem('kakao_boardgame_user', JSON.stringify(user));
+    setCurrentUser(user); localStorage.setItem('kakao_boardgame_user', JSON.stringify(user));
   };
 
   const handleCheckEmail = async () => {
@@ -363,7 +351,6 @@ export default function MainPage() {
     const userId = signUpForm.userId.trim().toLowerCase();
     const name = signUpForm.name.trim();
     const email = `${signUpForm.emailPrefix.trim()}@${signUpForm.emailDomain}`;
-    
     if (!userId || !name) { alert('아이디와 이름을 확인하세요.'); return; }
     if (!isEmailVerified) { alert('이메일 중복 확인을 해주세요.'); return; }
     if (signUpForm.password !== signUpForm.passwordConfirm) { alert('비밀번호가 일치하지 않습니다.'); return; }
@@ -466,7 +453,6 @@ export default function MainPage() {
 
   if (!mounted) return null;
 
-  // 1. 비로그인 -> 로그인/회원가입 전용 화면
   if (!currentUser) {
     return (
       <AuthScreen 
@@ -488,7 +474,6 @@ export default function MainPage() {
     );
   }
 
-  // 2. 로그인 완료 -> 메인 서비스 화면
   return (
     <div className="min-h-screen w-full relative bg-white text-slate-900 text-xs">
       <FixedHeader isHeaderAdminTheme={isHeaderAdminTheme} isIosDevice={isIosDevice} currentUser={currentUser} today={today} unreadReportsCount={unreadReportsCount} setIsAdminReportDrawerOpen={setIsAdminReportDrawerOpen} setIsSettingsOpen={setIsSettingsOpen} headerRef={headerRef} />

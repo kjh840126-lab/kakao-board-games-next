@@ -6,7 +6,6 @@ import { Search, Filter, Bell, ChevronRight, X, Heart, Clock, Brain, Users as Pl
 
 const PRESET_GENRES = ['전략게임', '파티게임', '추상전략', '타일 놓기', '카드게임', '가족게임', '협동게임', '마피아'];
 
-// BGG 공식 마스코트 SVG 컴포넌트 (주황색)
 const BggIcon = memo(({ size = 12, className = "" }: { size?: number; className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 114 165" fill="none" xmlns="http://www.w3.org/2000/svg" className={`inline-block flex-shrink-0 ${className}`}>
     <path d="M102.1 0L10.7 27.2L0 83.5L25.3 165L92.1 140.2L113.8 83.8L93.7 28.5L102.1 0Z" fill="#FF5100" />
@@ -14,7 +13,6 @@ const BggIcon = memo(({ size = 12, className = "" }: { size?: number; className?
 ));
 BggIcon.displayName = 'BggIcon';
 
-// 별점 컴포넌트
 const StarRating = memo(({ rating = 0, size = 12, colorClass = "text-rose-500" }: { rating?: number; size?: number; colorClass?: string }) => {
   const safeRating = Number(rating) || 0;
   return (
@@ -37,10 +35,6 @@ const StarRating = memo(({ rating = 0, size = 12, colorClass = "text-rose-500" }
 });
 StarRating.displayName = 'StarRating';
 
-// 셔플 캐시 변수
-let cachedShuffledGames: Game[] | null = null;
-let lastGamesLength = 0;
-
 export const GamesTab = memo(({
   games, rentals, userFavorites, allRatings, currentUser, today, isIosDevice, isLargeFont,
   recentNoticesList, noticeIndex, isNoticeTransition, handleNoticeClick,
@@ -55,28 +49,12 @@ export const GamesTab = memo(({
   const isFilterActive = playerFilter > 0 || genreFilter !== '' || difficultyFilter !== 'all';
   const resetFilters = () => { setPlayerFilter(0); setGenreFilter(''); setDifficultyFilter('all'); };
 
-  // 초기 셔플 배열 유지
-  const randomizedGames = useMemo(() => {
-    if (!games || games.length === 0) return [];
-    
-    if (!cachedShuffledGames || lastGamesLength !== games.length) {
-      const array = [...games];
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      cachedShuffledGames = array;
-      lastGamesLength = games.length;
-    }
-    
-    return cachedShuffledGames;
-  }, [games]);
-
+  // ⚡ 캐시 변수 박아두던 문제 원인 제거 -> props로 들어오는 games를 직접 필터링
   const filteredGameList = useMemo(() => {
-    if (!randomizedGames || randomizedGames.length === 0) return [];
+    if (!games || games.length === 0) return [];
     const query = gameListSearch.trim().toLowerCase();
     
-    return randomizedGames.filter((g: Game) => {
+    return games.filter((g: Game) => {
       if (g.isVisible !== 'Y') return false;
       if (query && !g.title.toLowerCase().includes(query)) return false;
       if (playerFilter > 0) {
@@ -91,7 +69,7 @@ export const GamesTab = memo(({
       }
       return true;
     });
-  }, [randomizedGames, gameListSearch, playerFilter, genreFilter, difficultyFilter]);
+  }, [games, gameListSearch, playerFilter, genreFilter, difficultyFilter]);
 
   return (
     <div className="space-y-4 mt-0.5 w-full">
@@ -159,7 +137,7 @@ export const GamesTab = memo(({
           <div className="text-center py-12 border border-dashed border-slate-300/40 text-slate-400 rounded-2xl w-full text-xs">보드게임이 없습니다.</div>
         ) : (
           filteredGameList.map((game: Game) => {
-            // 🔴 게임의 status가 '대여가능'인지 직관적으로 판단
+            // ⚡ game.status 판단
             const isAvailable = game.status === '대여가능';
             const isSelectedInCart = cart.some((item: Game) => item.gameId === game.gameId);
             const isFav = userFavorites.includes(game.gameId);
@@ -202,7 +180,7 @@ export const GamesTab = memo(({
                       <Heart size={16} className={isFav ? "fill-rose-500 text-rose-500" : "text-slate-400"} />
                     </button>
                     
-                    {/* 🔴 대여 가능 여부에 따라 버튼 / 뱃지 노출 */}
+                    {/* ⚡ 상태가 '대여가능'일 때만 대여버튼, '대여중'이면 즉시 대여중 뱃지 출력 */}
                     {isAvailable ? (
                       <button onClick={() => toggleCartItem(game)} className={`px-3.5 py-1.5 rounded-xl font-bold text-xs cursor-pointer ${isSelectedInCart ? 'bg-slate-900 text-white' : 'bg-[#FEE500] text-slate-900'}`}>
                         {isSelectedInCart ? '선택취소' : '대여가능'}

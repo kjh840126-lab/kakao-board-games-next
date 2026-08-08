@@ -7,13 +7,12 @@ import {
 } from 'lucide-react';
 
 const IOS_CONFIG = {
-  HEADER_LOGO_HEIGHT: 'h-11',         
+  HEADER_LOGO_HEIGHT: 'h-9',         
   HEADER_ICON_SIZE: 22,               
   HEADER_USER_TEXT_SIZE: 'text-sm',   
   HEADER_BADGE_TEXT_SIZE: 'text-xs',  
   NAV_ICON_SIZE: 24,                  
   NAV_TEXT_SIZE: 'text-xs',           
-  NAV_PADDING_BOTTOM: 'pb-[max(12px,env(safe-area-inset-bottom))]', 
 };
 
 export const FixedHeader = memo(({ 
@@ -26,7 +25,6 @@ export const FixedHeader = memo(({
   setIsSettingsOpen, 
   headerRef
 }: any) => {
-  // 🔻 패널티 수치를 Number()로 안전 판별
   const penaltyScore = Number(currentUser?.penaltyPoints || 0);
   const hasPenaltyPoints = penaltyScore > 0;
   const isPenaltyActive = currentUser?.penaltyEndDate && String(currentUser.penaltyEndDate) >= String(today);
@@ -59,7 +57,6 @@ export const FixedHeader = memo(({
               <span>{currentUser?.userId}</span>
             </div>
 
-            {/* 패널티가 1점 이상이면 무조건 빨간색 뱃지 노출 */}
             {hasPenaltyPoints && (
               <span className={`bg-rose-600 text-white px-1.5 py-0.5 rounded-md flex items-center gap-0.5 font-extrabold shadow-sm ${
                 isIosDevice ? IOS_CONFIG.HEADER_BADGE_TEXT_SIZE : 'text-[10px]'
@@ -68,7 +65,6 @@ export const FixedHeader = memo(({
               </span>
             )}
 
-            {/* 대여불가 유효기간 조건만 맞으면 연분홍 뱃지 노출 */}
             {isPenaltyActive && (
               <span className={`text-rose-700 font-extrabold bg-rose-100 px-1.5 py-0.5 rounded-md border border-rose-200 ${
                 isIosDevice ? IOS_CONFIG.HEADER_BADGE_TEXT_SIZE : 'text-[10px]'
@@ -109,6 +105,7 @@ export const FixedHeader = memo(({
 });
 FixedHeader.displayName = 'FixedHeader';
 
+// ⚡ 하단 네비게이션 fixed 속성을 풀어 일반 하단 배치로 변경
 export const FixedBottomNav = memo(({ 
   isDarkMode, 
   isIosDevice, 
@@ -120,21 +117,11 @@ export const FixedBottomNav = memo(({
   return (
     <nav 
       style={{ fontSize: '11px' }}
-      /* 🔻 상단 구분선 border-t border-slate-200/80 추가 */
-      className={`fixed -bottom-[1px] left-0 right-0 w-full z-40 shadow-lg transition-colors border-t ${
+      className={`w-full z-30 transition-colors border-t mt-auto ${
         isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200/80'
-      } ${isIosDevice ? IOS_CONFIG.NAV_PADDING_BOTTOM : 'pb-[calc(env(safe-area-inset-bottom,0px)+12px)]'}`}
+      } pb-6 pt-2.5`}
     >
-      {isIosDevice && (
-        <div 
-          aria-hidden="true"
-          className={`absolute left-0 right-0 -bottom-[100px] h-[100px] pointer-events-none z-0 ${
-            isDarkMode ? 'bg-slate-900' : 'bg-white'
-          }`} 
-        />
-      )}
-
-      <div className="flex justify-around px-2 pt-2.5 pb-2 relative z-10">
+      <div className="flex justify-around px-2 relative z-10">
         <button type="button" onClick={() => handleTabChange('games')} className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${activeTab === 'games' ? isDarkMode ? 'text-white' : 'text-slate-900' : 'text-slate-400'}`}>
           <Boxes size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
           <span className="mt-1">대여</span>

@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
-/* 1. 실제 보유하신 3개의 카카오 폰트 파일 매핑 (public/fonts/ 위치 기준) */
+/* 1. 카카오 폰트 매핑 (font-display: block 적용으로 깜빡임 방지) */
 @font-face {
   font-family: 'Kakao';
   font-style: normal;
   font-weight: 300;
   src: url('/fonts/KakaoLight.woff2') format('woff2');
-  font-display: swap;
+  font-display: block;
 }
 
 @font-face {
@@ -14,7 +14,7 @@
   font-style: normal;
   font-weight: 400;
   src: url('/fonts/KakaoRegular.woff2') format('woff2');
-  font-display: swap;
+  font-display: block;
 }
 
 @font-face {
@@ -22,16 +22,15 @@
   font-style: normal;
   font-weight: 700;
   src: url('/fonts/KakaoBold.woff2') format('woff2');
-  font-display: swap;
+  font-display: block;
 }
 
-/* KakaoBig을 사용하는 곳이 있다면 KakaoBold로 호환되도록 설정 */
 @font-face {
   font-family: 'KakaoBig';
   font-style: normal;
   font-weight: 700;
   src: url('/fonts/KakaoBold.woff2') format('woff2');
-  font-display: swap;
+  font-display: block;
 }
 
 /* 2. Tailwind v4 기본 폰트 등록 */
@@ -39,7 +38,7 @@
   --font-sans: 'Kakao', 'KakaoBig', -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
 }
 
-/* 3. 사파리 전체 렌더링 적용 */
+/* 3. 전체 렌더링 적용 */
 html, body {
   font-family: 'Kakao', 'KakaoBig', -apple-system, BlinkMacSystemFont, sans-serif !important;
   width: 100%;
@@ -51,24 +50,20 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* 모든 자식 요소(버튼, 입력창 등)까지 폰트 강제 상속 */
 *, ::after, ::before, button, input, select, textarea {
   font-family: 'Kakao', 'KakaoBig', -apple-system, BlinkMacSystemFont, sans-serif !important;
   box-sizing: border-box;
 }
 
-/* 폰트 크게 모드 설정 시 전체 rem 단위를 115%로 확장 */
 html.text-large {
   font-size: 115% !important;
 }
 
-/* 라이트 모드 카드의 글자색 강제 진하게 고정 */
 html:not(.dark) main h3,
 html:not(.dark) main h4 {
   color: #0f172a !important;
 }
 
-/* 스크롤바 숨김 */
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }

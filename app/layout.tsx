@@ -17,7 +17,7 @@ export default function RootLayout({
       <head>
         <meta id="theme-color-meta" name="theme-color" content="#FEE500" />
       </head>
-      <body className="antialiased" suppressHydrationWarning>
+      <body className="antialiased select-none" suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>

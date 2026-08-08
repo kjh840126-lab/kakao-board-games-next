@@ -13,7 +13,7 @@ import { AdminTab } from './components/tabs/AdminTab';
 import { AuthScreen } from './components/AuthScreen';
 import { ModalsContainer } from './components/ModalsContainer';
 
-import { ShoppingCart, Star, RefreshCw } from 'lucide-react';
+import { ShoppingCart, Star } from 'lucide-react';
 
 const ALLOWED_EMAIL_DOMAINS = ['kakaocorp.com', 'kakaoenterprise.com', 'kakaomobility.com', 'kakaopaycorp.com', 'kakaoent.com'];
 const LOGIN_LOGO_URL = '/logo.png';
@@ -114,47 +114,6 @@ export default function MainPage() {
 
   const [isIosDevice, setIsIosDevice] = useState(false);
   const scrollPositions = useRef<{ [key: string]: number }>({ games: 0, returns: 0, ranking: 0, sites: 0, admin: 0 });
-
-  // ⚡ [전체 탭 공통] 당겨서 새로고침 터치 이벤트 상태
-  const [pullDistance, setPullDistance] = useState(0);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const touchStartY = useRef(0);
-  const isPulling = useRef(false);
-  const PULL_THRESHOLD = 70; // 당기는 높이 기준 (px)
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (window.scrollY === 0) {
-      touchStartY.current = e.touches[0].clientY;
-      isPulling.current = true;
-    }
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isPulling.current || isRefreshing || window.scrollY > 0) return;
-    const currentY = e.touches[0].clientY;
-    const diff = currentY - touchStartY.current;
-
-    if (diff > 0) {
-      const dampedDistance = Math.min(diff * 0.4, PULL_THRESHOLD + 20);
-      setPullDistance(dampedDistance);
-    }
-  };
-
-  const handleTouchEnd = async () => {
-    if (!isPulling.current) return;
-    isPulling.current = false;
-
-    if (pullDistance >= PULL_THRESHOLD && !isRefreshing) {
-      setIsRefreshing(true);
-      setPullDistance(50);
-
-      // ⚡ 어느 탭에 있든 본문 데이터 전체 재조회 (상·하단 네비 고정)
-      await fetchInitialData();
-
-      setIsRefreshing(false);
-    }
-    setPullDistance(0);
-  };
 
   useEffect(() => {
     setMounted(true);
@@ -512,28 +471,15 @@ export default function MainPage() {
 
   return (
     <div className="min-h-screen w-full relative bg-white text-slate-900 text-xs">
+      {/* 📌 상단 네비게이션 fixed 고정 */}
       <FixedHeader isHeaderAdminTheme={isHeaderAdminTheme} isIosDevice={isIosDevice} currentUser={currentUser} today={today} unreadReportsCount={unreadReportsCount} setIsAdminReportDrawerOpen={setIsAdminReportDrawerOpen} setIsSettingsOpen={setIsSettingsOpen} headerRef={headerRef} />
 
-      {/* ⚡ 본문 <main> 전체에 당겨서 새로고침 터치 이벤트 등록 */}
+      {/* 📌 가변 본문 스크롤 영역 */}
       <main 
         ref={mainScrollRef} 
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
         style={{ paddingTop: isLargeFont ? (isIosDevice ? '122px' : '110px') : (isIosDevice ? '104px' : '92px'), paddingBottom: '80px' }} 
         className="w-full py-4 px-4 bg-white text-slate-900 text-xs transition-all relative"
       >
-        {/* ⚡ 공통 당겨서 새로고침 인디케이터 (상단 헤더 아래 본문 시작 위치) */}
-        <div 
-          className="flex justify-center items-center overflow-hidden transition-all duration-200"
-          style={{ height: `${pullDistance}px`, opacity: pullDistance / PULL_THRESHOLD }}
-        >
-          <div className="bg-slate-900 text-white p-2 rounded-full shadow-md flex items-center gap-1.5 px-3 text-[11px] font-bold">
-            <RefreshCw size={14} className={isRefreshing ? "animate-spin text-[#FEE500]" : ""} />
-            <span>{isRefreshing ? "데이터 업데이트 중..." : pullDistance >= PULL_THRESHOLD ? "놓아서 새로고침" : "당겨서 새로고침"}</span>
-          </div>
-        </div>
-
         <div className={activeTab === 'games' ? 'block' : 'hidden'}>
           <GamesTab games={games} rentals={rentals} userFavorites={userFavorites} allRatings={allRatings} currentUser={currentUser} today={today} isIosDevice={isIosDevice} isLargeFont={isLargeFont} recentNoticesList={recentNoticesList} noticeIndex={noticeIndex} isNoticeTransition={isNoticeTransition} handleNoticeClick={handleNoticeClick} toggleCartItem={toggleCartItem} toggleFavorite={toggleFavorite} cart={cart} setRatingModalGame={setRatingModalGame} setSelectedScore={setSelectedScore} />
         </div>
@@ -569,6 +515,7 @@ export default function MainPage() {
         isSiteModalOpen={isSiteModalOpen} setIsSiteModalOpen={setIsSiteModalOpen} editingSite={editingSite} setEditingSite={setEditingSite} saveSite={saveSite}
       />
 
+      {/* 📌 하단 네비게이션 fixed 고정 */}
       <FixedBottomNav isIosDevice={isIosDevice} activeTab={activeTab} isAdmin={isAdmin} unreadReportsCount={unreadReportsCount} handleTabChange={handleTabChange} />
     </div>
   );

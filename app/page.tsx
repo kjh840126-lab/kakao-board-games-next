@@ -265,13 +265,42 @@ export default function MainPage() {
 
   const removeFromCart = (gameId: string) => setCart(cart.filter((item: Game) => item.gameId !== gameId));
 
+  // 🔴 [핵심 제약 조건 적용] 대여 중 + 대여신청 건수 + 이번 대여 건수 > 3개 초과 시 대여 차단
   const processCheckout = async () => {
     if (!currentUser) return;
-    const endDate = new Date(); endDate.setDate(endDate.getDate() + rentalDays); const endDateStr = endDate.toISOString().split('T')[0];
-    const newRentals = cart.map((game: Game) => ({ user_id: currentUser.userId, game_id: game.gameId, game_title: game.title, status: '대여중', start_date: today, end_date: endDateStr }));
+
+    // 1. 현재 사용자가 이미 대여중이거나 대여신청한 수량 계산
+    const activeRentalsCount = rentals.filter((r: Rental) => 
+      r.userId === currentUser.userId && 
+      (r.status === '대여중' || r.status === '대여신청' || r.status === '승인대기')
+    ).length;
+
+    // 2. 현재 수량 + 장바구니 수량이 3개를 초과하는지 검증
+    if (activeRentalsCount + cart.length > 3) {
+      alert(`1인당 최대 3개까지만 대여(신청 포함)가 가능합니다.\n현재 대여/신청 중: ${activeRentalsCount}개 / 장바구니: ${cart.length}개`);
+      return;
+    }
+
+    const endDate = new Date(); 
+    endDate.setDate(endDate.getDate() + rentalDays); 
+    const endDateStr = endDate.toISOString().split('T')[0];
+    
+    const newRentals = cart.map((game: Game) => ({ 
+      user_id: currentUser.userId, 
+      game_id: game.gameId, 
+      game_title: game.title, 
+      status: '대여중', 
+      start_date: today, 
+      end_date: endDateStr 
+    }));
+
     await supabase.from('rentals').insert(newRentals);
     await supabase.from('games').update({ status: '대여중' }).in('game_id', cart.map((g: Game) => g.gameId));
-    alert(`보드게임 ${cart.length}건이 ${rentalDays}일간 대여되었습니다.`); await fetchInitialData(); setCart([]); setIsCartOpen(false);
+    
+    alert(`보드게임 ${cart.length}건이 ${rentalDays}일간 대여되었습니다.`); 
+    await fetchInitialData(); 
+    setCart([]); 
+    setIsCartOpen(false);
   };
 
   const returnGame = async (rentalId: number, gameId: string) => {
@@ -443,7 +472,6 @@ export default function MainPage() {
 
   const calculateEndDate = () => { const d = new Date(); d.setDate(d.getDate() + rentalDays); return d.toISOString().split('T')[0]; };
   
-  // 🔻 타입 단언을 통해 '마스터' / '관리자' 체크 타입 에러 방지
   const isAdmin = (currentUser?.role as string) === '관리자' || (currentUser?.role as string) === '마스터';
   const unreadReportsCount = reports.filter((r: ReportData) => !r.isRead).length;
 

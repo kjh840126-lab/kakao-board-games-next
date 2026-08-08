@@ -279,7 +279,7 @@ export default function MainPage() {
 
   const removeFromCart = (gameId: string) => setCart(cart.filter((item: Game) => item.gameId !== gameId));
 
-  // 🔴 대여 수량 체크 및 알림 문구 수정 완료 (대여/신청 중 -> 대여 중)
+  // 🔴 보드게임 대여 '대여중' 상태 변경 및 수량 제한 로직 (개선 완료)
   const processCheckout = async () => {
     if (!currentUser) return;
 
@@ -289,13 +289,14 @@ export default function MainPage() {
     }).length;
 
     if (activeRentalsCount + cart.length > 3) {
-      alert(`1인당 최대 3개까지만 대여(신청 포함)가 가능합니다.\n현재 대여 중: ${activeRentalsCount}개 / 장바구니: ${cart.length}개`);
+      alert(`1인당 최대 3개까지만 대여가 가능합니다.\n현재 대여 중: ${activeRentalsCount}개 / 장바구니: ${cart.length}개`);
       return;
     }
 
     const endDate = new Date(); 
     endDate.setDate(endDate.getDate() + rentalDays); 
     const endDateStr = endDate.toISOString().split('T')[0];
+    const cartGameIds = cart.map((g: Game) => g.gameId);
     
     const newRentals = cart.map((game: Game) => ({ 
       user_id: currentUser.userId, 
@@ -306,13 +307,35 @@ export default function MainPage() {
       end_date: endDateStr 
     }));
 
-    await supabase.from('rentals').insert(newRentals);
-    await supabase.from('games').update({ status: '대여중' }).in('game_id', cart.map((g: Game) => g.gameId));
-    
-    alert(`보드게임 ${cart.length}건이 ${rentalDays}일간 대여되었습니다.`); 
-    await fetchInitialData(); 
-    setCart([]); 
-    setIsCartOpen(false);
+    try {
+      // 1) rentals 신규 추가
+      const { error: rentalError } = await supabase.from('rentals').insert(newRentals);
+      if (rentalError) throw rentalError;
+
+      // 2) games 테이블의 status를 '대여중'으로 일괄 변경
+      const { error: gameError } = await supabase
+        .from('games')
+        .update({ status: '대여중' })
+        .in('game_id', cartGameIds);
+
+      if (gameError) throw gameError;
+
+      // 3) 브라우저 화면의 State를 즉시 '대여중'으로 업데이트
+      setGames(prevGames => 
+        prevGames.map(game => 
+          cartGameIds.includes(game.gameId) ? { ...game, status: '대여중' } : game
+        )
+      );
+
+      alert(`보드게임 ${cart.length}건이 ${rentalDays}일간 대여되었습니다.`); 
+      
+      setCart([]); 
+      setIsCartOpen(false);
+      await fetchInitialData(); 
+    } catch (err: any) {
+      console.error('대여 처리 실패:', err);
+      alert('대여 처리 중 오류가 발생했습니다: ' + (err.message || err));
+    }
   };
 
   const returnGame = async (rentalId: number, gameId: string) => {

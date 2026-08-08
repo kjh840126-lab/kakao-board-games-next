@@ -13,6 +13,7 @@ const IOS_CONFIG = {
   HEADER_BADGE_TEXT_SIZE: 'text-xs',  
   NAV_ICON_SIZE: 24,                  
   NAV_TEXT_SIZE: 'text-xs',           
+  NAV_PADDING_BOTTOM: 'pb-[max(12px,env(safe-area-inset-bottom))]', 
 };
 
 export const FixedHeader = memo(({ 
@@ -105,7 +106,7 @@ export const FixedHeader = memo(({
 });
 FixedHeader.displayName = 'FixedHeader';
 
-// ⚡ 하단 네비게이션 fixed 속성을 풀어 일반 하단 배치로 변경
+// ⚡ 하단 네비게이션을 화면 하단 고정(fixed bottom-0)으로 복구
 export const FixedBottomNav = memo(({ 
   isDarkMode, 
   isIosDevice, 
@@ -117,11 +118,20 @@ export const FixedBottomNav = memo(({
   return (
     <nav 
       style={{ fontSize: '11px' }}
-      className={`w-full z-30 transition-colors border-t mt-auto ${
+      className={`fixed bottom-0 left-0 right-0 w-full z-40 shadow-lg transition-colors border-t ${
         isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200/80'
-      } pb-6 pt-2.5`}
+      } ${isIosDevice ? IOS_CONFIG.NAV_PADDING_BOTTOM : 'pb-[calc(env(safe-area-inset-bottom,0px)+12px)]'}`}
     >
-      <div className="flex justify-around px-2 relative z-10">
+      {isIosDevice && (
+        <div 
+          aria-hidden="true"
+          className={`absolute left-0 right-0 -bottom-[100px] h-[100px] pointer-events-none z-0 ${
+            isDarkMode ? 'bg-slate-900' : 'bg-white'
+          }`} 
+        />
+      )}
+
+      <div className="flex justify-around px-2 pt-2.5 pb-2 relative z-10">
         <button type="button" onClick={() => handleTabChange('games')} className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${activeTab === 'games' ? isDarkMode ? 'text-white' : 'text-slate-900' : 'text-slate-400'}`}>
           <Boxes size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
           <span className="mt-1">대여</span>

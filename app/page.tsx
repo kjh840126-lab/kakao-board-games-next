@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { supabase } from './supabaseClient';
-import { useTheme } from './providers';
 import { UserData, Game, Rental, Notice, ReportData, BoardSite, UserRating, Role, GameStatus } from './types';
 import { FixedHeader, FixedBottomNav } from './components/HeaderNav';
 
@@ -20,7 +19,6 @@ import {
 const ALLOWED_EMAIL_DOMAINS = ['kakaocorp.com', 'kakaoenterprise.com', 'kakaomobility.com', 'kakaopaycorp.com', 'kakaoent.com'];
 const LOGIN_LOGO_URL = '/logo.png';
 const currentYear = new Date().getFullYear();
-
 const AVAILABLE_GENRES = ['전략게임', '파티게임', '추상전략', '타일 놓기', '카드게임', '가족게임', '협동게임', '마피아'];
 
 const checkIsIosDevice = () => {
@@ -80,7 +78,6 @@ export default function MainPage() {
   const [expandedNoticeId, setExpandedNoticeId] = useState<number | null>(null);
 
   const [currentUser, setCurrentUser] = useState<UserData | null>(null);
-  
   const [authTab, setAuthTab] = useState<'login' | 'signup'>('login');
   const [loginId, setLoginId] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -101,9 +98,7 @@ export default function MainPage() {
   const [activeTab, setActiveTab] = useState<'games' | 'returns' | 'ranking' | 'sites' | 'admin'>(() => {
     if (typeof window !== 'undefined') {
       const savedTab = localStorage.getItem('kakao_bg_activeTab');
-      if (savedTab && ['games', 'returns', 'ranking', 'sites', 'admin'].includes(savedTab)) {
-        return savedTab as any;
-      }
+      if (savedTab && ['games', 'returns', 'ranking', 'sites', 'admin'].includes(savedTab)) return savedTab as any;
     }
     return 'games';
   });
@@ -119,14 +114,7 @@ export default function MainPage() {
   const [reportForm, setReportForm] = useState({ title: '', content: '', category: '' });
 
   const [isIosDevice, setIsIosDevice] = useState(false);
-
-  const scrollPositions = useRef<{ [key: string]: number }>({
-    games: 0,
-    returns: 0,
-    ranking: 0,
-    sites: 0,
-    admin: 0
-  });
+  const scrollPositions = useRef<{ [key: string]: number }>({ games: 0, returns: 0, ranking: 0, sites: 0, admin: 0 });
 
   useEffect(() => {
     setMounted(true);
@@ -140,12 +128,6 @@ export default function MainPage() {
     }
   }, []);
 
-  useEffect(() => {
-    if (mounted && typeof window !== 'undefined') {
-      localStorage.setItem('kakao_bg_activeTab', activeTab);
-    }
-  }, [activeTab, mounted]);
-
   const isHeaderAdminTheme = activeTab === 'admin';
   const isLargeFont = fontSize === 'large';
   const headerRef = useRef<HTMLElement | null>(null); 
@@ -156,18 +138,12 @@ export default function MainPage() {
     if (typeof document !== 'undefined' && mounted) {
       const root = document.documentElement;
       const metaTheme = document.getElementById('theme-color-meta');
-      
       root.style.setProperty('--bg-main', '#ffffff');
       root.style.setProperty('--bg-header', isHeaderAdminTheme ? '#38bdf8' : '#FEE500');
       document.body.style.backgroundColor = '#ffffff';
-      
       if (metaTheme) metaTheme.setAttribute('content', isHeaderAdminTheme ? '#38bdf8' : '#FEE500');
-
-      if (isLargeFont) {
-        root.classList.add('text-large');
-      } else {
-        root.classList.remove('text-large');
-      }
+      if (isLargeFont) root.classList.add('text-large');
+      else root.classList.remove('text-large');
     }
   }, [isHeaderAdminTheme, isLargeFont, mounted]);
 
@@ -175,18 +151,10 @@ export default function MainPage() {
 
   const handleTabChange = useCallback((newTab: 'games' | 'returns' | 'ranking' | 'sites' | 'admin') => {
     if (newTab === activeTab) return;
-
     scrollPositions.current[activeTab] = window.scrollY;
-
     setActiveTab(newTab);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('kakao_bg_activeTab', newTab);
-    }
-
-    requestAnimationFrame(() => {
-      const savedY = scrollPositions.current[newTab] || 0;
-      window.scrollTo(0, savedY);
-    });
+    if (typeof window !== 'undefined') localStorage.setItem('kakao_bg_activeTab', newTab);
+    requestAnimationFrame(() => { window.scrollTo(0, scrollPositions.current[newTab] || 0); });
   }, [activeTab]);
 
   const recentNoticesList = useMemo(() => (notices || []).slice(0, 5), [notices]);
@@ -219,25 +187,12 @@ export default function MainPage() {
 
       if (usersData) {
         const mappedUsers: UserData[] = usersData.map(u => ({
-          userId: u.user_id,
-          name: u.name,
-          email: u.email,
-          role: u.role as Role,
-          passwordHash: u.password_hash,
-          penaltyPoints: Number(u.penalty_count || 0),
-          penaltyEndDate: u.penalty_end_date || null,
-          createdAt: u.created_at?.split('T')[0] || today,
-          lastLoginAt: u.last_login_at || '기록없음'
+          userId: u.user_id, name: u.name, email: u.email, role: u.role as Role, passwordHash: u.password_hash, penaltyPoints: Number(u.penalty_count || 0), penaltyEndDate: u.penalty_end_date || null, createdAt: u.created_at?.split('T')[0] || today, lastLoginAt: u.last_login_at || '기록없음'
         }));
-
         setUsers(mappedUsers);
-
         if (currentUser) {
           const latestSelf = mappedUsers.find(u => u.userId === currentUser.userId);
-          if (latestSelf) {
-            setCurrentUser(latestSelf);
-            localStorage.setItem('kakao_boardgame_user', JSON.stringify(latestSelf));
-          }
+          if (latestSelf) { setCurrentUser(latestSelf); localStorage.setItem('kakao_boardgame_user', JSON.stringify(latestSelf)); }
         }
       }
 
@@ -248,9 +203,7 @@ export default function MainPage() {
           gameId: g.game_id, title: g.title, status: g.status, minPlayers: g.min_players, maxPlayers: g.max_players, playTime: Number(g.play_time) || 30, difficulty: Number(g.difficulty) || 2.0, imageUrl: g.image_url || 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=300', description: g.description || '', isVisible: g.is_visible || g.isVisible || 'Y', genres: Array.isArray(g.genres) ? g.genres : typeof g.genres === 'string' ? g.genres.split(',').map((s: string) => s.trim()) : ['보드게임'], createdAt: g.created_at || new Date().toISOString(), releaseYear: Number(g.release_year) || currentYear, bggRating: Number(g.bgg_rating) || 7.0
         }));
         setGames(mappedGames);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('kakao_bg_games_cache', JSON.stringify(mappedGames));
-        }
+        if (typeof window !== 'undefined') localStorage.setItem('kakao_bg_games_cache', JSON.stringify(mappedGames));
       }
       if (noticeData) setNoticeList(noticeData.map(n => ({ noticeId: n.notice_id, title: n.title, content: n.content, createdAt: n.created_at?.split('T')[0] || today })));
       if (reportsData) setReportList(reportsData.map(r => ({ reportId: r.report_id || r.id, userId: r.user_id, category: r.category || '신고/건의', title: r.title, content: r.content, createdAt: r.created_at?.replace('T', ' ').substring(0, 16) || today, isRead: !!r.is_read })));
@@ -271,17 +224,14 @@ export default function MainPage() {
     if (isAlreadyInCart) {
       setCart(prev => prev.filter(item => item.gameId !== game.gameId));
     } else {
-      if (cart.length >= 3) {
-        alert('장바구니에는 최대 3개까지만 담을 수 있습니다.');
-        return;
-      }
+      if (cart.length >= 3) { alert('장바구니에는 최대 3개까지만 담을 수 있습니다.'); return; }
       setCart(prev => [...prev, game]);
     }
   }, [cart]);
 
   const removeFromCart = (gameId: string) => setCart(cart.filter((item: Game) => item.gameId !== gameId));
 
-  // 🔴 [최종 해결] 대여 시 브라우저 캐시 삭제 및 즉시 로컬 State 변경 (0초 반영)
+  // ⚡ 초고속 대여 처리 (즉시 뱃지 반영 + 브라우저 캐시 제거)
   const processCheckout = async () => {
     if (!currentUser) return;
 
@@ -301,66 +251,33 @@ export default function MainPage() {
     const cartGameIds = cart.map((g: Game) => g.gameId);
     
     const newRentalsToInsert = cart.map((game: Game) => ({ 
-      user_id: currentUser.userId, 
-      game_id: game.gameId, 
-      game_title: game.title, 
-      status: '대여중', 
-      start_date: today, 
-      end_date: endDateStr 
+      user_id: currentUser.userId, game_id: game.gameId, game_title: game.title, status: '대여중', start_date: today, end_date: endDateStr 
     }));
 
     try {
-      // 1) Supabase rentals 테이블에 저장
-      const { data: insertedData, error: rentalError } = await supabase
-        .from('rentals')
-        .insert(newRentalsToInsert)
-        .select();
-
+      const { data: insertedData, error: rentalError } = await supabase.from('rentals').insert(newRentalsToInsert).select();
       if (rentalError) throw rentalError;
 
-      // 2) Supabase games 테이블 상태 변경
-      const { error: gameError } = await supabase
-        .from('games')
-        .update({ status: '대여중' })
-        .in('game_id', cartGameIds);
-
+      const { error: gameError } = await supabase.from('games').update({ status: '대여중' }).in('game_id', cartGameIds);
       if (gameError) throw gameError;
 
-      // ⚡ 3) [핵심 해결 1] 로컬 games State를 '대여중'으로 즉시 변경
-      const updatedGames = games.map(game => 
-        cartGameIds.includes(game.gameId) ? { ...game, status: '대여중' as GameStatus } : game
-      );
+      // ⚡ 화면 0.001초 변경
+      const updatedGames = games.map(game => cartGameIds.includes(game.gameId) ? { ...game, status: '대여중' as GameStatus } : game);
       setGames(updatedGames);
+      if (typeof window !== 'undefined') localStorage.setItem('kakao_bg_games_cache', JSON.stringify(updatedGames));
 
-      // ⚡ [핵심 해결 2] 구형 캐시가 화면을 덮어쓰지 못하도록 브라우저 캐시도 즉시 갱신
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('kakao_bg_games_cache', JSON.stringify(updatedGames));
-      }
-
-      // ⚡ [핵심 해결 3] 내 대여 목록 rentals State에도 방금 대여한 항목 즉시 추가
       if (insertedData) {
         const mappedNewRentals: Rental[] = insertedData.map(r => ({
-          rentalId: r.rental_id,
-          userId: r.user_id,
-          gameId: r.game_id,
-          gameTitle: r.game_title,
-          status: r.status,
-          startDate: r.start_date,
-          endDate: r.end_date,
-          returnedAt: r.returned_at
+          rentalId: r.rental_id, userId: r.user_id, gameId: r.game_id, gameTitle: r.game_title, status: r.status, startDate: r.start_date, endDate: r.end_date, returnedAt: r.returned_at
         }));
         setRentals(prevRentals => [...mappedNewRentals, ...prevRentals]);
       }
 
       alert(`보드게임 ${cart.length}건이 ${rentalDays}일간 대여되었습니다.`); 
-      
       setCart([]); 
       setIsCartOpen(false);
-
-      // 백그라운드 재조회
-      await fetchInitialData(); 
+      fetchInitialData(); 
     } catch (err: any) {
-      console.error('대여 처리 실패:', err);
       alert('대여 처리 중 오류가 발생했습니다: ' + (err.message || err));
     }
   };
@@ -369,7 +286,7 @@ export default function MainPage() {
     if (!currentUser) return;
     await supabase.from('rentals').update({ status: '반납완료', returned_at: new Date().toISOString() }).eq('rental_id', rentalId);
     await supabase.from('games').update({ status: '대여가능' }).eq('game_id', gameId);
-    alert('반납이 완료되었습니다.'); await fetchInitialData();
+    alert('반납이 완료되었습니다.'); fetchInitialData();
   };
 
   const returnAllGames = async () => {
@@ -378,7 +295,7 @@ export default function MainPage() {
     if (userActiveRentals.length === 0) return;
     await supabase.from('rentals').update({ status: '반납완료', returned_at: new Date().toISOString() }).in('rental_id', userActiveRentals.map(r => r.rentalId));
     await supabase.from('games').update({ status: '대여가능' }).in('game_id', userActiveRentals.map(r => r.gameId));
-    alert('모든 보드게임이 반납되었습니다.'); await fetchInitialData();
+    alert('모든 보드게임이 반납되었습니다.'); fetchInitialData();
   };
 
   const handleSaveRating = async () => {
@@ -386,13 +303,13 @@ export default function MainPage() {
     const existing = allRatings.find(r => r.userId === currentUser.userId && r.gameId === ratingModalGame.gameId);
     if (existing) await supabase.from('ratings').update({ score: selectedScore, updated_at: new Date().toISOString() }).eq('user_id', currentUser.userId).eq('game_id', ratingModalGame.gameId);
     else await supabase.from('ratings').insert([{ user_id: currentUser.userId, game_id: ratingModalGame.gameId, score: selectedScore }]);
-    setRatingModalGame(null); await fetchInitialData();
+    setRatingModalGame(null); fetchInitialData();
   };
 
   const handleDeleteMyRating = async (gameId: string) => {
     if (!currentUser) return;
     if (window.confirm('삭제하시겠습니까?')) {
-      await supabase.from('ratings').delete().eq('user_id', currentUser.userId).eq('game_id', gameId); await fetchInitialData();
+      await supabase.from('ratings').delete().eq('user_id', currentUser.userId).eq('game_id', gameId); fetchInitialData();
     }
   };
 
@@ -415,28 +332,17 @@ export default function MainPage() {
     e.preventDefault();
     const user = users.find((u) => u.userId === loginId.trim().toLowerCase() && u.passwordHash === loginPassword);
     if (!user) { alert('아이디 또는 비밀번호 오류'); return; }
-    
     await supabase.from('users').update({ last_login_at: today }).eq('user_id', user.userId);
     user.lastLoginAt = today;
-    
-    setCurrentUser(user); 
-    localStorage.setItem('kakao_boardgame_user', JSON.stringify(user));
+    setCurrentUser(user); localStorage.setItem('kakao_boardgame_user', JSON.stringify(user));
   };
 
   const handleCheckEmail = async () => {
     const email = `${signUpForm.emailPrefix.trim()}@${signUpForm.emailDomain}`;
-    if (!signUpForm.emailPrefix.trim()) {
-      alert('이메일 아이디를 입력해 주세요.');
-      return;
-    }
+    if (!signUpForm.emailPrefix.trim()) { alert('이메일 아이디를 입력해 주세요.'); return; }
     const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (existing) {
-      alert('이미 등록된 이메일 주소입니다.');
-      setIsEmailVerified(false);
-    } else {
-      alert('사용 가능한 이메일입니다.');
-      setIsEmailVerified(true);
-    }
+    if (existing) { alert('이미 등록된 이메일 주소입니다.'); setIsEmailVerified(false); } 
+    else { alert('사용 가능한 이메일입니다.'); setIsEmailVerified(true); }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -445,39 +351,15 @@ export default function MainPage() {
     const name = signUpForm.name.trim();
     const email = `${signUpForm.emailPrefix.trim()}@${signUpForm.emailDomain}`;
     
-    if (!userId) { alert('아이디(LDAP)를 입력해 주세요.'); return; }
-    if (!name) { alert('이름을 입력해 주세요.'); return; }
-    if (!isEmailVerified) { alert('이메일 중복 확인을 진행해 주세요.'); return; }
-    if (!signUpForm.password) { alert('비밀번호를 입력해 주세요.'); return; }
+    if (!userId || !name) { alert('아이디와 이름을 확인하세요.'); return; }
+    if (!isEmailVerified) { alert('이메일 중복 확인을 해주세요.'); return; }
     if (signUpForm.password !== signUpForm.passwordConfirm) { alert('비밀번호가 일치하지 않습니다.'); return; }
 
-    const existingUser = users.find(u => u.userId === userId);
-    if (existingUser) { alert('이미 존재하는 아이디입니다.'); return; }
-
     try {
-      const { error } = await supabase.from('users').insert([
-        {
-          user_id: userId,
-          name: name,
-          email: email,
-          password_hash: signUpForm.password,
-          role: '일반',
-          created_at: new Date().toISOString(),
-          last_login_at: today,
-        }
-      ]);
-
+      const { error } = await supabase.from('users').insert([{ user_id: userId, name: name, email: email, password_hash: signUpForm.password, role: '일반', created_at: new Date().toISOString(), last_login_at: today }]);
       if (error) throw error;
-
-      alert('회원가입이 완료되었습니다! 로그인해 주세요.');
-      await fetchInitialData();
-      setAuthTab('login');
-      setLoginId(userId);
-      setLoginPassword('');
-    } catch (err: any) {
-      console.error(err);
-      alert('회원가입 실패: ' + err.message);
-    }
+      alert('회원가입 완료! 로그인해 주세요.'); fetchInitialData(); setAuthTab('login'); setLoginId(userId); setLoginPassword('');
+    } catch (err: any) { alert('회원가입 실패: ' + err.message); }
   };
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -488,7 +370,7 @@ export default function MainPage() {
     if (changePassword) updates.password_hash = changePassword;
     const { error } = await supabase.from('users').update(updates).eq('user_id', currentUser.userId);
     if (error) alert('수정 실패: ' + error.message);
-    else { alert('수정되었습니다.'); setIsEditProfileOpen(false); setNewPasswordInput(''); setNewPasswordConfirmInput(''); await fetchInitialData(); }
+    else { alert('수정되었습니다.'); setIsEditProfileOpen(false); setNewPasswordInput(''); setNewPasswordConfirmInput(''); fetchInitialData(); }
   };
 
   const handleLogout = () => {
@@ -498,35 +380,26 @@ export default function MainPage() {
 
   const deleteGame = async (gameId: string, title: string, status: GameStatus) => {
     if (status === '대여중') { alert('대여 중인 게임은 삭제 불가합니다.'); return; }
-    if (window.confirm(`'${title}' 게임을 삭제하시겠습니까?`)) {
-      await supabase.from('games').delete().eq('game_id', gameId); await fetchInitialData();
-    }
+    if (window.confirm(`'${title}' 게임을 삭제하시겠습니까?`)) { await supabase.from('games').delete().eq('game_id', gameId); fetchInitialData(); }
   };
 
   const deleteSite = async (siteId: number, name: string) => {
-    if (window.confirm(`'${name}' 사이트를 삭제하시겠습니까?`)) {
-      await supabase.from('sites').delete().eq('site_id', siteId); await fetchInitialData();
-    }
+    if (window.confirm(`'${name}' 사이트를 삭제하시겠습니까?`)) { await supabase.from('sites').delete().eq('site_id', siteId); fetchInitialData(); }
   };
 
   const deleteNotice = async (id: number) => {
-    if (window.confirm('공지사항을 삭제하시겠습니까?')) {
-      await supabase.from('notices').delete().eq('notice_id', id); await fetchInitialData();
-    }
+    if (window.confirm('공지사항을 삭제하시겠습니까?')) { await supabase.from('notices').delete().eq('notice_id', id); fetchInitialData(); }
   };
 
   const handleUserRoleChange = async (targetUser: UserData, newRole: Role) => {
-    if (window.confirm('처리하시겠습니까?')) {
-      await supabase.from('users').update({ role: newRole }).eq('user_id', targetUser.userId); await fetchInitialData();
-    }
+    if (window.confirm('처리하시겠습니까?')) { await supabase.from('users').update({ role: newRole }).eq('user_id', targetUser.userId); fetchInitialData(); }
   };
 
   const handleSendReport = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUser) return;
-    if (!reportForm.category) { alert('카테고리를 선택하세요.'); return; }
+    if (!currentUser || !reportForm.category) return;
     await supabase.from('reports').insert([{ user_id: currentUser.userId, category: reportForm.category, title: reportForm.title.trim(), content: reportForm.content.trim(), is_read: false }]);
-    alert('제출되었습니다.'); setReportForm({ title: '', content: '', category: '' }); setIsReportModalOpen(false); await fetchInitialData();
+    alert('제출되었습니다.'); setReportForm({ title: '', content: '', category: '' }); setIsReportModalOpen(false); fetchInitialData();
   };
 
   const saveGame = async (e: React.FormEvent) => {
@@ -537,51 +410,31 @@ export default function MainPage() {
     } else {
       await supabase.from('games').insert([{ game_id: editingGame.gameId, title: editingGame.title, status: '대여가능', min_players: editingGame.minPlayers, max_players: editingGame.maxPlayers, play_time: editingGame.playTime, difficulty: editingGame.difficulty, description: '', is_visible: editingGame.isVisible, image_url: editingGame.imageUrl, genres: editingGame.genres, release_year: editingGame.releaseYear, bgg_rating: editingGame.bggRating }]);
     }
-    await fetchInitialData(); setIsGameModalOpen(false);
+    fetchInitialData(); setIsGameModalOpen(false);
   };
 
   const toggleGenreSelection = (genre: string) => {
     if (!editingGame) return;
     const currentGenres = editingGame.genres || [];
-    if (currentGenres.includes(genre)) {
-      setEditingGame({ ...editingGame, genres: currentGenres.filter(g => g !== genre) });
-    } else {
-      if (currentGenres.length >= 4) {
-        alert('장르는 최대 4개까지 선택할 수 있습니다.');
-        return;
-      }
-      setEditingGame({ ...editingGame, genres: [...currentGenres, genre] });
-    }
+    if (currentGenres.includes(genre)) setEditingGame({ ...editingGame, genres: currentGenres.filter(g => g !== genre) });
+    else { if (currentGenres.length >= 4) { alert('장르는 최대 4개까지 선택할 수 있습니다.'); return; } setEditingGame({ ...editingGame, genres: [...currentGenres, genre] }); }
   };
 
   const saveNotice = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingNotice.id) await supabase.from('notices').update({ title: editingNotice.title, content: editingNotice.content }).eq('notice_id', editingNotice.id);
     else await supabase.from('notices').insert([{ title: editingNotice.title, content: editingNotice.content }]);
-    await fetchInitialData(); setIsNoticeModalOpen(false);
+    fetchInitialData(); setIsNoticeModalOpen(false);
   };
 
   const saveSite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingSite.siteId > 0) {
-      await supabase.from('sites').update({ 
-        name: editingSite.name, 
-        url: editingSite.url, 
-        banner_url: editingSite.bannerUrl, 
-        description: editingSite.description, 
-        is_visible: editingSite.isVisible 
-      }).eq('site_id', editingSite.siteId);
+      await supabase.from('sites').update({ name: editingSite.name, url: editingSite.url, banner_url: editingSite.bannerUrl, description: editingSite.description, is_visible: editingSite.isVisible }).eq('site_id', editingSite.siteId);
     } else {
-      await supabase.from('sites').insert([{ 
-        site_id: Date.now(), 
-        name: editingSite.name, 
-        url: editingSite.url, 
-        banner_url: editingSite.bannerUrl, 
-        description: editingSite.description, 
-        is_visible: editingSite.isVisible 
-      }]);
+      await supabase.from('sites').insert([{ site_id: Date.now(), name: editingSite.name, url: editingSite.url, banner_url: editingSite.bannerUrl, description: editingSite.description, is_visible: editingSite.isVisible }]);
     }
-    await fetchInitialData(); setIsSiteModalOpen(false);
+    fetchInitialData(); setIsSiteModalOpen(false);
   };
 
   const handleNoticeClick = (notice: Notice) => {
@@ -595,205 +448,60 @@ export default function MainPage() {
   const myRatingGamesList = useMemo(() => games.map((g: Game) => ({ ...g, myScore: allRatings.find(r => currentUser && r.userId === currentUser.userId && r.gameId === g.gameId)?.score || null })).filter(g => g.myScore !== null), [games, allRatings, currentUser]);
 
   const calculateEndDate = () => { const d = new Date(); d.setDate(d.getDate() + rentalDays); return d.toISOString().split('T')[0]; };
-  
   const isAdmin = (currentUser?.role as string) === '관리자' || (currentUser?.role as string) === '마스터';
   const unreadReportsCount = reports.filter((r: ReportData) => !r.isRead).length;
 
   if (!mounted) return null;
 
-  // 로그인 / 회원가입 페이지 UI
+  // 🟡 로그인 / 회원가입 페이지 UI
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-slate-100 flex justify-center items-center p-4">
         <div className="w-full max-w-sm bg-white rounded-3xl shadow-xl overflow-hidden text-xs border border-slate-100">
-          
-          {/* 노란색 브랜드 상단 배너 영역 */}
           <div className="bg-[#FEE500] p-8 flex flex-col items-center justify-center relative">
-            <img 
-              src={LOGIN_LOGO_URL} 
-              alt="KAKAO BOARD GAMES" 
-              className="w-48 h-auto object-contain drop-shadow-sm select-none"
-              onError={(e) => {
-                (e.target as HTMLElement).style.display = 'none';
-              }}
-            />
-            <div className="text-center font-black text-slate-900 text-2xl tracking-tighter mt-2">
-              <span className="text-sky-600">KAKAO</span> BOARD GAMES
-            </div>
+            <img src={LOGIN_LOGO_URL} alt="KAKAO BOARD GAMES" className="w-48 h-auto object-contain drop-shadow-sm select-none" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+            <div className="text-center font-black text-slate-900 text-2xl tracking-tighter mt-2"><span className="text-sky-600">KAKAO</span> BOARD GAMES</div>
           </div>
-
-          {/* 탭 헤더 (로그인 / 회원가입) */}
           <div className="flex border-b border-slate-200 bg-white">
-            <button
-              type="button"
-              onClick={() => setAuthTab('login')}
-              className={`flex-1 py-3.5 font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
-                authTab === 'login'
-                  ? 'border-b-2 border-slate-900 text-slate-900 bg-white'
-                  : 'text-slate-400 bg-slate-50 hover:text-slate-600'
-              }`}
-            >
-              <LogIn size={15} /> 로그인
-            </button>
-            <button
-              type="button"
-              onClick={() => setAuthTab('signup')}
-              className={`flex-1 py-3.5 font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
-                authTab === 'signup'
-                  ? 'border-b-2 border-slate-900 text-slate-900 bg-white'
-                  : 'text-slate-400 bg-slate-50 hover:text-slate-600'
-              }`}
-            >
-              <UserPlus size={15} /> 회원가입
-            </button>
+            <button type="button" onClick={() => setAuthTab('login')} className={`flex-1 py-3.5 font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${authTab === 'login' ? 'border-b-2 border-slate-900 text-slate-900 bg-white' : 'text-slate-400 bg-slate-50'}`}><LogIn size={15} /> 로그인</button>
+            <button type="button" onClick={() => setAuthTab('signup')} className={`flex-1 py-3.5 font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${authTab === 'signup' ? 'border-b-2 border-slate-900 text-slate-900 bg-white' : 'text-slate-400 bg-slate-50'}`}><UserPlus size={15} /> 회원가입</button>
           </div>
 
-          {/* 1. 로그인 폼 */}
           {authTab === 'login' && (
             <div className="p-6 space-y-4 bg-white">
               <form onSubmit={handleLogin} className="space-y-4">
+                <div><label className="font-extrabold text-slate-900 block mb-1.5">아이디 (LDAP)</label><input type="text" required placeholder="hayden.hoi" value={loginId} onChange={(e) => setLoginId(e.target.value.toLowerCase())} className="w-full border-0 bg-[#B8C2D1]/50 focus:bg-white focus:ring-2 focus:ring-slate-900 p-3.5 rounded-2xl text-slate-900 font-medium" /></div>
                 <div>
-                  <label className="font-extrabold text-slate-900 block mb-1.5">아이디 (LDAP)</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="hayden.hoi"
-                    value={loginId}
-                    onChange={(e) => setLoginId(e.target.value.toLowerCase())}
-                    className="w-full border-0 bg-[#B8C2D1]/50 focus:bg-white focus:ring-2 focus:ring-slate-900 p-3.5 rounded-2xl text-slate-900 placeholder-slate-400 font-medium transition"
-                  />
+                  <div className="flex justify-between items-center mb-1.5"><label className="font-extrabold text-slate-900">비밀번호</label><button type="button" onClick={() => alert('관리자에게 문의해 주세요.')} className="text-[11px] text-slate-500 underline">비밀번호를 잊으셨나요?</button></div>
+                  <input type="password" required placeholder="••••••••••••" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} className="w-full border-0 bg-[#B8C2D1]/50 focus:bg-white focus:ring-2 focus:ring-slate-900 p-3.5 rounded-2xl text-slate-900 font-medium" />
                 </div>
-
-                <div>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <label className="font-extrabold text-slate-900">비밀번호</label>
-                    <button
-                      type="button"
-                      onClick={() => alert('관리자에게 문의해 주세요.')}
-                      className="text-[11px] text-slate-500 underline hover:text-slate-900"
-                    >
-                      비밀번호를 잊으셨나요?
-                    </button>
-                  </div>
-                  <input
-                    type="password"
-                    required
-                    placeholder="••••••••••••"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    className="w-full border-0 bg-[#B8C2D1]/50 focus:bg-white focus:ring-2 focus:ring-slate-900 p-3.5 rounded-2xl text-slate-900 placeholder-slate-400 font-medium transition"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-[#0F172A] hover:bg-slate-800 text-white font-bold py-3.5 rounded-2xl cursor-pointer transition shadow-md mt-2"
-                >
-                  로그인
-                </button>
+                <button type="submit" className="w-full bg-[#0F172A] hover:bg-slate-800 text-white font-bold py-3.5 rounded-2xl cursor-pointer transition shadow-md mt-2">로그인</button>
               </form>
             </div>
           )}
 
-          {/* 2. 회원가입 폼 */}
           {authTab === 'signup' && (
             <div className="p-6 space-y-3.5 bg-white">
               <form onSubmit={handleSignUp} className="space-y-3">
-                <div>
-                  <label className="font-extrabold text-slate-900 block mb-1">아이디 (LDAP)</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="예: new.kakao"
-                    value={signUpForm.userId}
-                    onChange={(e) => setSignUpForm({ ...signUpForm, userId: e.target.value.toLowerCase() })}
-                    className="w-full border border-slate-200 bg-white focus:ring-2 focus:ring-slate-900 p-3 rounded-xl text-slate-900 placeholder-slate-400"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-extrabold text-slate-900 block mb-1">이름</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="홍길동"
-                    value={signUpForm.name}
-                    onChange={(e) => setSignUpForm({ ...signUpForm, name: e.target.value })}
-                    className="w-full border border-slate-200 bg-white focus:ring-2 focus:ring-slate-900 p-3 rounded-xl text-slate-900 placeholder-slate-400"
-                  />
-                </div>
-
+                <div><label className="font-extrabold text-slate-900 block mb-1">아이디 (LDAP)</label><input type="text" required placeholder="예: new.kakao" value={signUpForm.userId} onChange={(e) => setSignUpForm({ ...signUpForm, userId: e.target.value.toLowerCase() })} className="w-full border border-slate-200 p-3 rounded-xl text-slate-900" /></div>
+                <div><label className="font-extrabold text-slate-900 block mb-1">이름</label><input type="text" required placeholder="홍길동" value={signUpForm.name} onChange={(e) => setSignUpForm({ ...signUpForm, name: e.target.value })} className="w-full border border-slate-200 p-3 rounded-xl text-slate-900" /></div>
                 <div>
                   <label className="font-extrabold text-slate-900 block mb-1">이메일 주소</label>
                   <div className="flex gap-1.5 items-center">
-                    <input
-                      type="text"
-                      required
-                      placeholder="이메일 아이디"
-                      value={signUpForm.emailPrefix}
-                      onChange={(e) => {
-                        setSignUpForm({ ...signUpForm, emailPrefix: e.target.value });
-                        setIsEmailVerified(false);
-                      }}
-                      className="flex-1 min-w-0 border border-slate-200 bg-white focus:ring-2 focus:ring-slate-900 p-3 rounded-xl text-slate-900 placeholder-slate-400"
-                    />
+                    <input type="text" required placeholder="이메일 아이디" value={signUpForm.emailPrefix} onChange={(e) => { setSignUpForm({ ...signUpForm, emailPrefix: e.target.value }); setIsEmailVerified(false); }} className="flex-1 min-w-0 border border-slate-200 p-3 rounded-xl text-slate-900" />
                     <span className="text-slate-400 font-bold">@</span>
-                    <select
-                      value={signUpForm.emailDomain}
-                      onChange={(e) => {
-                        setSignUpForm({ ...signUpForm, emailDomain: e.target.value });
-                        setIsEmailVerified(false);
-                      }}
-                      className="border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-slate-900 p-3 rounded-xl text-slate-900 font-semibold cursor-pointer"
-                    >
-                      {ALLOWED_EMAIL_DOMAINS.map(domain => (
-                        <option key={domain} value={domain}>{domain}</option>
-                      ))}
+                    <select value={signUpForm.emailDomain} onChange={(e) => { setSignUpForm({ ...signUpForm, emailDomain: e.target.value }); setIsEmailVerified(false); }} className="border border-slate-200 bg-slate-50 p-3 rounded-xl text-slate-900 font-semibold cursor-pointer">
+                      {ALLOWED_EMAIL_DOMAINS.map(domain => <option key={domain} value={domain}>{domain}</option>)}
                     </select>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleCheckEmail}
-                    className="w-full mt-2 bg-[#0F172A] text-white font-bold py-2.5 rounded-xl cursor-pointer hover:bg-slate-800 transition"
-                  >
-                    이메일 중복 확인
-                  </button>
+                  <button type="button" onClick={handleCheckEmail} className="w-full mt-2 bg-[#0F172A] text-white font-bold py-2.5 rounded-xl cursor-pointer">이메일 중복 확인</button>
                 </div>
-
-                <div>
-                  <label className="font-extrabold text-slate-900 block mb-1">비밀번호</label>
-                  <input
-                    type="password"
-                    required
-                    placeholder="비밀번호 입력"
-                    value={signUpForm.password}
-                    onChange={(e) => setSignUpForm({ ...signUpForm, password: e.target.value })}
-                    className="w-full border border-slate-200 bg-white focus:ring-2 focus:ring-slate-900 p-3 rounded-xl text-slate-900 placeholder-slate-400"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-extrabold text-slate-900 block mb-1">비밀번호 확인</label>
-                  <input
-                    type="password"
-                    required
-                    placeholder="비밀번호 재입력"
-                    value={signUpForm.passwordConfirm}
-                    onChange={(e) => setSignUpForm({ ...signUpForm, passwordConfirm: e.target.value })}
-                    className="w-full border border-slate-200 bg-white focus:ring-2 focus:ring-slate-900 p-3 rounded-xl text-slate-900 placeholder-slate-400"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-[#DCE2EC] text-slate-600 font-bold py-3.5 rounded-2xl cursor-pointer hover:bg-slate-900 hover:text-white transition shadow-sm mt-2"
-                >
-                  가입 완료하기
-                </button>
+                <div><label className="font-extrabold text-slate-900 block mb-1">비밀번호</label><input type="password" required placeholder="비밀번호 입력" value={signUpForm.password} onChange={(e) => setSignUpForm({ ...signUpForm, password: e.target.value })} className="w-full border border-slate-200 p-3 rounded-xl text-slate-900" /></div>
+                <div><label className="font-extrabold text-slate-900 block mb-1">비밀번호 확인</label><input type="password" required placeholder="비밀번호 재입력" value={signUpForm.passwordConfirm} onChange={(e) => setSignUpForm({ ...signUpForm, passwordConfirm: e.target.value })} className="w-full border border-slate-200 p-3 rounded-xl text-slate-900" /></div>
+                <button type="submit" className="w-full bg-[#DCE2EC] text-slate-600 font-bold py-3.5 rounded-2xl cursor-pointer hover:bg-slate-900 hover:text-white transition shadow-sm mt-2">가입 완료하기</button>
               </form>
             </div>
           )}
-
         </div>
       </div>
     );
@@ -801,70 +509,18 @@ export default function MainPage() {
 
   return (
     <div className="min-h-screen w-full relative bg-white text-slate-900 text-xs">
-      <FixedHeader 
-        isHeaderAdminTheme={isHeaderAdminTheme} 
-        isIosDevice={isIosDevice} 
-        currentUser={currentUser} 
-        today={today} 
-        unreadReportsCount={unreadReportsCount} 
-        setIsAdminReportDrawerOpen={setIsAdminReportDrawerOpen} 
-        setIsSettingsOpen={setIsSettingsOpen} 
-        headerRef={headerRef} 
-      />
+      <FixedHeader isHeaderAdminTheme={isHeaderAdminTheme} isIosDevice={isIosDevice} currentUser={currentUser} today={today} unreadReportsCount={unreadReportsCount} setIsAdminReportDrawerOpen={setIsAdminReportDrawerOpen} setIsSettingsOpen={setIsSettingsOpen} headerRef={headerRef} />
 
-      <main 
-        ref={mainScrollRef} 
-        style={{ 
-          paddingTop: isLargeFont 
-            ? (isIosDevice ? '122px' : '110px') 
-            : (isIosDevice ? '104px' : '92px'), 
-          paddingBottom: '80px' 
-        }} 
-        className="w-full py-4 px-4 bg-white text-slate-900 text-xs transition-all"
-      >
+      <main ref={mainScrollRef} style={{ paddingTop: isLargeFont ? (isIosDevice ? '122px' : '110px') : (isIosDevice ? '104px' : '92px'), paddingBottom: '80px' }} className="w-full py-4 px-4 bg-white text-slate-900 text-xs transition-all">
         <div className={activeTab === 'games' ? 'block' : 'hidden'}>
-          <GamesTab 
-            games={games} rentals={rentals} userFavorites={userFavorites} allRatings={allRatings} currentUser={currentUser} today={today} isIosDevice={isIosDevice} isLargeFont={isLargeFont}
-            recentNoticesList={recentNoticesList} noticeIndex={noticeIndex} isNoticeTransition={isNoticeTransition} handleNoticeClick={handleNoticeClick}
-            toggleCartItem={toggleCartItem} toggleFavorite={toggleFavorite} cart={cart} setRatingModalGame={setRatingModalGame} setSelectedScore={setSelectedScore}
-          />
+          <GamesTab games={games} rentals={rentals} userFavorites={userFavorites} allRatings={allRatings} currentUser={currentUser} today={today} isIosDevice={isIosDevice} isLargeFont={isLargeFont} recentNoticesList={recentNoticesList} noticeIndex={noticeIndex} isNoticeTransition={isNoticeTransition} handleNoticeClick={handleNoticeClick} toggleCartItem={toggleCartItem} toggleFavorite={toggleFavorite} cart={cart} setRatingModalGame={setRatingModalGame} setSelectedScore={setSelectedScore} />
         </div>
-
-        <div className={activeTab === 'returns' ? 'block' : 'hidden'}>
-          <ReturnsTab 
-            rentals={rentals} currentUser={currentUser} today={today} returnGame={returnGame} returnAllGames={returnAllGames} returnedRentalsList={returnedRentalsList}
-          />
-        </div>
-
-        <div className={activeTab === 'ranking' ? 'block' : 'hidden'}>
-          <RankingTab 
-            games={games}
-            rentals={rentals}
-            allRatings={allRatings}
-          />
-        </div>
-
-        <div className={activeTab === 'sites' ? 'block' : 'hidden'}>
-          <SitesTab 
-            visibleSitesList={visibleSitesList}
-          />
-        </div>
-
-        {isAdmin && (
-          <div className={activeTab === 'admin' ? 'block' : 'hidden'}>
-            <AdminTab 
-              games={games} users={users} rentals={rentals} sites={sites} notices={notices}
-              currentUser={currentUser}
-              setIsEditingMode={setIsEditingMode} setEditingGame={setEditingGame} setIsGameModalOpen={setIsGameModalOpen} deleteGame={deleteGame}
-              setEditingSite={setEditingSite} setIsSiteModalOpen={setIsSiteModalOpen} deleteSite={deleteSite} handleUserRoleChange={handleUserRoleChange}
-              setEditingNotice={setEditingNotice} setIsNoticeModalOpen={setIsNoticeModalOpen} deleteNotice={deleteNotice}
-              returnGame={returnGame}
-            />
-          </div>
-        )}
+        <div className={activeTab === 'returns' ? 'block' : 'hidden'}><ReturnsTab rentals={rentals} currentUser={currentUser} today={today} returnGame={returnGame} returnAllGames={returnAllGames} returnedRentalsList={returnedRentalsList} /></div>
+        <div className={activeTab === 'ranking' ? 'block' : 'hidden'}><RankingTab games={games} rentals={rentals} allRatings={allRatings} /></div>
+        <div className={activeTab === 'sites' ? 'block' : 'hidden'}><SitesTab visibleSitesList={visibleSitesList} /></div>
+        {isAdmin && <div className={activeTab === 'admin' ? 'block' : 'hidden'}><AdminTab games={games} users={users} rentals={rentals} sites={sites} notices={notices} currentUser={currentUser} setIsEditingMode={setIsEditingMode} setEditingGame={setEditingGame} setIsGameModalOpen={setIsGameModalOpen} deleteGame={deleteGame} setEditingSite={setEditingSite} setIsSiteModalOpen={setIsSiteModalOpen} deleteSite={deleteSite} handleUserRoleChange={handleUserRoleChange} setEditingNotice={setEditingNotice} setIsNoticeModalOpen={setIsNoticeModalOpen} deleteNotice={deleteNotice} returnGame={returnGame} /></div>}
       </main>
 
-      {/* 장바구니 플로팅 버튼 */}
       {activeTab === 'games' && (
         <div className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+80px)] right-4 z-30">
           <button onClick={() => setIsCartOpen(true)} className="p-3.5 rounded-full shadow-xl flex items-center justify-center relative cursor-pointer bg-slate-900 text-white">
@@ -874,17 +530,17 @@ export default function MainPage() {
         </div>
       )}
 
-      {/* 1. 관리자 접수함 드로어 */}
+      {/* 1. 관리자 접수함 */}
       <div className={`fixed inset-0 z-50 transition-all duration-300 ${isAdminReportDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsAdminReportDrawerOpen(false)} />
-        <div className="absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl transition-transform duration-300 ease-out bg-white text-slate-900 text-xs">
+        <div className="absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs">
           <div className="p-4 bg-sky-400 text-slate-900 flex justify-between items-center font-bold text-base">
             <span className="flex items-center gap-2"><Siren size={18} /> 접수함</span>
             <button onClick={() => setIsAdminReportDrawerOpen(false)} className="p-1 cursor-pointer"><X size={18} /></button>
           </div>
           <div className="p-3 bg-slate-100 flex justify-between items-center border-b border-slate-200 text-xs">
             <span className="text-slate-500">안읽음: <strong className="text-rose-500 font-extrabold">{unreadReportsCount}</strong>건</span>
-            {unreadReportsCount > 0 && <button onClick={handleMarkAllReportsAsRead} className="font-bold bg-slate-900 text-white px-2 py-1 rounded-md text-[10px] cursor-pointer">모두 읽음</button>}
+            {unreadReportsCount > 0 && <button onClick={handleMarkAllReportsAsRead} className="font-bold bg-slate-900 text-white px-2 py-1 rounded-md text-[10px]">모두 읽음</button>}
           </div>
           <div className="flex-1 p-4 overflow-y-auto space-y-4">
             {selectedReport && (
@@ -902,87 +558,61 @@ export default function MainPage() {
               ))}
             </div>
           </div>
-          <div className="p-4 border-t border-slate-200">
-            <button onClick={() => setIsAdminReportDrawerOpen(false)} className="w-full bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer">닫기</button>
-          </div>
+          <div className="p-4 border-t border-slate-200"><button onClick={() => setIsAdminReportDrawerOpen(false)} className="w-full bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer">닫기</button></div>
         </div>
       </div>
 
-      {/* 2. 설정 드로어 */}
+      {/* 2. 설정 */}
       <div className={`fixed inset-0 z-50 transition-all duration-300 ${isSettingsOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsSettingsOpen(false)} />
-        <div className="absolute top-0 right-0 h-full w-[52%] flex flex-col justify-between shadow-2xl transition-transform duration-300 ease-out bg-white text-slate-900 text-xs">
+        <div className="absolute top-0 right-0 h-full w-[52%] flex flex-col justify-between shadow-2xl bg-white text-slate-900 text-xs">
           <div className="p-4 bg-[#FEE500] text-slate-900 flex justify-between items-center font-bold text-base">
             <span className="flex items-center gap-1.5"><Settings size={18} /> 설정</span>
             <button onClick={() => setIsSettingsOpen(false)} className="p-1 cursor-pointer"><X size={18} /></button>
           </div>
-
           <div className="flex-1 p-4 overflow-y-auto space-y-5">
             <div className="space-y-2">
               <h4 className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 text-xs"><User size={14} /> 계정 설정</h4>
-              <button onClick={() => { if (currentUser) { setEditName(currentUser.name); setNewPasswordInput(''); setNewPasswordConfirmInput(''); setIsEditProfileOpen(true); setIsSettingsOpen(false); } }} className="w-full p-2.5 rounded-xl border text-left flex justify-between items-center cursor-pointer bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100 transition">
-                <span className="font-normal">내 정보 / 비밀번호 변경</span>
-                <ChevronRight size={15} className="text-slate-400" />
+              <button onClick={() => { if (currentUser) { setEditName(currentUser.name); setNewPasswordInput(''); setNewPasswordConfirmInput(''); setIsEditProfileOpen(true); setIsSettingsOpen(false); } }} className="w-full p-2.5 rounded-xl border text-left flex justify-between items-center cursor-pointer bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100">
+                <span className="font-normal">내 정보 / 비밀번호 변경</span><ChevronRight size={15} className="text-slate-400" />
               </button>
             </div>
-
             <div className="space-y-2 pt-2 border-t border-slate-100">
               <h4 className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 text-xs"><Heart size={14} className="text-rose-500" /> 나의 활동</h4>
-              
-              <button onClick={() => { setIsFavoritesModalOpen(true); setIsSettingsOpen(false); }} className="w-full p-2.5 rounded-xl border text-left flex justify-between items-center cursor-pointer bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100 transition">
+              <button onClick={() => { setIsFavoritesModalOpen(true); setIsSettingsOpen(false); }} className="w-full p-2.5 rounded-xl border text-left flex justify-between items-center cursor-pointer bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100">
                 <span className="font-normal">찜목록</span>
-                <div className="flex items-center gap-1">
-                  <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-500 font-medium text-[11px] border border-rose-100/80 flex items-center gap-1">
-                    <Heart size={10} className="fill-rose-500" /> {userFavorites.length}
-                  </span>
-                  <ChevronRight size={15} className="text-slate-400" />
-                </div>
+                <div className="flex items-center gap-1"><span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-500 font-medium text-[11px] border border-rose-100/80 flex items-center gap-1"><Heart size={10} className="fill-rose-500" /> {userFavorites.length}</span><ChevronRight size={15} className="text-slate-400" /></div>
               </button>
-
-              <button onClick={() => { setIsMyRatingsModalOpen(true); setIsSettingsOpen(false); }} className="w-full p-2.5 rounded-xl border text-left flex justify-between items-center cursor-pointer bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100 transition">
+              <button onClick={() => { setIsMyRatingsModalOpen(true); setIsSettingsOpen(false); }} className="w-full p-2.5 rounded-xl border text-left flex justify-between items-center cursor-pointer bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100">
                 <span className="font-normal">내 평점</span>
-                <div className="flex items-center gap-1">
-                  <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-medium text-[11px] border border-amber-200/60 flex items-center gap-1">
-                    <Star size={10} className="fill-amber-400 text-amber-400" /> {myRatingGamesList.length}
-                  </span>
-                  <ChevronRight size={15} className="text-slate-400" />
-                </div>
+                <div className="flex items-center gap-1"><span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-medium text-[11px] border border-amber-200/60 flex items-center gap-1"><Star size={10} className="fill-amber-400 text-amber-400" /> {myRatingGamesList.length}</span><ChevronRight size={15} className="text-slate-400" /></div>
               </button>
             </div>
-
             <div className="space-y-2 pt-2 border-t border-slate-100">
               <h4 className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 text-xs"><Siren size={14} /> 고객지원</h4>
-              <button onClick={() => { setReportForm({ title: '', content: '', category: '' }); setIsReportModalOpen(true); setIsSettingsOpen(false); }} className="w-full p-2.5 rounded-xl border text-left flex justify-between items-center cursor-pointer bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100 transition">
-                <span className="font-normal">신고 및 건의</span>
-                <ChevronRight size={15} className="text-slate-400" />
+              <button onClick={() => { setReportForm({ title: '', content: '', category: '' }); setIsReportModalOpen(true); setIsSettingsOpen(false); }} className="w-full p-2.5 rounded-xl border text-left flex justify-between items-center cursor-pointer bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100">
+                <span className="font-normal">신고 및 건의</span><ChevronRight size={15} className="text-slate-400" />
               </button>
             </div>
-
             <div className="space-y-2 pt-2 border-t border-slate-100">
               <h4 className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 text-xs"><Type size={14} /> 글자 크기</h4>
               <div className="flex p-1 rounded-xl bg-slate-100">
-                <button onClick={() => setFontSize('normal')} className={`flex-1 py-2 rounded-lg transition text-center cursor-pointer font-normal ${fontSize === 'normal' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}>보통</button>
-                <button onClick={() => setFontSize('large')} className={`flex-1 py-2 rounded-lg transition text-center cursor-pointer font-normal ${fontSize === 'large' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}>크게</button>
+                <button onClick={() => setFontSize('normal')} className={`flex-1 py-2 rounded-lg transition text-center cursor-pointer ${fontSize === 'normal' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}>보통</button>
+                <button onClick={() => setFontSize('large')} className={`flex-1 py-2 rounded-lg transition text-center cursor-pointer ${fontSize === 'large' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}>크게</button>
               </div>
             </div>
-
             <div className="pt-2 border-t border-slate-100 flex justify-end">
-              <button onClick={handleLogout} className="px-3 py-1.5 rounded-xl font-normal transition flex items-center gap-1.5 border border-slate-200 bg-slate-50 text-slate-500 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 cursor-pointer text-xs">
-                <LogOut size={13} /> 로그아웃
-              </button>
+              <button onClick={handleLogout} className="px-3 py-1.5 rounded-xl font-normal transition flex items-center gap-1.5 border border-slate-200 bg-slate-50 text-slate-500 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 cursor-pointer text-xs"><LogOut size={13} /> 로그아웃</button>
             </div>
           </div>
-
-          <div className="p-4 border-t border-slate-200 bg-slate-50">
-            <button onClick={() => setIsSettingsOpen(false)} className="w-full bg-slate-900 text-white py-2.5 rounded-xl font-medium cursor-pointer text-xs">닫기</button>
-          </div>
+          <div className="p-4 border-t border-slate-200 bg-slate-50"><button onClick={() => setIsSettingsOpen(false)} className="w-full bg-slate-900 text-white py-2.5 rounded-xl font-medium cursor-pointer text-xs">닫기</button></div>
         </div>
       </div>
 
-      {/* 3. 공지사항 목록 드로어 */}
+      {/* 3. 공지사항 목록 */}
       <div className={`fixed inset-0 z-50 transition-all duration-300 ${isNoticeDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsNoticeDrawerOpen(false)} />
-        <div className="absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl transition-transform duration-300 ease-out bg-white text-slate-900 text-xs">
+        <div className="absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs">
           <div className="p-4 bg-[#FEE500] text-slate-900 flex justify-between items-center font-bold text-base">
             <span className="flex items-center gap-2"><Bell size={18} /> 공지사항 목록</span>
             <button onClick={() => setIsNoticeDrawerOpen(false)} className="p-1 cursor-pointer"><X size={18} /></button>
@@ -992,26 +622,24 @@ export default function MainPage() {
             {notices.map((notice: Notice) => {
               const isExpanded = expandedNoticeId === notice.noticeId;
               return (
-                <div key={notice.noticeId} className={`rounded-2xl border transition overflow-hidden ${isExpanded ? 'border-amber-400 bg-amber-50/60' : 'border-slate-200 bg-white'}`}>
+                <div key={notice.noticeId} className={`rounded-2xl border overflow-hidden ${isExpanded ? 'border-amber-400 bg-amber-50/60' : 'border-slate-200 bg-white'}`}>
                   <div onClick={() => handleNoticeClick(notice)} className="p-3.5 cursor-pointer flex justify-between items-start gap-2">
                     <div className="flex-1 min-w-0"><h3 className="font-extrabold leading-snug break-all text-slate-900 text-xs">{notice.title}</h3><span className="text-slate-400 font-mono mt-1 block text-[10px]">{notice.createdAt}</span></div>
-                    <ChevronDown size={18} className={`text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-amber-500' : ''}`} />
+                    <ChevronDown size={18} className={`text-slate-400 transition-transform ${isExpanded ? 'rotate-180 text-amber-500' : ''}`} />
                   </div>
                   {isExpanded && <div className="px-3.5 pb-4 pt-2 border-t border-slate-200 font-medium leading-relaxed break-all text-slate-600 text-xs"><p className="whitespace-pre-wrap">{notice.content}</p></div>}
                 </div>
               );
             })}
           </div>
-          <div className="p-4 border-t border-slate-200">
-            <button onClick={() => setIsNoticeDrawerOpen(false)} className="w-full bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer text-xs">닫기</button>
-          </div>
+          <div className="p-4 border-t border-slate-200"><button onClick={() => setIsNoticeDrawerOpen(false)} className="w-full bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer text-xs">닫기</button></div>
         </div>
       </div>
 
       {/* 4. 장바구니 드로어 */}
       <div className={`fixed inset-0 z-50 transition-all duration-300 ${isCartOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsCartOpen(false)} />
-        <div className="absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl transition-transform duration-300 ease-out bg-white text-slate-900 text-xs">
+        <div className="absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs">
           <div className="p-4 bg-[#FEE500] text-slate-900 flex justify-between items-center font-bold text-base">
             <span className="flex items-center gap-1.5"><ShoppingCart size={18} /> 장바구니 ({cart.length} / 3)</span>
             <button onClick={() => setIsCartOpen(false)} className="p-1 cursor-pointer"><X size={18} /></button>
@@ -1023,7 +651,7 @@ export default function MainPage() {
             </div>
             <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-1">
               {Array.from({ length: 14 }, (_, i) => i + 1).map((days: number) => (
-                <button key={days} onClick={() => setRentalDays(days)} className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all flex-shrink-0 cursor-pointer ${rentalDays === days ? 'bg-slate-900 text-white shadow-sm scale-105' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}>{days}일</button>
+                <button key={days} onClick={() => setRentalDays(days)} className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer ${rentalDays === days ? 'bg-slate-900 text-white shadow-sm scale-105' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}>{days}일</button>
               ))}
             </div>
             <div className="text-slate-400 font-medium flex justify-between items-center pt-0.5">
@@ -1044,7 +672,7 @@ export default function MainPage() {
         </div>
       </div>
 
-      {/* 모달 팝업 모음 */}
+      {/* 모달 모음 */}
       {isFavoritesModalOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl border max-h-[85vh] flex flex-col bg-white border-slate-100 text-slate-900 text-xs">
@@ -1119,16 +747,12 @@ export default function MainPage() {
           <div className="rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl border bg-white border-slate-100 text-slate-900 text-xs">
             <div className="flex justify-between items-center pb-2 border-b border-slate-200/20">
               <h3 className="font-extrabold text-base flex items-center gap-2"><Siren size={18} className="text-rose-600" /> 신고 및 건의하기</h3>
-              <button onClick={() => setIsReportModalOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer"><X size={18} /></button>
+              <button onClick={() => setIsReportModalOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button>
             </div>
             <form onSubmit={handleSendReport} className="space-y-3.5">
               <div>
                 <label className="font-bold block mb-1.5">카테고리 선택</label>
-                <select 
-                  value={reportForm.category} 
-                  onChange={(e) => setReportForm({ ...reportForm, category: e.target.value })} 
-                  className="w-full border border-slate-200 p-2.5 rounded-xl focus:outline-none font-normal text-xs bg-slate-50 text-slate-900 cursor-pointer"
-                >
+                <select value={reportForm.category} onChange={(e) => setReportForm({ ...reportForm, category: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900 cursor-pointer">
                   <option value="">선택</option>
                   <option value="보드게임 분실/누락">보드게임 분실/누락</option>
                   <option value="장애/오류 신고">장애/오류 신고</option>
@@ -1154,15 +778,15 @@ export default function MainPage() {
           <div className="rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl border bg-white border-slate-100 text-slate-900 text-xs">
             <div className="flex justify-between items-center pb-2 border-b border-slate-200/20">
               <h3 className="font-extrabold text-base flex items-center gap-2"><User size={18} /> 내 정보 / 비밀번호 변경</h3>
-              <button onClick={() => setIsEditProfileOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer"><X size={18} /></button>
+              <button onClick={() => setIsEditProfileOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button>
             </div>
             <form onSubmit={handleSaveProfile} className="space-y-3.5">
-              <div><label className="font-bold block mb-1 text-slate-400">아이디 (LDAP)</label><input type="text" disabled value={currentUser.userId} className="w-full border border-slate-200 p-2.5 rounded-xl font-mono cursor-not-allowed bg-slate-100 text-slate-500" /></div>
-              <div><label className="font-bold block mb-1 text-slate-400">이메일</label><input type="text" disabled value={currentUser.email} className="w-full border border-slate-200 p-2.5 rounded-xl cursor-not-allowed bg-slate-100 text-slate-500" /></div>
+              <div><label className="font-bold block mb-1 text-slate-400">아이디 (LDAP)</label><input type="text" disabled value={currentUser.userId} className="w-full border border-slate-200 p-2.5 rounded-xl font-mono bg-slate-100 text-slate-500" /></div>
+              <div><label className="font-bold block mb-1 text-slate-400">이메일</label><input type="text" disabled value={currentUser.email} className="w-full border border-slate-200 p-2.5 rounded-xl bg-slate-100 text-slate-500" /></div>
               <div><label className="font-bold block mb-1">이름</label><input type="text" required value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
               <div className="pt-2 border-t border-slate-200/20 space-y-2">
                 <label className="font-bold block text-slate-400">비밀번호 변경 (선택)</label>
-                <input type="password" placeholder="새 비밀번호 입력 (변경 시에만 작성)" value={changePassword} onChange={(e) => setNewPasswordInput(e.target.value)} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" />
+                <input type="password" placeholder="새 비밀번호 입력" value={changePassword} onChange={(e) => setNewPasswordInput(e.target.value)} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" />
                 <input type="password" placeholder="새 비밀번호 재입력" value={changePasswordConfirm} onChange={(e) => setNewPasswordConfirmInput(e.target.value)} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" />
               </div>
               <div className="flex gap-2 pt-2">
@@ -1183,108 +807,37 @@ export default function MainPage() {
               <button onClick={() => setIsGameModalOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button>
             </div>
             <form onSubmit={saveGame} className="space-y-3">
-              <div>
-                <label className="font-bold block mb-1 flex items-center gap-1">
-                  <Image size={13} className="text-slate-500" /> 이미지 URL
-                </label>
-                <input type="url" placeholder="https://example.com/image.jpg" value={editingGame.imageUrl} onChange={(e) => setEditingGame({ ...editingGame, imageUrl: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" />
-              </div>
-
-              {editingGame.imageUrl && (
-                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center gap-3">
-                  <img src={editingGame.imageUrl} alt="미리보기" className="w-12 h-12 object-cover rounded-xl bg-white border border-slate-200 flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=300'; }} />
-                  <span className="font-bold text-slate-500">이미지 미리보기</span>
-                </div>
-              )}
-
+              <div><label className="font-bold block mb-1 flex items-center gap-1"><Image size={13} /> 이미지 URL</label><input type="url" placeholder="https://example.com/image.jpg" value={editingGame.imageUrl} onChange={(e) => setEditingGame({ ...editingGame, imageUrl: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
               <div className="flex gap-2">
-                <div className="w-[35%]">
-                  <label className="font-bold block mb-1">보드게임 ID</label>
-                  <input type="text" required disabled={isEditingMode} value={editingGame.gameId} onChange={(e) => setEditingGame({ ...editingGame, gameId: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl font-bold text-slate-900 disabled:bg-slate-100 disabled:text-slate-500" />
-                </div>
-                <div className="w-[65%]">
-                  <label className="font-bold block mb-1">게임명</label>
-                  <input type="text" required value={editingGame.title} onChange={(e) => setEditingGame({ ...editingGame, title: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" />
-                </div>
+                <div className="w-[35%]"><label className="font-bold block mb-1">보드게임 ID</label><input type="text" required disabled={isEditingMode} value={editingGame.gameId} onChange={(e) => setEditingGame({ ...editingGame, gameId: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl font-bold text-slate-900 disabled:bg-slate-100" /></div>
+                <div className="w-[65%]"><label className="font-bold block mb-1">게임명</label><input type="text" required value={editingGame.title} onChange={(e) => setEditingGame({ ...editingGame, title: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
               </div>
-
               <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <label className="font-bold block mb-1 flex items-center gap-0.5">
-                    <Calendar size={12} className="text-slate-500" /> 출시년도
-                  </label>
-                  <input type="number" required value={editingGame.releaseYear} onChange={(e) => setEditingGame({ ...editingGame, releaseYear: Number(e.target.value) })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" />
-                </div>
-                <div>
-                  <label className="font-bold block mb-1 flex items-center gap-0.5">
-                    <Clock size={12} className="text-slate-500" /> 플레이타임
-                  </label>
-                  <input type="number" required placeholder="분 단위" value={editingGame.playTime} onChange={(e) => setEditingGame({ ...editingGame, playTime: Number(e.target.value) })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" />
-                </div>
-                <div>
-                  <label className="font-bold block mb-1 flex items-center gap-0.5">
-                    <Brain size={12} className="text-slate-500" /> 난이도
-                  </label>
-                  <input type="number" step="0.01" min="1.0" max="5.0" required value={editingGame.difficulty} onChange={(e) => setEditingGame({ ...editingGame, difficulty: Number(e.target.value) })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" />
-                </div>
+                <div><label className="font-bold block mb-1">출시년도</label><input type="number" required value={editingGame.releaseYear} onChange={(e) => setEditingGame({ ...editingGame, releaseYear: Number(e.target.value) })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
+                <div><label className="font-bold block mb-1">플레이타임</label><input type="number" required value={editingGame.playTime} onChange={(e) => setEditingGame({ ...editingGame, playTime: Number(e.target.value) })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
+                <div><label className="font-bold block mb-1">난이도</label><input type="number" step="0.01" min="1.0" max="5.0" required value={editingGame.difficulty} onChange={(e) => setEditingGame({ ...editingGame, difficulty: Number(e.target.value) })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
               </div>
-
               <div className="grid grid-cols-4 gap-1.5">
-                <div>
-                  <label className="font-bold block mb-1 text-[11px]">최소인원</label>
-                  <input type="number" min="1" required value={editingGame.minPlayers} onChange={(e) => setEditingGame({ ...editingGame, minPlayers: Number(e.target.value) })} className="w-full border border-slate-200 p-2 rounded-xl text-slate-900" />
-                </div>
-                <div>
-                  <label className="font-bold block mb-1 text-[11px]">최대인원</label>
-                  <input type="number" min="1" required value={editingGame.maxPlayers} onChange={(e) => setEditingGame({ ...editingGame, maxPlayers: Number(e.target.value) })} className="w-full border border-slate-200 p-2 rounded-xl text-slate-900" />
-                </div>
-                <div>
-                  <label className="font-bold block mb-1 text-[11px]">BGG평점</label>
-                  <input type="number" step="0.1" min="0" max="10" required value={editingGame.bggRating} onChange={(e) => setEditingGame({ ...editingGame, bggRating: Number(e.target.value) })} className="w-full border border-slate-200 p-2 rounded-xl text-slate-900" />
-                </div>
+                <div><label className="font-bold block mb-1 text-[11px]">최소인원</label><input type="number" min="1" required value={editingGame.minPlayers} onChange={(e) => setEditingGame({ ...editingGame, minPlayers: Number(e.target.value) })} className="w-full border border-slate-200 p-2 rounded-xl text-slate-900" /></div>
+                <div><label className="font-bold block mb-1 text-[11px]">최대인원</label><input type="number" min="1" required value={editingGame.maxPlayers} onChange={(e) => setEditingGame({ ...editingGame, maxPlayers: Number(e.target.value) })} className="w-full border border-slate-200 p-2 rounded-xl text-slate-900" /></div>
+                <div><label className="font-bold block mb-1 text-[11px]">BGG평점</label><input type="number" step="0.1" min="0" max="10" required value={editingGame.bggRating} onChange={(e) => setEditingGame({ ...editingGame, bggRating: Number(e.target.value) })} className="w-full border border-slate-200 p-2 rounded-xl text-slate-900" /></div>
                 <div>
                   <label className="font-bold block mb-1 text-[11px]">노출여부</label>
-                  <select value={editingGame.isVisible} onChange={(e) => setEditingGame({ ...editingGame, isVisible: e.target.value as 'Y' | 'N' })} className="w-full border border-slate-200 p-2 rounded-xl bg-slate-50 text-slate-900 font-semibold focus:outline-none cursor-pointer">
-                    <option value="Y">노출</option>
-                    <option value="N">숨김</option>
+                  <select value={editingGame.isVisible} onChange={(e) => setEditingGame({ ...editingGame, isVisible: e.target.value as 'Y' | 'N' })} className="w-full border border-slate-200 p-2 rounded-xl bg-slate-50 text-slate-900 font-semibold cursor-pointer">
+                    <option value="Y">노출</option><option value="N">숨김</option>
                   </select>
                 </div>
               </div>
-
               <div className="space-y-1.5 pt-1">
-                <div className="flex justify-between items-center">
-                  <label className="font-bold block flex items-center gap-1">
-                    <Tag size={13} className="text-slate-500" /> 장르 선택 (최대 4개)
-                  </label>
-                  <span className="text-[11px] font-extrabold text-amber-600">
-                    {(editingGame.genres || []).length} / 4개
-                  </span>
-                </div>
+                <div className="flex justify-between items-center"><label className="font-bold block">장르 선택 (최대 4개)</label><span className="text-[11px] font-extrabold text-amber-600">{(editingGame.genres || []).length} / 4개</span></div>
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {AVAILABLE_GENRES.map(genre => {
                     const isSelected = (editingGame.genres || []).includes(genre);
-                    return (
-                      <button
-                        key={genre}
-                        type="button"
-                        onClick={() => toggleGenreSelection(genre)}
-                        className={`px-3 py-1.5 rounded-full font-bold transition-all cursor-pointer ${
-                          isSelected 
-                            ? 'bg-slate-900 text-white shadow-sm' 
-                            : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'
-                        }`}
-                      >
-                        {genre}
-                      </button>
-                    );
+                    return (<button key={genre} type="button" onClick={() => toggleGenreSelection(genre)} className={`px-3 py-1.5 rounded-full font-bold transition-all cursor-pointer ${isSelected ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}>{genre}</button>);
                   })}
                 </div>
               </div>
-
-              <div className="flex gap-2 pt-2">
-                <button type="button" onClick={() => setIsGameModalOpen(false)} className="flex-1 bg-slate-100 py-2.5 rounded-xl font-bold text-slate-700 cursor-pointer">취소</button>
-                <button type="submit" className="flex-1 bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer">저장</button>
-              </div>
+              <div className="flex gap-2 pt-2"><button type="button" onClick={() => setIsGameModalOpen(false)} className="flex-1 bg-slate-100 py-2.5 rounded-xl font-bold text-slate-700 cursor-pointer">취소</button><button type="submit" className="flex-1 bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer">저장</button></div>
             </form>
           </div>
         </div>
@@ -1308,38 +861,19 @@ export default function MainPage() {
       {isSiteModalOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="rounded-2xl w-full max-w-sm p-5 space-y-3.5 shadow-2xl border bg-white border-slate-100 text-slate-900 text-xs">
-            <div className="flex justify-between items-center pb-2 border-b border-slate-200/20">
-              <h3 className="font-extrabold text-base">{editingSite.siteId > 0 ? '추천 사이트 수정' : '추천 사이트 등록'}</h3>
-              <button onClick={() => setIsSiteModalOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button>
-            </div>
+            <div className="flex justify-between items-center pb-2 border-b border-slate-200/20"><h3 className="font-extrabold text-base">{editingSite.siteId > 0 ? '추천 사이트 수정' : '추천 사이트 등록'}</h3><button onClick={() => setIsSiteModalOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button></div>
             <form onSubmit={saveSite} className="space-y-3">
-              <div>
-                <label className="font-bold block mb-1">사이트명</label>
-                <input type="text" required value={editingSite.name} onChange={(e) => setEditingSite({ ...editingSite, name: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" />
-              </div>
-              <div>
-                <label className="font-bold block mb-1">사이트 URL</label>
-                <input type="url" required value={editingSite.url} onChange={(e) => setEditingSite({ ...editingSite, url: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" />
-              </div>
-              <div>
-                <label className="font-bold block mb-1">배너 이미지 URL</label>
-                <input type="url" placeholder="https://example.com/banner.jpg" value={editingSite.bannerUrl} onChange={(e) => setEditingSite({ ...editingSite, bannerUrl: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" />
-              </div>
-              <div>
-                <label className="font-bold block mb-1">사이트 설명</label>
-                <textarea rows={3} value={editingSite.description} onChange={(e) => setEditingSite({ ...editingSite, description: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900 resize-none"></textarea>
-              </div>
+              <div><label className="font-bold block mb-1">사이트명</label><input type="text" required value={editingSite.name} onChange={(e) => setEditingSite({ ...editingSite, name: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
+              <div><label className="font-bold block mb-1">사이트 URL</label><input type="url" required value={editingSite.url} onChange={(e) => setEditingSite({ ...editingSite, url: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
+              <div><label className="font-bold block mb-1">배너 이미지 URL</label><input type="url" placeholder="https://example.com/banner.jpg" value={editingSite.bannerUrl} onChange={(e) => setEditingSite({ ...editingSite, bannerUrl: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
+              <div><label className="font-bold block mb-1">사이트 설명</label><textarea rows={3} value={editingSite.description} onChange={(e) => setEditingSite({ ...editingSite, description: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900 resize-none"></textarea></div>
               <div>
                 <label className="font-bold block mb-1">노출 여부</label>
-                <select value={editingSite.isVisible} onChange={(e) => setEditingSite({ ...editingSite, isVisible: e.target.value as 'Y' | 'N' })} className="w-full border border-slate-200 p-2.5 rounded-xl bg-slate-50 text-slate-900 font-semibold focus:outline-none cursor-pointer">
-                  <option value="Y">노출</option>
-                  <option value="N">숨김</option>
+                <select value={editingSite.isVisible} onChange={(e) => setEditingSite({ ...editingSite, isVisible: e.target.value as 'Y' | 'N' })} className="w-full border border-slate-200 p-2.5 rounded-xl bg-slate-50 text-slate-900 font-semibold cursor-pointer">
+                  <option value="Y">노출</option><option value="N">숨김</option>
                 </select>
               </div>
-              <div className="flex gap-2 pt-2">
-                <button type="button" onClick={() => setIsSiteModalOpen(false)} className="flex-1 bg-slate-100 py-2.5 rounded-xl font-bold text-slate-700 cursor-pointer">취소</button>
-                <button type="submit" className="flex-1 bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer">저장</button>
-              </div>
+              <div className="flex gap-2 pt-2"><button type="button" onClick={() => setIsSiteModalOpen(false)} className="flex-1 bg-slate-100 py-2.5 rounded-xl font-bold text-slate-700 cursor-pointer">취소</button><button type="submit" className="flex-1 bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer">저장</button></div>
             </form>
           </div>
         </div>

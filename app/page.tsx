@@ -279,7 +279,7 @@ export default function MainPage() {
 
   const removeFromCart = (gameId: string) => setCart(cart.filter((item: Game) => item.gameId !== gameId));
 
-  // 🔴 보드게임 대여 '대여중' 상태 변경 및 수량 제한 로직 (개선 완료)
+  // 🔴 실시간 상태 반영을 위해 즉시 State 업데이트 처리
   const processCheckout = async () => {
     if (!currentUser) return;
 
@@ -298,7 +298,7 @@ export default function MainPage() {
     const endDateStr = endDate.toISOString().split('T')[0];
     const cartGameIds = cart.map((g: Game) => g.gameId);
     
-    const newRentals = cart.map((game: Game) => ({ 
+    const newRentalsToInsert = cart.map((game: Game) => ({ 
       user_id: currentUser.userId, 
       game_id: game.gameId, 
       game_title: game.title, 
@@ -308,11 +308,15 @@ export default function MainPage() {
     }));
 
     try {
-      // 1) rentals 신규 추가
-      const { error: rentalError } = await supabase.from('rentals').insert(newRentals);
+      // 1) Supabase rentals 테이블에 저장
+      const { data: insertedData, error: rentalError } = await supabase
+        .from('rentals')
+        .insert(newRentalsToInsert)
+        .select();
+
       if (rentalError) throw rentalError;
 
-      // 2) games 테이블의 status를 '대여중'으로 일괄 변경
+      // 2) Supabase games 테이블 상태 변경
       const { error: gameError } = await supabase
         .from('games')
         .update({ status: '대여중' })
@@ -320,12 +324,26 @@ export default function MainPage() {
 
       if (gameError) throw gameError;
 
-      // 3) 브라우저 화면의 State를 즉시 '대여중'으로 업데이트
+      // 3) 로컬 State에 즉시 반영 (새로고침 우회)
       setGames(prevGames => 
         prevGames.map(game => 
           cartGameIds.includes(game.gameId) ? { ...game, status: '대여중' } : game
         )
       );
+
+      if (insertedData) {
+        const mappedNewRentals: Rental[] = insertedData.map(r => ({
+          rentalId: r.rental_id,
+          userId: r.user_id,
+          gameId: r.game_id,
+          gameTitle: r.game_title,
+          status: r.status,
+          startDate: r.start_date,
+          endDate: r.end_date,
+          returnedAt: r.returned_at
+        }));
+        setRentals(prevRentals => [...mappedNewRentals, ...prevRentals]);
+      }
 
       alert(`보드게임 ${cart.length}건이 ${rentalDays}일간 대여되었습니다.`); 
       

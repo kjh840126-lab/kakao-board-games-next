@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useMemo, memo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { Game, UserData, Rental, BoardSite, Notice } from '../../types';
 import { 
   Search, Plus, Edit, Trash2, CheckCircle2, UserX, UserCheck, 
   ShieldAlert, AlertTriangle, Eye, EyeOff, RotateCcw, ShieldCheck, 
   Shield, User, Loader2 
 } from 'lucide-react';
+
+type AdminSubTabType = 'gameAdmin' | 'rentalAdmin' | 'siteAdmin' | 'userAdmin' | 'noticeAdmin';
 
 const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   if (!dateStr1 || !dateStr2) return 0;
@@ -21,12 +23,30 @@ export const AdminTab = memo(({
   setEditingNotice, setIsNoticeModalOpen, deleteNotice,
   returnGame
 }: any) => {
-  const [adminSubTab, setAdminSubTab] = useState<'gameAdmin' | 'rentalAdmin' | 'siteAdmin' | 'userAdmin' | 'noticeAdmin'>('gameAdmin');
+  // ⚡ 새로고침 시 기존 선택 서브 탭 유지를 위한 localStorage 읽기 초기화
+  const [adminSubTab, setAdminSubTab] = useState<AdminSubTabType>(() => {
+    if (typeof window !== 'undefined') {
+      const savedSubTab = localStorage.getItem('kakao_bg_adminSubTab');
+      if (savedSubTab && ['gameAdmin', 'rentalAdmin', 'siteAdmin', 'userAdmin', 'noticeAdmin'].includes(savedSubTab)) {
+        return savedSubTab as AdminSubTabType;
+      }
+    }
+    return 'gameAdmin';
+  });
+
   const [adminRentalTab, setAdminRentalTab] = useState<'active' | 'completed'>('active');
   const [gameAdminSearch, setGameAdminSearch] = useState('');
   const [userAdminSearch, setUserAdminSearch] = useState('');
 
   const today = new Date().toISOString().split('T')[0];
+
+  // ⚡ 서브 탭 변경 시 localStorage에 선택한 탭 보존
+  const handleSubTabChange = (newSubTab: AdminSubTabType) => {
+    setAdminSubTab(newSubTab);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('kakao_bg_adminSubTab', newSubTab);
+    }
+  };
 
   const filteredGameAdminList = useMemo(() => (games || []).filter((g: Game) => g.title.toLowerCase().includes(gameAdminSearch.trim().toLowerCase())).sort((a: any, b: any) => b.gameId.localeCompare(a.gameId, undefined, { numeric: true })), [games, gameAdminSearch]);
   const filteredUserAdminList = useMemo(() => (users || []).sort((a: any, b: any) => b.createdAt.localeCompare(a.createdAt)).filter((u: UserData) => u.name.toLowerCase().includes(userAdminSearch.trim().toLowerCase()) || u.userId.toLowerCase().includes(userAdminSearch.trim().toLowerCase())), [users, userAdminSearch]);
@@ -38,18 +58,17 @@ export const AdminTab = memo(({
     }
   };
 
-  // 🔻 타입 불일치 에러 방지를 위해 as string 단언 적용
   const isMaster = (currentUser?.role as string) === '마스터';
 
   return (
     <div className="space-y-4 mt-0.5 w-full">
       {/* 관리자 서브 탭 네비게이션 */}
       <div className="grid grid-cols-5 gap-1 p-1 rounded-xl font-bold w-full bg-slate-100 mb-4">
-        <button onClick={() => setAdminSubTab('gameAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'gameAdmin' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>게임관리</button>
-        <button onClick={() => setAdminSubTab('rentalAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'rentalAdmin' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>대여/반납</button>
-        <button onClick={() => setAdminSubTab('siteAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'siteAdmin' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>사이트관리</button>
-        <button onClick={() => setAdminSubTab('userAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'userAdmin' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>회원관리</button>
-        <button onClick={() => setAdminSubTab('noticeAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'noticeAdmin' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>공지사항</button>
+        <button onClick={() => handleSubTabChange('gameAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'gameAdmin' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>게임관리</button>
+        <button onClick={() => handleSubTabChange('rentalAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'rentalAdmin' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>대여/반납</button>
+        <button onClick={() => handleSubTabChange('siteAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'siteAdmin' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>사이트관리</button>
+        <button onClick={() => handleSubTabChange('userAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'userAdmin' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>회원관리</button>
+        <button onClick={() => handleSubTabChange('noticeAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'noticeAdmin' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>공지사항</button>
       </div>
 
       {/* A. 게임관리 */}
@@ -301,7 +320,6 @@ export const AdminTab = memo(({
               </div>
             ) : (
               filteredUserAdminList.map((u: UserData) => {
-                // 🔻 타입 불일치 에러 방지를 위해 as string 단언 적용
                 const roleStr = u.role as string;
                 const isMasterRole = roleStr === '마스터';
                 const isAdminRole = roleStr === '관리자';
@@ -316,7 +334,6 @@ export const AdminTab = memo(({
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-bold text-sm text-slate-900">{u.userId}</span>
                           
-                          {/* 권한별 아이콘 뱃지 */}
                           {isMasterRole && (
                             <span className="px-2 py-0.5 rounded-md font-extrabold text-[10px] bg-purple-100 text-purple-800 border border-purple-200 flex items-center gap-1">
                               <ShieldCheck size={11} className="fill-purple-500" /> 마스터
@@ -342,7 +359,6 @@ export const AdminTab = memo(({
                       </div>
 
                       <div className="flex items-center gap-1.5 flex-shrink-0">
-                        {/* 마스터 전용: 관리자를 일반회원으로 전환 */}
                         {isMaster && isAdminRole && (
                           <button 
                             onClick={() => handleUserRoleChange(u, '일반회원')} 
@@ -353,7 +369,6 @@ export const AdminTab = memo(({
                           </button>
                         )}
 
-                        {/* 마스터 전용: 일반회원을 관리자로 지정 */}
                         {isMaster && isUserRole && (
                           <button 
                             onClick={() => handleUserRoleChange(u, '관리자')} 
@@ -364,7 +379,6 @@ export const AdminTab = memo(({
                           </button>
                         )}
 
-                        {/* 일반회원 탈퇴 처리 (마스터, 관리자 가능) */}
                         {isUserRole && (
                           <button 
                             onClick={() => handleUserRoleChange(u, '탈퇴회원')} 
@@ -375,7 +389,6 @@ export const AdminTab = memo(({
                           </button>
                         )}
 
-                        {/* 탈퇴회원 복구 처리 (마스터, 관리자 가능) */}
                         {isQuitRole && (
                           <button 
                             onClick={() => handleUserRoleChange(u, '일반회원')} 

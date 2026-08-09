@@ -110,7 +110,7 @@ export default function MainPage() {
   const [isEditingMode, setIsEditingMode] = useState(false);
   const [isGameModalOpen, setIsGameModalOpen] = useState(false);
   const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
-  const [editingNotice, setEditingNotice] = useState<{ id?: number; title: string; content: string }>({ title: '', content: '' });
+  const [editingNotice, setEditingNotice] = useState<{ id?: number; title: string; content: string; isVisible?: string }>({ title: '', content: '', isVisible: 'Y' });
   const [isSiteModalOpen, setIsSiteModalOpen] = useState(false);
   const [editingSite, setEditingSite] = useState<BoardSite>({ siteId: 0, name: '', url: '', bannerUrl: '', description: '', isVisible: 'Y' });
   const [reportForm, setReportForm] = useState({ title: '', content: '', category: '' });
@@ -158,7 +158,17 @@ export default function MainPage() {
     requestAnimationFrame(() => { window.scrollTo(0, scrollPositions.current[newTab] || 0); });
   }, [activeTab]);
 
-  const recentNoticesList = useMemo(() => (notices || []).slice(0, 5), [notices]);
+  // ⚡ 일반 사용자용 노출(Y) 공지사항 필터링 목록[cite: 2]
+  const visibleNoticesList = useMemo(() => 
+    (notices || []).filter((n: any) => n.isVisible !== 'N'), 
+    [notices]
+  );
+
+  // ⚡ 대여 탭 상단 롤링용 노출 공지사항 (최대 5개)[cite: 2]
+  const recentNoticesList = useMemo(() => 
+    visibleNoticesList.slice(0, 5), 
+    [visibleNoticesList]
+  );
 
   useEffect(() => {
     if (recentNoticesList.length <= 1) return;
@@ -220,7 +230,17 @@ export default function MainPage() {
         setGames(shuffled);
       }
 
-      if (noticeData) setNoticeList(noticeData.map(n => ({ noticeId: n.notice_id, title: n.title, content: n.content, createdAt: n.created_at?.split('T')[0] || today })));
+      // ⚡ notices 불러올 때 is_visible 매핑[cite: 2]
+      if (noticeData) {
+        setNoticeList(noticeData.map(n => ({ 
+          noticeId: n.notice_id, 
+          title: n.title, 
+          content: n.content, 
+          isVisible: n.is_visible || 'Y', 
+          createdAt: n.created_at?.split('T')[0] || today 
+        })));
+      }
+
       if (reportsData) setReportList(reportsData.map(r => ({ reportId: r.report_id || r.id, userId: r.user_id, category: r.category || '신고/건의', title: r.title, content: r.content, createdAt: r.created_at?.replace('T', ' ').substring(0, 16) || today, isRead: !!r.is_read })));
       if (sitesData) setSiteList(sitesData.map(s => ({ siteId: s.site_id, name: s.name, url: s.url, bannerUrl: s.banner_url || '', description: s.description || '', isVisible: s.is_visible || 'Y' })));
     } catch (e) {
@@ -500,14 +520,25 @@ export default function MainPage() {
     if (!editingGame) return;
     const currentGenres = editingGame.genres || [];
     if (currentGenres.includes(genre)) setEditingGame({ ...editingGame, genres: currentGenres.filter(g => g !== genre) });
-    else { if (currentGenres.length >= 4) { alert('장르는 최대 4개까지 선택할 수 있습니다.'); return; } setEditingGame({ ...editingGame, genres: [...currentGenres, genre] }); }
+    else { if (currentGenres.length >= 3) { alert('장르는 최대 3개까지 선택할 수 있습니다.'); return; } setEditingGame({ ...editingGame, genres: [...currentGenres, genre] }); }
   };
 
+  // ⚡ 공지사항 저장 시 is_visible 데이터베이스 반영[cite: 2]
   const saveNotice = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingNotice.id) await supabase.from('notices').update({ title: editingNotice.title, content: editingNotice.content }).eq('notice_id', editingNotice.id);
-    else await supabase.from('notices').insert([{ title: editingNotice.title, content: editingNotice.content }]);
-    fetchInitialData(); setIsNoticeModalOpen(false);
+    const noticeDataToSave = {
+      title: editingNotice.title,
+      content: editingNotice.content,
+      is_visible: editingNotice.isVisible || 'Y',
+    };
+
+    if (editingNotice.id) {
+      await supabase.from('notices').update(noticeDataToSave).eq('notice_id', editingNotice.id);
+    } else {
+      await supabase.from('notices').insert([noticeDataToSave]);
+    }
+    fetchInitialData(); 
+    setIsNoticeModalOpen(false);
   };
 
   const saveSite = async (e: React.FormEvent) => {
@@ -588,11 +619,11 @@ export default function MainPage() {
         </div>
       )}
 
-      {/* 모달 및 드로어 모음 */}
+      {/* 모달 및 드로어 모음 (⚡ 일반 사용자용 노출 공지사항 필터 목록 visibleNoticesList 전달) */}
       <ModalsContainer 
         isAdminReportDrawerOpen={isAdminReportDrawerOpen} setIsAdminReportDrawerOpen={setIsAdminReportDrawerOpen} selectedReport={selectedReport} reports={reports} unreadReportsCount={unreadReportsCount} handleMarkReportAsRead={handleMarkReportAsRead} handleMarkAllReportsAsRead={handleMarkAllReportsAsRead}
         isSettingsOpen={isSettingsOpen} setIsSettingsOpen={setIsSettingsOpen} currentUser={currentUser} setEditName={setEditName} setNewPasswordInput={setNewPasswordInput} setNewPasswordConfirmInput={setNewPasswordConfirmInput} setIsEditProfileOpen={setIsEditProfileOpen} setIsFavoritesModalOpen={setIsFavoritesModalOpen} setIsMyRatingsModalOpen={setIsMyRatingsModalOpen} userFavorites={userFavorites} favoriteGamesList={favoriteGamesList} myRatingGamesList={myRatingGamesList} setReportForm={setReportForm} setIsReportModalOpen={setIsReportModalOpen} fontSize={fontSize} setFontSize={setFontSize} handleLogout={handleLogout}
-        isNoticeDrawerOpen={isNoticeDrawerOpen} setIsNoticeDrawerOpen={setIsNoticeDrawerOpen} notices={notices} expandedNoticeId={expandedNoticeId} handleNoticeClick={handleNoticeClick}
+        isNoticeDrawerOpen={isNoticeDrawerOpen} setIsNoticeDrawerOpen={setIsNoticeDrawerOpen} notices={visibleNoticesList} expandedNoticeId={expandedNoticeId} handleNoticeClick={handleNoticeClick}
         isCartOpen={isCartOpen} setIsCartOpen={setIsCartOpen} cart={cart} rentalDays={rentalDays} setRentalDays={setRentalDays} calculateEndDate={calculateEndDate} removeFromCart={removeFromCart} processCheckout={processCheckout}
         isFavoritesModalOpen={isFavoritesModalOpen} toggleFavorite={toggleFavorite}
         isMyRatingsModalOpen={isMyRatingsModalOpen} handleDeleteMyRating={handleDeleteMyRating}

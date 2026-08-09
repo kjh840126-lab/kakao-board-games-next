@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { 
-  UserCheck, Siren, Settings, Boxes, 
+  UserCheck, AlertCircle, Siren, Settings, Boxes, 
   PackageCheck, Trophy, Globe, ShieldCheck 
 } from 'lucide-react';
 
@@ -58,16 +58,13 @@ export const FixedHeader = memo(({
               <span>{currentUser?.userId}</span>
             </div>
 
-            {/* ⚡ 패널티 점수 + 대여불가 기간 통합 뱃지 (기존 ! 원형 아이콘 유지) */}
+            {/* ⚡ 통합 뱃지: 예전 AlertCircle 아이콘 복원 & 패널티 n점 볼드체 제거(font-normal) */}
             {hasPenaltyPoints && (
-              <span className={`bg-rose-600 text-white px-2 py-0.5 rounded-md flex items-center gap-1 font-extrabold shadow-xs ${
+              <span className={`bg-rose-600 text-white px-2 py-0.5 rounded-md flex items-center gap-1 shadow-xs ${
                 isIosDevice ? IOS_CONFIG.HEADER_BADGE_TEXT_SIZE : 'text-[10px]'
               }`}>
-                {/* 기존 ! 원형 아이콘 */}
-                <span className="w-3.5 h-3.5 rounded-full bg-white text-rose-600 flex items-center justify-center font-black text-[9px] flex-shrink-0">
-                  !
-                </span>
-                <span>패널티 {penaltyScore}점</span>
+                <AlertCircle size={11} className="flex-shrink-0" />
+                <span className="font-normal">패널티 {penaltyScore}점</span>
                 <span className="font-normal opacity-90">
                   ({isPenaltyActive ? `~${currentUser.penaltyEndDate} 대여불가` : '대여불가'})
                 </span>

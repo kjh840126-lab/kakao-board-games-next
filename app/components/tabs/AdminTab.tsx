@@ -49,7 +49,29 @@ export const AdminTab = memo(({
     }
   };
 
-  // ⚡ 공지사항 노출/숨김 토글 처리 함수
+  // ⚡ 1. 게임 노출/숨김 토글 처리 함수
+  const toggleGameVisibility = async (game: Game) => {
+    const nextStatus = game.isVisible === 'N' ? 'Y' : 'N';
+    const { error } = await supabase.from('games').update({ is_visible: nextStatus }).eq('game_id', game.gameId);
+    if (error) {
+      alert('게임 노출 상태 변경 실패: ' + error.message);
+    } else {
+      window.location.reload();
+    }
+  };
+
+  // ⚡ 2. 추천 사이트 노출/숨김 토글 처리 함수
+  const toggleSiteVisibility = async (site: BoardSite) => {
+    const nextStatus = site.isVisible === 'N' ? 'Y' : 'N';
+    const { error } = await supabase.from('sites').update({ is_visible: nextStatus }).eq('site_id', site.siteId);
+    if (error) {
+      alert('사이트 노출 상태 변경 실패: ' + error.message);
+    } else {
+      window.location.reload();
+    }
+  };
+
+  // ⚡ 3. 공지사항 노출/숨김 토글 처리 함수
   const toggleNoticeVisibility = async (notice: Notice) => {
     const nextStatus = (notice as any).isVisible === 'N' ? 'Y' : 'N';
     const { error } = await supabase.from('notices').update({ is_visible: nextStatus }).eq('notice_id', notice.noticeId);
@@ -108,42 +130,50 @@ export const AdminTab = memo(({
                 등록되거나 검색된 보드게임이 없습니다.
               </div>
             ) : (
-              filteredGameAdminList.map((game: Game) => (
-                <div key={game.gameId} className="w-full border border-slate-200 p-3.5 rounded-2xl flex justify-between items-center bg-white text-slate-900 shadow-sm">
-                  <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                    <img src={game.imageUrl} alt={game.title} className="w-12 h-12 object-cover rounded-xl bg-slate-100 flex-shrink-0 border border-slate-200" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=300'; }} />
-                    <div className="min-w-0 flex-1 space-y-0.5">
-                      <h4 className="font-bold text-xs break-all whitespace-normal leading-snug text-slate-900">
-                        {game.title} <span className="text-slate-400 font-normal">({game.gameId})</span>
-                      </h4>
-                      
-                      <p className="text-slate-500 text-xs leading-tight">
-                        {game.releaseYear}년 출시 | 난이도 {Number(game.difficulty).toFixed(2)} | {game.playTime}분
-                      </p>
-                      
-                      <p className="text-slate-500 text-xs leading-tight">
-                        인원 {game.minPlayers}~{game.maxPlayers} | BGG 평점 {game.bggRating}
-                      </p>
+              filteredGameAdminList.map((game: Game) => {
+                const isVisible = game.isVisible === 'Y';
+                return (
+                  <div key={game.gameId} className="w-full border border-slate-200 p-3.5 rounded-2xl flex justify-between items-center bg-white text-slate-900 shadow-sm">
+                    <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                      <img src={game.imageUrl} alt={game.title} className="w-12 h-12 object-cover rounded-xl bg-slate-100 flex-shrink-0 border border-slate-200" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=300'; }} />
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <h4 className="font-bold text-xs break-all whitespace-normal leading-snug text-slate-900">
+                          {game.title} <span className="text-slate-400 font-normal">({game.gameId})</span>
+                        </h4>
+                        
+                        <p className="text-slate-500 text-xs leading-tight">
+                          {game.releaseYear}년 출시 | 난이도 {Number(game.difficulty).toFixed(2)} | {game.playTime}분
+                        </p>
+                        
+                        <p className="text-slate-500 text-xs leading-tight">
+                          인원 {game.minPlayers}~{game.maxPlayers} | BGG 평점 {game.bggRating}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                      {/* ⚡ 클릭 시 노출/숨김 상태 토글 */}
+                      <button 
+                        onClick={() => toggleGameVisibility(game)} 
+                        className="p-1 cursor-pointer" 
+                        title={isVisible ? "현재 노출 상태 (클릭 시 숨김)" : "현재 미노출 상태 (클릭 시 노출)"}
+                      >
+                        {isVisible ? (
+                          <Eye size={16} className="text-emerald-500 hover:text-emerald-600" />
+                        ) : (
+                          <EyeOff size={16} className="text-slate-300 hover:text-slate-500" />
+                        )}
+                      </button>
+                      <button onClick={() => { setIsEditingMode(true); setEditingGame(game); setIsGameModalOpen(true); }} className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer" title="게임 수정">
+                        <Edit size={16} />
+                      </button>
+                      <button onClick={() => deleteGame(game.gameId, game.title, game.status)} className="p-1 text-slate-400 hover:text-rose-500 cursor-pointer" title="게임 삭제">
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-                    <span className="p-1" title={game.isVisible === 'Y' ? "현재 노출 상태" : "현재 미노출 상태"}>
-                      {game.isVisible === 'Y' ? (
-                        <Eye size={16} className="text-emerald-500" />
-                      ) : (
-                        <EyeOff size={16} className="text-slate-300" />
-                      )}
-                    </span>
-                    <button onClick={() => { setIsEditingMode(true); setEditingGame(game); setIsGameModalOpen(true); }} className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer" title="게임 수정">
-                      <Edit size={16} />
-                    </button>
-                    <button onClick={() => deleteGame(game.gameId, game.title, game.status)} className="p-1 text-slate-400 hover:text-rose-500 cursor-pointer" title="게임 삭제">
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
@@ -265,45 +295,53 @@ export const AdminTab = memo(({
                 등록된 추천 사이트가 없습니다.
               </div>
             ) : (
-              (sites || []).map((s: BoardSite) => (
-                <div key={s.siteId} className="w-full border border-slate-200 p-4 rounded-2xl bg-white text-slate-900 shadow-sm">
-                  <div className="flex justify-between items-start gap-2">
-                    <h3 className="font-bold text-xs text-slate-900 leading-tight flex-1">{s.name}</h3>
-                    
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <span className="p-1" title={s.isVisible === 'Y' ? "현재 노출 상태" : "현재 미노출 상태"}>
-                        {s.isVisible === 'Y' ? (
-                          <Eye size={16} className="text-emerald-500" />
-                        ) : (
-                          <EyeOff size={16} className="text-slate-300" />
-                        )}
-                      </span>
-                      <button 
-                        onClick={() => { setEditingSite(s); setIsSiteModalOpen(true); }} 
-                        className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
-                        title="사이트 수정"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button 
-                        onClick={() => deleteSite(s.siteId, s.name)} 
-                        className="p-1 text-slate-400 hover:text-rose-500 cursor-pointer"
-                        title="사이트 삭제"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+              (sites || []).map((s: BoardSite) => {
+                const isVisible = s.isVisible === 'Y';
+                return (
+                  <div key={s.siteId} className="w-full border border-slate-200 p-4 rounded-2xl bg-white text-slate-900 shadow-sm">
+                    <div className="flex justify-between items-start gap-2">
+                      <h3 className="font-bold text-xs text-slate-900 leading-tight flex-1">{s.name}</h3>
+                      
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {/* ⚡ 클릭 시 노출/숨김 상태 토글 */}
+                        <button 
+                          onClick={() => toggleSiteVisibility(s)} 
+                          className="p-1 cursor-pointer" 
+                          title={isVisible ? "현재 노출 상태 (클릭 시 숨김)" : "현재 미노출 상태 (클릭 시 노출)"}
+                        >
+                          {isVisible ? (
+                            <Eye size={16} className="text-emerald-500 hover:text-emerald-600" />
+                          ) : (
+                            <EyeOff size={16} className="text-slate-300 hover:text-slate-500" />
+                          )}
+                        </button>
+                        <button 
+                          onClick={() => { setEditingSite(s); setIsSiteModalOpen(true); }} 
+                          className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
+                          title="사이트 수정"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button 
+                          onClick={() => deleteSite(s.siteId, s.name)} 
+                          className="p-1 text-slate-400 hover:text-rose-500 cursor-pointer"
+                          title="사이트 삭제"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
+
+                    {s.url && (
+                      <p className="text-xs text-slate-400 font-normal break-all my-0.5 leading-snug">{s.url}</p>
+                    )}
+
+                    <p className="text-xs text-slate-600 leading-snug font-medium mt-1">
+                      {s.description}
+                    </p>
                   </div>
-
-                  {s.url && (
-                    <p className="text-xs text-slate-400 font-normal break-all my-0.5 leading-snug">{s.url}</p>
-                  )}
-
-                  <p className="text-xs text-slate-600 leading-snug font-medium mt-1">
-                    {s.description}
-                  </p>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
@@ -428,7 +466,7 @@ export const AdminTab = memo(({
         </div>
       )}
 
-      {/* E. 공지사항 관리 (⚡ 눈 아이콘 토글 추가) */}
+      {/* E. 공지사항 관리 */}
       {adminSubTab === 'noticeAdmin' && (
         <div className="space-y-4 w-full min-h-[200px] relative">
           <div className="flex justify-between items-center h-10 pb-2 border-b border-slate-200/80">
@@ -457,7 +495,7 @@ export const AdminTab = memo(({
                     <div className="flex justify-between items-start gap-2">
                       <h3 className="font-bold text-sm text-slate-900 flex-1 leading-snug">{n.title}</h3>
                       <div className="flex items-center gap-1 flex-shrink-0 pt-0.5">
-                        {/* ⚡ 눈 아이콘 (노출/숨김 상태 표시 및 클릭 시 토글) */}
+                        {/* ⚡ 클릭 시 노출/숨김 상태 토글 */}
                         <button
                           onClick={() => toggleNoticeVisibility(n)}
                           className="p-1 cursor-pointer"

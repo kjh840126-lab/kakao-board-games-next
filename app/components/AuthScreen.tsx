@@ -19,14 +19,15 @@ export const AuthScreen = ({
   ALLOWED_EMAIL_DOMAINS,
 }: any) => {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-slate-100 p-3">
-      <div className="w-full max-w-sm bg-white rounded-3xl shadow-lg overflow-hidden border border-slate-100">
-        {/* 상단 노란색 로고 영역 (로고 크기 확대 및 영역 여백 축소) */}
-        <div className="bg-[#FEE500] py-5 px-6 flex flex-col items-center justify-center">
+    <div className="min-h-screen w-full flex items-center justify-center bg-slate-100 p-4">
+      {/* ⚡ max-w-xs 적용으로 슬림한 원래 너비 복원 */}
+      <div className="w-full max-w-xs bg-white rounded-3xl shadow-lg overflow-hidden border border-slate-100">
+        {/* ⚡ py-3 적용으로 로고 위아래 여백 대폭 축소 */}
+        <div className="bg-[#FEE500] py-3 px-4 flex flex-col items-center justify-center">
           <img
             src={LOGIN_LOGO_URL}
             alt="KAKAO BOARD GAMES"
-            className="w-48 h-auto object-contain"
+            className="w-44 h-auto object-contain"
             onError={(e) => {
               (e.target as HTMLImageElement).style.display = 'none';
             }}
@@ -57,7 +58,7 @@ export const AuthScreen = ({
           </button>
         </div>
 
-        {/* 폼 영역 (세로 여백 컴팩트 조정) */}
+        {/* 폼 영역 */}
         <div className="p-4">
           {authTab === 'login' ? (
             <form onSubmit={handleLogin} className="space-y-3">
@@ -165,7 +166,7 @@ export const AuthScreen = ({
                       });
                       setIsEmailVerified(false);
                     }}
-                    className="flex-1 min-w-0 border border-slate-200 bg-slate-50/50 text-slate-900 px-1.5 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs"
+                    className="flex-1 min-w-0 border border-slate-200 bg-slate-50/50 text-slate-900 px-1 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs"
                   >
                     {ALLOWED_EMAIL_DOMAINS.map((domain: string) => (
                       <option key={domain} value={domain}>

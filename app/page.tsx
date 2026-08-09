@@ -121,7 +121,6 @@ export default function MainPage() {
     setMounted(true);
     setIsIosDevice(checkIsIosDevice());
 
-    // ⚡ [사파리 대응] 브라우저 자체의 스크롤 자동 복원 기능 비활성화
     if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';
     }
@@ -155,11 +154,9 @@ export default function MainPage() {
 
   useEffect(() => { if (mounted) fetchInitialData(); }, [mounted]);
 
-  // ⚡ [사파리 대응] 탭 전환 시 완벽 스크롤 위치 보정
   const handleTabChange = useCallback((newTab: 'games' | 'returns' | 'ranking' | 'sites' | 'admin') => {
     if (newTab === activeTab) return;
 
-    // 현재 보던 탭이 대여(games) 탭일 때만 현재 스크롤 위치 기억
     if (activeTab === 'games') {
       scrollPositions.current['games'] = window.scrollY;
     }
@@ -167,7 +164,6 @@ export default function MainPage() {
     setActiveTab(newTab);
     if (typeof window !== 'undefined') localStorage.setItem('kakao_bg_activeTab', newTab);
 
-    // 사파리 레이아웃 재계산 타이밍 보정 (setTimeout + requestAnimationFrame 조합)
     setTimeout(() => {
       requestAnimationFrame(() => {
         if (newTab === 'games') {
@@ -180,7 +176,6 @@ export default function MainPage() {
     }, 20);
   }, [activeTab]);
 
-  // ⚡ [사파리 대응] 새로고침 시 대여 탭이 아니면 무조건 최상단 강제 고정
   useEffect(() => {
     if (mounted && activeTab !== 'games') {
       setTimeout(() => {
@@ -297,9 +292,18 @@ export default function MainPage() {
 
   const removeFromCart = (gameId: string) => setCart(cart.filter((item: Game) => item.gameId !== gameId));
 
+  // ⚡ 대여 처리 함수 (패널티 1점 이상 검증 최우선 적용)
   const processCheckout = async () => {
     if (!currentUser) return;
 
+    // 1. 패널티 점수가 1점 이상인 회원 차단 (최우선)
+    const penaltyPoints = Number(currentUser.penaltyPoints || 0);
+    if (penaltyPoints >= 1) {
+      alert(`패널티 점수가 ${penaltyPoints}점 누적되어 있어 보드게임을 대여할 수 없습니다.\n관리자에게 문의해 주세요.`);
+      return;
+    }
+
+    // 2. 1인당 최대 3개 대여 가능 수량 체크
     const activeRentalsCount = rentals.filter((r: Rental) => {
       const activeStatuses: string[] = ['대여중', '대여신청', '승인대기'];
       return r.userId === currentUser.userId && activeStatuses.includes(r.status);

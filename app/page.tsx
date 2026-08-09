@@ -49,6 +49,7 @@ const StarRating = ({ rating = 0, size = 12, colorClass = "text-rose-500" }: { r
 
 export default function MainPage() {
   const [mounted, setMounted] = useState(false);
+  const [isInitialLoaded, setIsInitialLoaded] = useState(false); // ⚡ 최초 데이터 로드 완료 여부
   const [users, setUsers] = useState<UserData[]>([]);
   const [games, setGames] = useState<Game[]>([]);
   const [rentals, setRentals] = useState<Rental[]>([]);
@@ -171,7 +172,6 @@ export default function MainPage() {
     }
   }, [noticeIndex, recentNoticesList.length]);
 
-  // ⚡ [핵심 개선] 데이터를 전부 다 수신받은 시점에만 일괄적으로 State를 업데이트합니다.
   const fetchInitialData = async () => {
     try {
       const [{ data: usersData }, { data: rentalsData }, { data: ratingsData }, { data: gamesData }, { data: noticeData }, { data: reportsData }, { data: sitesData }] = await Promise.all([
@@ -221,7 +221,10 @@ export default function MainPage() {
       if (noticeData) setNoticeList(noticeData.map(n => ({ noticeId: n.notice_id, title: n.title, content: n.content, createdAt: n.created_at?.split('T')[0] || today })));
       if (reportsData) setReportList(reportsData.map(r => ({ reportId: r.report_id || r.id, userId: r.user_id, category: r.category || '신고/건의', title: r.title, content: r.content, createdAt: r.created_at?.replace('T', ' ').substring(0, 16) || today, isRead: !!r.is_read })));
       if (sitesData) setSiteList(sitesData.map(s => ({ siteId: s.site_id, name: s.name, url: s.url, bannerUrl: s.banner_url || '', description: s.description || '', isVisible: s.is_visible || 'Y' })));
-    } catch (e) {}
+    } catch (e) {
+    } finally {
+      setIsInitialLoaded(true); // ⚡ 최초 로드 완료 설정
+    }
   };
 
   const toggleFavorite = useCallback(async (gameId: string) => {
@@ -565,7 +568,8 @@ export default function MainPage() {
         className="flex-1 w-full py-4 px-4 bg-white text-slate-900 text-xs transition-all relative"
       >
         <div className={activeTab === 'games' ? 'block' : 'hidden'}>
-          <GamesTab games={games} rentals={rentals} userFavorites={userFavorites} allRatings={allRatings} currentUser={currentUser} today={today} isIosDevice={isIosDevice} isLargeFont={isLargeFont} recentNoticesList={recentNoticesList} noticeIndex={noticeIndex} isNoticeTransition={isNoticeTransition} handleNoticeClick={handleNoticeClick} toggleCartItem={toggleCartItem} toggleFavorite={toggleFavorite} cart={cart} setRatingModalGame={setRatingModalGame} setSelectedScore={setSelectedScore} />
+          {/* ⚡ isInitialLoaded 전달 */}
+          <GamesTab isInitialLoaded={isInitialLoaded} games={games} rentals={rentals} userFavorites={userFavorites} allRatings={allRatings} currentUser={currentUser} today={today} isIosDevice={isIosDevice} isLargeFont={isLargeFont} recentNoticesList={recentNoticesList} noticeIndex={noticeIndex} isNoticeTransition={isNoticeTransition} handleNoticeClick={handleNoticeClick} toggleCartItem={toggleCartItem} toggleFavorite={toggleFavorite} cart={cart} setRatingModalGame={setRatingModalGame} setSelectedScore={setSelectedScore} />
         </div>
         <div className={activeTab === 'returns' ? 'block' : 'hidden'}><ReturnsTab rentals={rentals} currentUser={currentUser} today={today} returnGame={returnGame} returnAllGames={returnAllGames} returnedRentalsList={returnedRentalsList} /></div>
         <div className={activeTab === 'ranking' ? 'block' : 'hidden'}><RankingTab games={games} rentals={rentals} allRatings={allRatings} /></div>

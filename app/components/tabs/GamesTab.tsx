@@ -36,7 +36,7 @@ const StarRating = memo(({ rating = 0, size = 12, colorClass = "text-rose-500" }
 StarRating.displayName = 'StarRating';
 
 export const GamesTab = memo(({
-  games, rentals, userFavorites, allRatings, currentUser, today, isIosDevice, isLargeFont,
+  isInitialLoaded, games, rentals, userFavorites, allRatings, currentUser, today, isIosDevice, isLargeFont,
   recentNoticesList, noticeIndex, isNoticeTransition, handleNoticeClick,
   toggleCartItem, toggleFavorite, cart, setRatingModalGame, setSelectedScore
 }: any) => {
@@ -136,7 +136,10 @@ export const GamesTab = memo(({
       {/* 게임 목록 */}
       <div className="grid gap-3 w-full">
         {filteredGameList.length === 0 ? (
-          <div className="text-center py-12 border border-dashed border-slate-300/40 text-slate-400 rounded-2xl w-full text-xs">보드게임이 없습니다.</div>
+          /* ⚡ 최초 조회가 완료(isInitialLoaded)되었고 실제로 0개일 때만 "없습니다" 문구 노출 */
+          isInitialLoaded ? (
+            <div className="text-center py-12 border border-dashed border-slate-300/40 text-slate-400 rounded-2xl w-full text-xs">보드게임이 없습니다.</div>
+          ) : null
         ) : (
           filteredGameList.map((game: Game) => {
             const isAvailable = game.status === '대여가능';
@@ -154,7 +157,6 @@ export const GamesTab = memo(({
                         <h3 className={`font-bold leading-snug break-keep ${isLargeFont ? 'text-sm' : 'text-xs'} text-slate-900`}>
                           <span>{game.title}</span><span className="text-slate-400 font-normal ml-1 text-xs">({game.releaseYear}년)</span>
                         </h3>
-                        {/* ⚡ 게임 ID 폰트 크기 11px로 변경 */}
                         <span className="text-slate-400/80 text-[11px] font-medium tracking-wide flex-shrink-0 pt-0.5">{game.gameId}</span>
                       </div>
                       <div className="flex flex-wrap gap-x-2 gap-y-0.5 font-semibold mt-1.5 text-xs text-slate-600">

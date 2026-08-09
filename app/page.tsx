@@ -121,7 +121,6 @@ export default function MainPage() {
     if (typeof window !== 'undefined') {
       try {
         const savedUser = localStorage.getItem('kakao_boardgame_user'); if (savedUser) setCurrentUser(JSON.parse(savedUser));
-        const savedGames = localStorage.getItem('kakao_bg_games_cache'); if (savedGames) setGames(JSON.parse(savedGames));
         const savedFont = localStorage.getItem('kakao_bg_fontSize'); if (savedFont) setFontSize(savedFont as any);
       } catch (e) {}
     }
@@ -148,6 +147,7 @@ export default function MainPage() {
 
   useEffect(() => { if (mounted) fetchInitialData(); }, [mounted]);
 
+  // ⚡ 탭 이동 시 스크롤 위치 보존 로직
   const handleTabChange = useCallback((newTab: 'games' | 'returns' | 'ranking' | 'sites' | 'admin') => {
     if (newTab === activeTab) return;
     scrollPositions.current[activeTab] = window.scrollY;
@@ -197,13 +197,21 @@ export default function MainPage() {
 
       if (rentalsData) setRentals(rentalsData.map(r => ({ rentalId: r.rental_id, userId: r.user_id, gameId: r.game_id, gameTitle: r.game_title, status: r.status, startDate: r.start_date, endDate: r.end_date, returnedAt: r.returned_at })));
       if (ratingsData) setAllRatings(ratingsData.map(r => ({ userId: r.user_id, gameId: r.game_id, score: Number(r.score) })));
+      
       if (gamesData) {
         const mappedGames = gamesData.map(g => ({
           gameId: g.game_id, title: g.title, status: g.status, minPlayers: g.min_players, maxPlayers: g.max_players, playTime: Number(g.play_time) || 30, difficulty: Number(g.difficulty) || 2.0, imageUrl: g.image_url || 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=300', description: g.description || '', isVisible: g.is_visible || g.isVisible || 'Y', genres: Array.isArray(g.genres) ? g.genres : typeof g.genres === 'string' ? g.genres.split(',').map((s: string) => s.trim()) : ['보드게임'], createdAt: g.created_at || new Date().toISOString(), releaseYear: Number(g.release_year) || currentYear, bggRating: Number(g.bgg_rating) || 7.0
         }));
-        setGames(mappedGames);
-        if (typeof window !== 'undefined') localStorage.setItem('kakao_bg_games_cache', JSON.stringify(mappedGames));
+
+        // ⚡ [요청 1, 3 해결] 최초 로드/새로고침 시 딱 1번만 랜덤 셔플 수행
+        const shuffled = [...mappedGames];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        setGames(shuffled);
       }
+
       if (noticeData) setNoticeList(noticeData.map(n => ({ noticeId: n.notice_id, title: n.title, content: n.content, createdAt: n.created_at?.split('T')[0] || today })));
       if (reportsData) setReportList(reportsData.map(r => ({ reportId: r.report_id || r.id, userId: r.user_id, category: r.category || '신고/건의', title: r.title, content: r.content, createdAt: r.created_at?.replace('T', ' ').substring(0, 16) || today, isRead: !!r.is_read })));
       if (sitesData) setSiteList(sitesData.map(s => ({ siteId: s.site_id, name: s.name, url: s.url, bannerUrl: s.banner_url || '', description: s.description || '', isVisible: s.is_visible || 'Y' })));
@@ -230,6 +238,7 @@ export default function MainPage() {
 
   const removeFromCart = (gameId: string) => setCart(cart.filter((item: Game) => item.gameId !== gameId));
 
+  // ⚡ [요청 2, 4 해결] 대여 완료 시 정렬 순서 보존하며 status만 '대여중'으로 즉시 변경
   const processCheckout = async () => {
     if (!currentUser) return;
 
@@ -259,9 +268,12 @@ export default function MainPage() {
       const { error: gameError } = await supabase.from('games').update({ status: '대여중' }).in('game_id', cartGameIds);
       if (gameError) throw gameError;
 
-      const updatedGames = games.map(game => cartGameIds.includes(game.gameId) ? { ...game, status: '대여중' as GameStatus } : game);
-      setGames(updatedGames);
-      if (typeof window !== 'undefined') localStorage.setItem('kakao_bg_games_cache', JSON.stringify(updatedGames));
+      // ⚡ 기존 섞여 있는 배열 순서 그대로 유지하고 status만 '대여중'으로 0초 변경
+      setGames(prevGames => 
+        prevGames.map(game => 
+          cartGameIds.includes(game.gameId) ? { ...game, status: '대여중' as GameStatus } : game
+        )
+      );
 
       if (insertedData) {
         const mappedNewRentals: Rental[] = insertedData.map(r => ({
@@ -282,16 +294,22 @@ export default function MainPage() {
     if (!currentUser) return;
     await supabase.from('rentals').update({ status: '반납완료', returned_at: new Date().toISOString() }).eq('rental_id', rentalId);
     await supabase.from('games').update({ status: '대여가능' }).eq('game_id', gameId);
-    alert('반납이 완료되었습니다.'); fetchInitialData();
+    
+    setGames(prevGames => prevGames.map(g => g.gameId === gameId ? { ...g, status: '대여가능' as GameStatus } : g));
+    alert('반납이 완료되었습니다.');
   };
 
   const returnAllGames = async () => {
     if (!currentUser) return;
     const userActiveRentals = rentals.filter((r: Rental) => r.userId === currentUser.userId && r.status === '대여중');
     if (userActiveRentals.length === 0) return;
+    const activeGameIds = userActiveRentals.map(r => r.gameId);
+
     await supabase.from('rentals').update({ status: '반납완료', returned_at: new Date().toISOString() }).in('rental_id', userActiveRentals.map(r => r.rentalId));
-    await supabase.from('games').update({ status: '대여가능' }).in('game_id', userActiveRentals.map(r => r.gameId));
-    alert('모든 보드게임이 반납되었습니다.'); fetchInitialData();
+    await supabase.from('games').update({ status: '대여가능' }).in('game_id', activeGameIds);
+    
+    setGames(prevGames => prevGames.map(g => activeGameIds.includes(g.gameId) ? { ...g, status: '대여가능' as GameStatus } : g));
+    alert('모든 보드게임이 반납되었습니다.');
   };
 
   const handleSaveRating = async () => {
@@ -471,15 +489,13 @@ export default function MainPage() {
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-white text-slate-900 text-xs relative">
-      {/* 📌 1. 상단 네비게이션 고정 */}
       <FixedHeader isHeaderAdminTheme={isHeaderAdminTheme} isIosDevice={isIosDevice} currentUser={currentUser} today={today} unreadReportsCount={unreadReportsCount} setIsAdminReportDrawerOpen={setIsAdminReportDrawerOpen} setIsSettingsOpen={setIsSettingsOpen} headerRef={headerRef} />
 
-      {/* 📌 2. 본문 스크롤 영역 */}
       <main 
         ref={mainScrollRef} 
         style={{ 
           paddingTop: isLargeFont ? (isIosDevice ? '122px' : '110px') : (isIosDevice ? '104px' : '92px'), 
-          paddingBottom: '20px' 
+          paddingBottom: '80px' 
         }} 
         className="flex-1 w-full py-4 px-4 bg-white text-slate-900 text-xs transition-all relative"
       >
@@ -492,12 +508,9 @@ export default function MainPage() {
         {isAdmin && <div className={activeTab === 'admin' ? 'block' : 'hidden'}><AdminTab games={games} users={users} rentals={rentals} sites={sites} notices={notices} currentUser={currentUser} setIsEditingMode={setIsEditingMode} setEditingGame={setEditingGame} setIsGameModalOpen={setIsGameModalOpen} deleteGame={deleteGame} setEditingSite={setEditingSite} setIsSiteModalOpen={setIsSiteModalOpen} deleteSite={deleteSite} handleUserRoleChange={handleUserRoleChange} setEditingNotice={setEditingNotice} setIsNoticeModalOpen={setIsNoticeModalOpen} deleteNotice={deleteNotice} returnGame={returnGame} /></div>}
       </main>
 
-      {/* 📌 3. 하단 네비게이션 고정 해제 (본문 아래 스크롤과 함께 흐름) */}
-      <FixedBottomNav isIosDevice={isIosDevice} activeTab={activeTab} isAdmin={isAdmin} unreadReportsCount={unreadReportsCount} handleTabChange={handleTabChange} />
-
       {/* 장바구니 플로팅 버튼 */}
       {activeTab === 'games' && (
-        <div className="fixed bottom-6 right-4 z-30">
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+80px)] right-4 z-30">
           <button onClick={() => setIsCartOpen(true)} className="p-3.5 rounded-full shadow-xl flex items-center justify-center relative cursor-pointer bg-slate-900 text-white">
             <ShoppingCart size={20} />
             {cart.length > 0 && <span className="absolute -top-1 -right-1 bg-rose-600 text-white font-extrabold w-5 h-5 rounded-full flex items-center justify-center text-[10px]">{cart.length}</span>}
@@ -520,6 +533,8 @@ export default function MainPage() {
         isNoticeModalOpen={isNoticeModalOpen} setIsNoticeModalOpen={setIsNoticeModalOpen} editingNotice={editingNotice} setEditingNotice={setEditingNotice} saveNotice={saveNotice}
         isSiteModalOpen={isSiteModalOpen} setIsSiteModalOpen={setIsSiteModalOpen} editingSite={editingSite} setEditingSite={setEditingSite} saveSite={saveSite}
       />
+
+      <FixedBottomNav isIosDevice={isIosDevice} activeTab={activeTab} isAdmin={isAdmin} unreadReportsCount={unreadReportsCount} handleTabChange={handleTabChange} />
     </div>
   );
 }

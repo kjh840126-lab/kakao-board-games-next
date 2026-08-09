@@ -49,7 +49,7 @@ export const GamesTab = memo(({
   const isFilterActive = playerFilter > 0 || genreFilter !== '' || difficultyFilter !== 'all';
   const resetFilters = () => { setPlayerFilter(0); setGenreFilter(''); setDifficultyFilter('all'); };
 
-  // ⚡ 캐시 변수 박아두던 문제 원인 제거 -> props로 들어오는 games를 직접 필터링
+  // ⚡ 캐시 변수를 사용하지 않고 부모에서 전달받은 섞인 games 배열을 직접 필터링
   const filteredGameList = useMemo(() => {
     if (!games || games.length === 0) return [];
     const query = gameListSearch.trim().toLowerCase();
@@ -73,6 +73,7 @@ export const GamesTab = memo(({
 
   return (
     <div className="space-y-4 mt-0.5 w-full">
+      {/* 롤링 공지사항 */}
       <div onClick={() => { if (recentNoticesList.length > 0) handleNoticeClick(recentNoticesList[noticeIndex % recentNoticesList.length]); }} className="w-full px-3.5 py-3 rounded-2xl flex items-center gap-2.5 shadow-sm overflow-hidden h-11 cursor-pointer transition active:scale-[0.99] bg-slate-900 text-white">
         <Bell size={16} className="text-[#FEE500] flex-shrink-0 z-10" />
         <div className="flex-1 h-5 overflow-hidden relative">
@@ -87,6 +88,7 @@ export const GamesTab = memo(({
         {recentNoticesList.length > 0 && <ChevronRight size={14} className="text-slate-400 flex-shrink-0" />}
       </div>
 
+      {/* 검색 & 필터 */}
       <div className="flex gap-2 w-full">
         <div className="relative flex-1">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -132,12 +134,12 @@ export const GamesTab = memo(({
         </div>
       )}
 
+      {/* 게임 목록 */}
       <div className="grid gap-3 w-full">
         {filteredGameList.length === 0 ? (
           <div className="text-center py-12 border border-dashed border-slate-300/40 text-slate-400 rounded-2xl w-full text-xs">보드게임이 없습니다.</div>
         ) : (
           filteredGameList.map((game: Game) => {
-            // ⚡ game.status 판단
             const isAvailable = game.status === '대여가능';
             const isSelectedInCart = cart.some((item: Game) => item.gameId === game.gameId);
             const isFav = userFavorites.includes(game.gameId);
@@ -179,8 +181,6 @@ export const GamesTab = memo(({
                     <button onClick={() => toggleFavorite(game.gameId)} className="p-1.5 rounded-xl font-bold border cursor-pointer border-slate-200 bg-slate-50 flex items-center justify-center">
                       <Heart size={16} className={isFav ? "fill-rose-500 text-rose-500" : "text-slate-400"} />
                     </button>
-                    
-                    {/* ⚡ 상태가 '대여가능'일 때만 대여버튼, '대여중'이면 즉시 대여중 뱃지 출력 */}
                     {isAvailable ? (
                       <button onClick={() => toggleCartItem(game)} className={`px-3.5 py-1.5 rounded-xl font-bold text-xs cursor-pointer ${isSelectedInCart ? 'bg-slate-900 text-white' : 'bg-[#FEE500] text-slate-900'}`}>
                         {isSelectedInCart ? '선택취소' : '대여가능'}

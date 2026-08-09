@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { 
-  UserCheck, AlertCircle, Siren, Settings, Boxes, 
+  UserCheck, Siren, Settings, Boxes, 
   PackageCheck, Trophy, Globe, ShieldCheck 
 } from 'lucide-react';
 
@@ -58,19 +58,19 @@ export const FixedHeader = memo(({
               <span>{currentUser?.userId}</span>
             </div>
 
+            {/* ⚡ 패널티 점수 + 대여불가 기간 통합 뱃지 (기존 ! 원형 아이콘 유지) */}
             {hasPenaltyPoints && (
-              <span className={`bg-rose-600 text-white px-1.5 py-0.5 rounded-md flex items-center gap-0.5 font-extrabold shadow-sm ${
+              <span className={`bg-rose-600 text-white px-2 py-0.5 rounded-md flex items-center gap-1 font-extrabold shadow-xs ${
                 isIosDevice ? IOS_CONFIG.HEADER_BADGE_TEXT_SIZE : 'text-[10px]'
               }`}>
-                <AlertCircle size={10} /> 패널티 {penaltyScore}점
-              </span>
-            )}
-
-            {isPenaltyActive && (
-              <span className={`text-rose-700 font-extrabold bg-rose-100 px-1.5 py-0.5 rounded-md border border-rose-200 ${
-                isIosDevice ? IOS_CONFIG.HEADER_BADGE_TEXT_SIZE : 'text-[10px]'
-              }`}>
-                (~{currentUser.penaltyEndDate} 대여불가)
+                {/* 기존 ! 원형 아이콘 */}
+                <span className="w-3.5 h-3.5 rounded-full bg-white text-rose-600 flex items-center justify-center font-black text-[9px] flex-shrink-0">
+                  !
+                </span>
+                <span>패널티 {penaltyScore}점</span>
+                <span className="font-normal opacity-90">
+                  ({isPenaltyActive ? `~${currentUser.penaltyEndDate} 대여불가` : '대여불가'})
+                </span>
               </span>
             )}
           </div>
@@ -106,7 +106,7 @@ export const FixedHeader = memo(({
 });
 FixedHeader.displayName = 'FixedHeader';
 
-// ⚡ 하단 네비게이션을 화면 하단 고정(fixed bottom-0)으로 복구
+// 하단 네비게이션
 export const FixedBottomNav = memo(({ 
   isDarkMode, 
   isIosDevice, 

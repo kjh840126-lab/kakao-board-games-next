@@ -183,6 +183,13 @@ export default function MainPage() {
         supabase.from('sites').select('*').order('site_id', { ascending: true })
       ]);
 
+      if (currentUser) {
+        const { data: favoritesData } = await supabase.from('favorites').select('game_id').eq('user_id', currentUser.userId);
+        if (favoritesData) {
+          setUserFavorites(favoritesData.map(f => f.game_id));
+        }
+      }
+
       if (usersData) {
         const mappedUsers: UserData[] = usersData.map(u => ({
           userId: u.user_id, name: u.name, email: u.email, role: u.role as Role, passwordHash: u.password_hash, penaltyPoints: Number(u.penalty_count || 0), penaltyEndDate: u.penalty_end_date || null, createdAt: u.created_at?.split('T')[0] || today, lastLoginAt: u.last_login_at || '기록없음'
@@ -349,7 +356,6 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ [정렬 순서 보존 평점 저장] fetchInitialData를 빼고 allRatings State만 즉시 업데이트
   const handleSaveRating = async () => {
     if (!currentUser || !ratingModalGame) return;
     const gameId = ratingModalGame.gameId;
@@ -373,7 +379,6 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ [정렬 순서 보존 평점 삭제] fetchInitialData를 빼고 allRatings State만 즉시 업데이트
   const handleDeleteMyRating = async (gameId: string) => {
     if (!currentUser) return;
     if (window.confirm('삭제하시겠습니까?')) {
@@ -580,10 +585,10 @@ export default function MainPage() {
       {/* 모달 및 드로어 모음 */}
       <ModalsContainer 
         isAdminReportDrawerOpen={isAdminReportDrawerOpen} setIsAdminReportDrawerOpen={setIsAdminReportDrawerOpen} selectedReport={selectedReport} reports={reports} unreadReportsCount={unreadReportsCount} handleMarkReportAsRead={handleMarkReportAsRead} handleMarkAllReportsAsRead={handleMarkAllReportsAsRead}
-        isSettingsOpen={isSettingsOpen} setIsSettingsOpen={setIsSettingsOpen} currentUser={currentUser} setEditName={setEditName} setNewPasswordInput={setNewPasswordInput} setNewPasswordConfirmInput={setNewPasswordConfirmInput} setIsEditProfileOpen={setIsEditProfileOpen} setIsFavoritesModalOpen={setIsFavoritesModalOpen} setIsMyRatingsModalOpen={setIsMyRatingsModalOpen} userFavorites={userFavorites} myRatingGamesList={myRatingGamesList} setReportForm={setReportForm} setIsReportModalOpen={setIsReportModalOpen} fontSize={fontSize} setFontSize={setFontSize} handleLogout={handleLogout}
+        isSettingsOpen={isSettingsOpen} setIsSettingsOpen={setIsSettingsOpen} currentUser={currentUser} setEditName={setEditName} setNewPasswordInput={setNewPasswordInput} setNewPasswordConfirmInput={setNewPasswordConfirmInput} setIsEditProfileOpen={setIsEditProfileOpen} setIsFavoritesModalOpen={setIsFavoritesModalOpen} setIsMyRatingsModalOpen={setIsMyRatingsModalOpen} userFavorites={userFavorites} favoriteGamesList={favoriteGamesList} myRatingGamesList={myRatingGamesList} setReportForm={setReportForm} setIsReportModalOpen={setIsReportModalOpen} fontSize={fontSize} setFontSize={setFontSize} handleLogout={handleLogout}
         isNoticeDrawerOpen={isNoticeDrawerOpen} setIsNoticeDrawerOpen={setIsNoticeDrawerOpen} notices={notices} expandedNoticeId={expandedNoticeId} handleNoticeClick={handleNoticeClick}
         isCartOpen={isCartOpen} setIsCartOpen={setIsCartOpen} cart={cart} rentalDays={rentalDays} setRentalDays={setRentalDays} calculateEndDate={calculateEndDate} removeFromCart={removeFromCart} processCheckout={processCheckout}
-        isFavoritesModalOpen={isFavoritesModalOpen} favoriteGamesList={favoriteGamesList} toggleFavorite={toggleFavorite}
+        isFavoritesModalOpen={isFavoritesModalOpen} toggleFavorite={toggleFavorite}
         isMyRatingsModalOpen={isMyRatingsModalOpen} handleDeleteMyRating={handleDeleteMyRating}
         ratingModalGame={ratingModalGame} setRatingModalGame={setRatingModalGame} selectedScore={selectedScore} setSelectedScore={setSelectedScore} StarRating={StarRating} handleSaveRating={handleSaveRating}
         isReportModalOpen={isReportModalOpen} reportForm={reportForm} handleSendReport={handleSendReport}

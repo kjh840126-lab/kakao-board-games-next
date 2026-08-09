@@ -292,14 +292,15 @@ export default function MainPage() {
 
   const removeFromCart = (gameId: string) => setCart(cart.filter((item: Game) => item.gameId !== gameId));
 
-  // ⚡ 대여 처리 함수 (패널티 1점 이상 검증 최우선 적용)
+  // ⚡ 대여 처리 함수 (패널티 존재 시 요청 문구로 알럿 노출)
   const processCheckout = async () => {
     if (!currentUser) return;
 
-    // 1. 패널티 점수가 1점 이상인 회원 차단 (최우선)
+    // 1. 패널티 점수가 1점 이상인 회원 대여 제한 및 문구 적용
     const penaltyPoints = Number(currentUser.penaltyPoints || 0);
     if (penaltyPoints >= 1) {
-      alert(`패널티 점수가 ${penaltyPoints}점 누적되어 있어 보드게임을 대여할 수 없습니다.\n관리자에게 문의해 주세요.`);
+      const endDateText = currentUser.penaltyEndDate ? currentUser.penaltyEndDate : '패널티 해제일';
+      alert(`연체로 인한 패널티로 ${endDateText}까지 보드게임을 대여할 수 없습니다.`);
       return;
     }
 

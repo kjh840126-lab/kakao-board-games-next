@@ -19,7 +19,6 @@ const ALLOWED_EMAIL_DOMAINS = ['kakaocorp.com', 'kakaoenterprise.com', 'kakaomob
 const LOGIN_LOGO_URL = '/logo.png';
 const currentYear = new Date().getFullYear();
 
-// ⚡ 신규 장르 목록 6개 적용
 const AVAILABLE_GENRES = ['전략게임', '파티게임', '협동게임', '가족게임', '테마/모험', '추리/마피아'];
 
 const checkIsIosDevice = () => {
@@ -121,6 +120,12 @@ export default function MainPage() {
   useEffect(() => {
     setMounted(true);
     setIsIosDevice(checkIsIosDevice());
+
+    // ⚡ [사파리 대응] 브라우저 자체의 스크롤 자동 복원 기능 비활성화
+    if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+
     if (typeof window !== 'undefined') {
       try {
         const savedUser = localStorage.getItem('kakao_boardgame_user'); if (savedUser) setCurrentUser(JSON.parse(savedUser));
@@ -150,21 +155,45 @@ export default function MainPage() {
 
   useEffect(() => { if (mounted) fetchInitialData(); }, [mounted]);
 
+  // ⚡ [사파리 대응] 탭 전환 시 완벽 스크롤 위치 보정
   const handleTabChange = useCallback((newTab: 'games' | 'returns' | 'ranking' | 'sites' | 'admin') => {
     if (newTab === activeTab) return;
-    scrollPositions.current[activeTab] = window.scrollY;
+
+    // 현재 보던 탭이 대여(games) 탭일 때만 현재 스크롤 위치 기억
+    if (activeTab === 'games') {
+      scrollPositions.current['games'] = window.scrollY;
+    }
+
     setActiveTab(newTab);
     if (typeof window !== 'undefined') localStorage.setItem('kakao_bg_activeTab', newTab);
-    requestAnimationFrame(() => { window.scrollTo(0, scrollPositions.current[newTab] || 0); });
+
+    // 사파리 레이아웃 재계산 타이밍 보정 (setTimeout + requestAnimationFrame 조합)
+    setTimeout(() => {
+      requestAnimationFrame(() => {
+        if (newTab === 'games') {
+          window.scrollTo(0, scrollPositions.current['games'] || 0);
+        } else {
+          window.scrollTo(0, 0);
+          if (mainScrollRef.current) mainScrollRef.current.scrollTop = 0;
+        }
+      });
+    }, 20);
   }, [activeTab]);
 
-  // ⚡ 일반 사용자용 노출(Y) 공지사항 필터링 목록[cite: 2]
+  // ⚡ [사파리 대응] 새로고침 시 대여 탭이 아니면 무조건 최상단 강제 고정
+  useEffect(() => {
+    if (mounted && activeTab !== 'games') {
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+      }, 50);
+    }
+  }, [mounted, activeTab]);
+
   const visibleNoticesList = useMemo(() => 
     (notices || []).filter((n: any) => n.isVisible !== 'N'), 
     [notices]
   );
 
-  // ⚡ 대여 탭 상단 롤링용 노출 공지사항 (최대 5개)[cite: 2]
   const recentNoticesList = useMemo(() => 
     visibleNoticesList.slice(0, 5), 
     [visibleNoticesList]
@@ -230,7 +259,6 @@ export default function MainPage() {
         setGames(shuffled);
       }
 
-      // ⚡ notices 불러올 때 is_visible 매핑[cite: 2]
       if (noticeData) {
         setNoticeList(noticeData.map(n => ({ 
           noticeId: n.notice_id, 
@@ -523,7 +551,6 @@ export default function MainPage() {
     else { if (currentGenres.length >= 3) { alert('장르는 최대 3개까지 선택할 수 있습니다.'); return; } setEditingGame({ ...editingGame, genres: [...currentGenres, genre] }); }
   };
 
-  // ⚡ 공지사항 저장 시 is_visible 데이터베이스 반영[cite: 2]
   const saveNotice = async (e: React.FormEvent) => {
     e.preventDefault();
     const noticeDataToSave = {
@@ -619,7 +646,7 @@ export default function MainPage() {
         </div>
       )}
 
-      {/* 모달 및 드로어 모음 (⚡ 일반 사용자용 노출 공지사항 필터 목록 visibleNoticesList 전달) */}
+      {/* 모달 및 드로어 모음 */}
       <ModalsContainer 
         isAdminReportDrawerOpen={isAdminReportDrawerOpen} setIsAdminReportDrawerOpen={setIsAdminReportDrawerOpen} selectedReport={selectedReport} reports={reports} unreadReportsCount={unreadReportsCount} handleMarkReportAsRead={handleMarkReportAsRead} handleMarkAllReportsAsRead={handleMarkAllReportsAsRead}
         isSettingsOpen={isSettingsOpen} setIsSettingsOpen={setIsSettingsOpen} currentUser={currentUser} setEditName={setEditName} setNewPasswordInput={setNewPasswordInput} setNewPasswordConfirmInput={setNewPasswordConfirmInput} setIsEditProfileOpen={setIsEditProfileOpen} setIsFavoritesModalOpen={setIsFavoritesModalOpen} setIsMyRatingsModalOpen={setIsMyRatingsModalOpen} userFavorites={userFavorites} favoriteGamesList={favoriteGamesList} myRatingGamesList={myRatingGamesList} setReportForm={setReportForm} setIsReportModalOpen={setIsReportModalOpen} fontSize={fontSize} setFontSize={setFontSize} handleLogout={handleLogout}

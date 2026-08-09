@@ -52,9 +52,9 @@ export const ReturnsTab = memo(({ rentals, currentUser, today, returnGame, retur
             return (
               <div key={rental.rentalId} className={`w-full border p-3.5 rounded-2xl flex justify-between items-center ${isOverdue ? 'border-rose-300 bg-rose-50/40' : 'border-amber-300/60 bg-amber-50/40'}`}>
                 <div className="min-w-0 flex-1 pr-2">
-                  {/* ⚡ 게임명과 게임 ID 간격 한 칸 축소 */}
+                  {/* ⚡ 게임명과 게임 ID 사이 딱 한 칸만 공백 추가 */}
                   <h4 className="font-bold text-slate-900 text-xs leading-snug break-words">
-                    {rental.gameTitle}<span className="text-slate-400 font-medium">({rental.gameId})</span>
+                    {rental.gameTitle} <span className="text-slate-400 font-medium">({rental.gameId})</span>
                   </h4>
                   <div className="mt-1 space-y-0.5 text-xs text-slate-500">
                     <div>대여일: {rental.startDate}</div>
@@ -81,9 +81,9 @@ export const ReturnsTab = memo(({ rentals, currentUser, today, returnGame, retur
               <div className="min-w-0 flex-1">
                 <div className="flex items-start gap-1.5">
                   <CheckCircle2 size={15} className="text-emerald-600 flex-shrink-0 mt-0.5" />
-                  {/* ⚡ 게임명과 게임 ID 간격 한 칸 축소 */}
+                  {/* ⚡ 게임명과 게임 ID 사이 딱 한 칸만 공백 추가 */}
                   <h4 style={{ color: '#0f172a' }} className="font-bold text-xs leading-snug break-words">
-                    {rental.gameTitle}<span className="text-slate-400 font-medium">({rental.gameId})</span>
+                    {rental.gameTitle} <span className="text-slate-400 font-medium">({rental.gameId})</span>
                   </h4>
                 </div>
                 <p className="text-slate-500 mt-1 text-xs pl-5">대여일: {rental.startDate} | 반납일: {rental.returnedAt?.split('T')[0] || rental.startDate}</p>

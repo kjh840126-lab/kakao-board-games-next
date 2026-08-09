@@ -393,10 +393,10 @@ export function ModalsContainer({
               <button onClick={() => setIsGameModalOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button>
             </div>
             <form onSubmit={saveGame} className="space-y-3">
-              {/* ⚡ 이미지 URL 입력창 & 오른쪽 48px 썸네일 컴팩트 그룹핑 */}
+              {/* ⚡ 텍스트 박스 세로 길이(42px)와 100% 일치하는 썸네일 그룹핑 */}
               <div>
                 <label className="font-bold block mb-1 flex items-center gap-1"><Image size={13} /> 이미지 URL</label>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <input
                     type="url"
                     placeholder="https://example.com/image.jpg"
@@ -404,8 +404,8 @@ export function ModalsContainer({
                     onChange={(e) => setEditingGame({ ...editingGame, imageUrl: e.target.value })}
                     className="flex-1 min-w-0 border border-slate-200 p-2.5 rounded-xl text-slate-900 focus:outline-none"
                   />
-                  {/* 상시 노출 48px 썸네일 미리보기 */}
-                  <div className="w-12 h-12 rounded-xl border border-slate-200 bg-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0 relative shadow-2xs">
+                  {/* 입력창 높이와 동일한 42px 정사각형 썸네일 */}
+                  <div className="w-[42px] h-[42px] rounded-xl border border-slate-200 bg-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0 relative shadow-2xs">
                     {editingGame.imageUrl ? (
                       <img
                         src={editingGame.imageUrl}
@@ -416,7 +416,7 @@ export function ModalsContainer({
                         }}
                       />
                     ) : (
-                      <Image size={18} className="text-slate-300" />
+                      <Image size={16} className="text-slate-300" />
                     )}
                   </div>
                 </div>
@@ -443,7 +443,7 @@ export function ModalsContainer({
                 </div>
               </div>
 
-              {/* 장르 선택 (최대 3개, 시인성이 확보된 딤드 스타일 적용) */}
+              {/* 장르 선택 (최대 3개, 딤드 시인성 적용) */}
               <div className="space-y-1.5 pt-1">
                 <div className="flex justify-between items-center">
                   <label className="font-bold block">장르 선택 (최대 3개)</label>
@@ -483,7 +483,7 @@ export function ModalsContainer({
         </div>
       )}
 
-      {/* 11. 공지 작성 모달 */}
+      {/* 11. 공지 작성 모달 (⚡ 노출 여부 항목 추가) */}
       {isNoticeModalOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="rounded-2xl w-full max-w-sm p-5 space-y-3.5 shadow-2xl border bg-white border-slate-100 text-slate-900 text-xs">
@@ -491,6 +491,20 @@ export function ModalsContainer({
             <form onSubmit={saveNotice} className="space-y-3">
               <div><label className="font-bold block mb-1">공지 제목</label><input type="text" required value={editingNotice.title} onChange={(e) => setEditingNotice({ ...editingNotice, title: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
               <div><label className="font-bold block mb-1">공지 내용</label><textarea required rows={4} value={editingNotice.content} onChange={(e) => setEditingNotice({ ...editingNotice, content: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900 resize-none"></textarea></div>
+              
+              {/* ⚡ 공지사항 노출 여부 항목 추가 */}
+              <div>
+                <label className="font-bold block mb-1">노출 여부</label>
+                <select
+                  value={editingNotice.isVisible || 'Y'}
+                  onChange={(e) => setEditingNotice({ ...editingNotice, isVisible: e.target.value })}
+                  className="w-full border border-slate-200 p-2.5 rounded-xl bg-slate-50 text-slate-900 font-semibold cursor-pointer"
+                >
+                  <option value="Y">노출 (Y)</option>
+                  <option value="N">숨김 (N)</option>
+                </select>
+              </div>
+
               <div className="flex gap-2 pt-2"><button type="button" onClick={() => setIsNoticeModalOpen(false)} className="flex-1 bg-slate-100 py-2.5 rounded-xl font-bold text-slate-700 cursor-pointer">취소</button><button type="submit" className="flex-1 bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer">저장</button></div>
             </form>
           </div>

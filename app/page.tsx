@@ -18,7 +18,9 @@ import { ShoppingCart, Star } from 'lucide-react';
 const ALLOWED_EMAIL_DOMAINS = ['kakaocorp.com', 'kakaoenterprise.com', 'kakaomobility.com', 'kakaopaycorp.com', 'kakaoent.com'];
 const LOGIN_LOGO_URL = '/logo.png';
 const currentYear = new Date().getFullYear();
-const AVAILABLE_GENRES = ['전략게임', '파티게임', '추상전략', '타일 놓기', '카드게임', '가족게임', '협동게임', '마피아'];
+
+// ⚡ 신규 장르 목록 6개 적용
+const AVAILABLE_GENRES = ['전략게임', '파티게임', '협동게임', '가족게임', '테마/모험', '추리/마피아'];
 
 const checkIsIosDevice = () => {
   if (typeof window === 'undefined') return false;
@@ -49,7 +51,7 @@ const StarRating = ({ rating = 0, size = 12, colorClass = "text-rose-500" }: { r
 
 export default function MainPage() {
   const [mounted, setMounted] = useState(false);
-  const [isInitialLoaded, setIsInitialLoaded] = useState(false); // ⚡ 공통 로딩 완료 체크 플래그
+  const [isInitialLoaded, setIsInitialLoaded] = useState(false);
   const [users, setUsers] = useState<UserData[]>([]);
   const [games, setGames] = useState<Game[]>([]);
   const [rentals, setRentals] = useState<Rental[]>([]);
@@ -223,7 +225,7 @@ export default function MainPage() {
       if (sitesData) setSiteList(sitesData.map(s => ({ siteId: s.site_id, name: s.name, url: s.url, bannerUrl: s.banner_url || '', description: s.description || '', isVisible: s.is_visible || 'Y' })));
     } catch (e) {
     } finally {
-      setIsInitialLoaded(true); // ⚡ 데이터 조회 완료 플래그 설정
+      setIsInitialLoaded(true);
     }
   };
 
@@ -567,7 +569,6 @@ export default function MainPage() {
         }} 
         className="flex-1 w-full py-4 px-4 bg-white text-slate-900 text-xs transition-all relative"
       >
-        {/* ⚡ 모든 탭 컴포넌트에 isInitialLoaded 전달 */}
         <div className={activeTab === 'games' ? 'block' : 'hidden'}>
           <GamesTab isInitialLoaded={isInitialLoaded} games={games} rentals={rentals} userFavorites={userFavorites} allRatings={allRatings} currentUser={currentUser} today={today} isIosDevice={isIosDevice} isLargeFont={isLargeFont} recentNoticesList={recentNoticesList} noticeIndex={noticeIndex} isNoticeTransition={isNoticeTransition} handleNoticeClick={handleNoticeClick} toggleCartItem={toggleCartItem} toggleFavorite={toggleFavorite} cart={cart} setRatingModalGame={setRatingModalGame} setSelectedScore={setSelectedScore} />
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { Rental } from '../../types';
 import { RotateCcw, CheckCircle2 } from 'lucide-react';
 
@@ -10,8 +10,18 @@ const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   return Math.floor((d1.getTime() - d2.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 };
 
-export const ReturnsTab = memo(({ rentals, currentUser, today, returnGame, returnAllGames, returnedRentalsList }: any) => {
-  const activeRentals = rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
+export const ReturnsTab = memo(({ rentals, currentUser, today, returnGame, returnAllGames }: any) => {
+  // ⚡ 1) 현재 사용자의 대여 중인 목록 (rentals State 변경 시 즉시 재계산)
+  const activeRentals = useMemo(() => {
+    return rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
+  }, [rentals, currentUser]);
+
+  // ⚡ 2) 현재 사용자의 반납 완료된 목록 (rentals State 변경 시 즉시 재계산 -> 핵심 수정!)
+  const returnedRentalsList = useMemo(() => {
+    return rentals
+      .filter((r: Rental) => r.userId === currentUser?.userId && r.status === '반납완료')
+      .sort((a: Rental, b: Rental) => (b.returnedAt || b.startDate).localeCompare(a.returnedAt || a.startDate));
+  }, [rentals, currentUser]);
 
   return (
     <div className="space-y-5 mt-0.5 w-full">
@@ -42,7 +52,6 @@ export const ReturnsTab = memo(({ rentals, currentUser, today, returnGame, retur
             return (
               <div key={rental.rentalId} className={`w-full border p-3.5 rounded-2xl flex justify-between items-center ${isOverdue ? 'border-rose-300 bg-rose-50/40' : 'border-amber-300/60 bg-amber-50/40'}`}>
                 <div className="min-w-0 flex-1 pr-2">
-                  {/* 🔻 [수정] 게임 ID를 block 처리하여 자연스러운 줄바꿈 적용 */}
                   <h4 className="font-bold text-slate-900 text-xs leading-snug break-words">
                     {rental.gameTitle}{' '}
                     <span className="text-slate-400 font-normal block sm:inline">({rental.gameId})</span>
@@ -72,7 +81,6 @@ export const ReturnsTab = memo(({ rentals, currentUser, today, returnGame, retur
               <div className="min-w-0 flex-1">
                 <div className="flex items-start gap-1.5">
                   <CheckCircle2 size={15} className="text-emerald-600 flex-shrink-0 mt-0.5" />
-                  {/* 🔻 [수정] 반납 이력도 게임 ID 줄바꿈 적용 */}
                   <h4 style={{ color: '#0f172a' }} className="font-bold text-xs leading-snug break-words">
                     {rental.gameTitle}{' '}
                     <span className="text-slate-400 font-normal block sm:inline">({rental.gameId})</span>

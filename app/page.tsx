@@ -147,7 +147,6 @@ export default function MainPage() {
 
   useEffect(() => { if (mounted) fetchInitialData(); }, [mounted]);
 
-  // ⚡ 탭 이동 시 스크롤 위치 보존 로직
   const handleTabChange = useCallback((newTab: 'games' | 'returns' | 'ranking' | 'sites' | 'admin') => {
     if (newTab === activeTab) return;
     scrollPositions.current[activeTab] = window.scrollY;
@@ -203,7 +202,6 @@ export default function MainPage() {
           gameId: g.game_id, title: g.title, status: g.status, minPlayers: g.min_players, maxPlayers: g.max_players, playTime: Number(g.play_time) || 30, difficulty: Number(g.difficulty) || 2.0, imageUrl: g.image_url || 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=300', description: g.description || '', isVisible: g.is_visible || g.isVisible || 'Y', genres: Array.isArray(g.genres) ? g.genres : typeof g.genres === 'string' ? g.genres.split(',').map((s: string) => s.trim()) : ['보드게임'], createdAt: g.created_at || new Date().toISOString(), releaseYear: Number(g.release_year) || currentYear, bggRating: Number(g.bgg_rating) || 7.0
         }));
 
-        // ⚡ [요청 1, 3 해결] 최초 로드/새로고침 시 딱 1번만 랜덤 셔플 수행
         const shuffled = [...mappedGames];
         for (let i = shuffled.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
@@ -238,7 +236,6 @@ export default function MainPage() {
 
   const removeFromCart = (gameId: string) => setCart(cart.filter((item: Game) => item.gameId !== gameId));
 
-  // ⚡ [요청 2, 4 해결] 대여 완료 시 정렬 순서 보존하며 status만 '대여중'으로 즉시 변경
   const processCheckout = async () => {
     if (!currentUser) return;
 
@@ -268,7 +265,6 @@ export default function MainPage() {
       const { error: gameError } = await supabase.from('games').update({ status: '대여중' }).in('game_id', cartGameIds);
       if (gameError) throw gameError;
 
-      // ⚡ 기존 섞여 있는 배열 순서 그대로 유지하고 status만 '대여중'으로 0초 변경
       setGames(prevGames => 
         prevGames.map(game => 
           cartGameIds.includes(game.gameId) ? { ...game, status: '대여중' as GameStatus } : game
@@ -290,26 +286,75 @@ export default function MainPage() {
     }
   };
 
+  // ⚡ [단건 반납 실시간 반영] 클릭 즉시 rentals와 games의 로컬 State 업데이트
   const returnGame = async (rentalId: number, gameId: string) => {
     if (!currentUser) return;
-    await supabase.from('rentals').update({ status: '반납완료', returned_at: new Date().toISOString() }).eq('rental_id', rentalId);
-    await supabase.from('games').update({ status: '대여가능' }).eq('game_id', gameId);
-    
-    setGames(prevGames => prevGames.map(g => g.gameId === gameId ? { ...g, status: '대여가능' as GameStatus } : g));
-    alert('반납이 완료되었습니다.');
+    const nowIso = new Date().toISOString();
+
+    try {
+      // 1) DB 반영
+      const { error: rentalErr } = await supabase.from('rentals').update({ status: '반납완료', returned_at: nowIso }).eq('rental_id', rentalId);
+      if (rentalErr) throw rentalErr;
+
+      const { error: gameErr } = await supabase.from('games').update({ status: '대여가능' }).eq('game_id', gameId);
+      if (gameErr) throw gameErr;
+
+      // ⚡ 2) rentals State 즉시 업데이트 (대여중 목록에서 제외, 반납완료로 변경)
+      setRentals(prevRentals =>
+        prevRentals.map(r =>
+          r.rentalId === rentalId ? { ...r, status: '반납완료', returnedAt: nowIso } : r
+        )
+      );
+
+      // ⚡ 3) games State 즉시 업데이트 (대여탭에서도 대여가능 버튼으로 변경)
+      setGames(prevGames =>
+        prevGames.map(g =>
+          g.gameId === gameId ? { ...g, status: '대여가능' as GameStatus } : g
+        )
+      );
+
+      alert('반납이 완료되었습니다.');
+    } catch (err: any) {
+      alert('반납 처리 실패: ' + (err.message || err));
+    }
   };
 
+  // ⚡ [일괄 반납 실시간 반영] 클릭 즉시 rentals와 games의 로컬 State 업데이트
   const returnAllGames = async () => {
     if (!currentUser) return;
     const userActiveRentals = rentals.filter((r: Rental) => r.userId === currentUser.userId && r.status === '대여중');
     if (userActiveRentals.length === 0) return;
-    const activeGameIds = userActiveRentals.map(r => r.gameId);
-
-    await supabase.from('rentals').update({ status: '반납완료', returned_at: new Date().toISOString() }).in('rental_id', userActiveRentals.map(r => r.rentalId));
-    await supabase.from('games').update({ status: '대여가능' }).in('game_id', activeGameIds);
     
-    setGames(prevGames => prevGames.map(g => activeGameIds.includes(g.gameId) ? { ...g, status: '대여가능' as GameStatus } : g));
-    alert('모든 보드게임이 반납되었습니다.');
+    const activeRentalIds = userActiveRentals.map(r => r.rentalId);
+    const activeGameIds = userActiveRentals.map(r => r.gameId);
+    const nowIso = new Date().toISOString();
+
+    try {
+      // 1) DB 반영
+      const { error: rentalErr } = await supabase.from('rentals').update({ status: '반납완료', returned_at: nowIso }).in('rental_id', activeRentalIds);
+      if (rentalErr) throw rentalErr;
+
+      const { error: gameErr } = await supabase.from('games').update({ status: '대여가능' }).in('game_id', activeGameIds);
+      if (gameErr) throw gameErr;
+
+      // ⚡ 2) rentals State 즉시 업데이트
+      setRentals(prevRentals =>
+        prevRentals.map(r =>
+          activeRentalIds.includes(r.rentalId) ? { ...r, status: '반납완료', returnedAt: nowIso } : r
+        )
+      );
+
+      // ⚡ 3) games State 즉시 업데이트
+      setGames(prevGames =>
+        prevGames.map(g =>
+          activeGameIds.includes(g.gameId) ? { ...g, status: '대여가능' as GameStatus } : g
+        )
+      );
+
+      alert('모든 보드게임이 반납되었습니다.');
+    } catch (err: any) {
+      alert('일괄 반납 처리 실패: ' + (err.message || err));
+    }
   };
 
   const handleSaveRating = async () => {

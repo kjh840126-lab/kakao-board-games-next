@@ -20,9 +20,8 @@ export const AuthScreen = ({
 }: any) => {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-slate-100 p-4">
-      {/* ⚡ max-w-xs 적용으로 슬림한 원래 너비 복원 */}
       <div className="w-full max-w-xs bg-white rounded-3xl shadow-lg overflow-hidden border border-slate-100">
-        {/* ⚡ py-3 적용으로 로고 위아래 여백 대폭 축소 */}
+        {/* 상단 로고 영역 */}
         <div className="bg-[#FEE500] py-3 px-4 flex flex-col items-center justify-center">
           <img
             src={LOGIN_LOGO_URL}
@@ -70,7 +69,8 @@ export const AuthScreen = ({
                   type="text"
                   placeholder="예: user.kakao"
                   value={loginId}
-                  onChange={(e) => setLoginId(e.target.value)}
+                  /* ⚡ 대문자 입력 시 소문자로 자동 변환 */
+                  onChange={(e) => setLoginId(e.target.value.toLowerCase())}
                   className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-300 px-3.5 py-2 rounded-xl focus:outline-none focus:bg-white focus:border-slate-900 text-xs transition"
                 />
               </div>
@@ -116,8 +116,9 @@ export const AuthScreen = ({
                   type="text"
                   placeholder="예: user.kakao"
                   value={signUpForm.userId}
+                  /* ⚡ 대문자 입력 시 소문자로 자동 변환 */
                   onChange={(e) =>
-                    setSignUpForm({ ...signUpForm, userId: e.target.value })
+                    setSignUpForm({ ...signUpForm, userId: e.target.value.toLowerCase() })
                   }
                   className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-300 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs"
                 />
@@ -147,10 +148,11 @@ export const AuthScreen = ({
                     type="text"
                     placeholder="이메일 아이디"
                     value={signUpForm.emailPrefix}
+                    /* ⚡ 대문자 입력 시 소문자로 자동 변환 */
                     onChange={(e) => {
                       setSignUpForm({
                         ...signUpForm,
-                        emailPrefix: e.target.value,
+                        emailPrefix: e.target.value.toLowerCase(),
                       });
                       setIsEmailVerified(false);
                     }}

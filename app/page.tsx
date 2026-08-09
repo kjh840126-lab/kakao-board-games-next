@@ -558,8 +558,8 @@ export default function MainPage() {
       <main 
         ref={mainScrollRef} 
         style={{ 
-          // ⚡ 아이폰과 안드로이드의 상단 여백을 안드로이드와 동일하게 통일 (92px / 110px)
-          paddingTop: isLargeFont ? '110px' : '92px', 
+          // ⚡ 아이폰일 때 안드로이드 대비 5px 늘린 상단 여백 설정 (보통: 97px / 크게: 115px)
+          paddingTop: isLargeFont ? (isIosDevice ? '115px' : '110px') : (isIosDevice ? '97px' : '92px'), 
           paddingBottom: '80px' 
         }} 
         className="flex-1 w-full py-4 px-4 bg-white text-slate-900 text-xs transition-all relative"

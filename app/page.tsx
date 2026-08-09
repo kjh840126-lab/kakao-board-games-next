@@ -286,27 +286,23 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ [단건 반납 실시간 반영] 클릭 즉시 rentals와 games의 로컬 State 업데이트
   const returnGame = async (rentalId: number, gameId: string) => {
     if (!currentUser) return;
     const nowIso = new Date().toISOString();
 
     try {
-      // 1) DB 반영
       const { error: rentalErr } = await supabase.from('rentals').update({ status: '반납완료', returned_at: nowIso }).eq('rental_id', rentalId);
       if (rentalErr) throw rentalErr;
 
       const { error: gameErr } = await supabase.from('games').update({ status: '대여가능' }).eq('game_id', gameId);
       if (gameErr) throw gameErr;
 
-      // ⚡ 2) rentals State 즉시 업데이트 (대여중 목록에서 제외, 반납완료로 변경)
       setRentals(prevRentals =>
         prevRentals.map(r =>
           r.rentalId === rentalId ? { ...r, status: '반납완료', returnedAt: nowIso } : r
         )
       );
 
-      // ⚡ 3) games State 즉시 업데이트 (대여탭에서도 대여가능 버튼으로 변경)
       setGames(prevGames =>
         prevGames.map(g =>
           g.gameId === gameId ? { ...g, status: '대여가능' as GameStatus } : g
@@ -319,7 +315,6 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ [일괄 반납 실시간 반영] 클릭 즉시 rentals와 games의 로컬 State 업데이트
   const returnAllGames = async () => {
     if (!currentUser) return;
     const userActiveRentals = rentals.filter((r: Rental) => r.userId === currentUser.userId && r.status === '대여중');
@@ -330,21 +325,18 @@ export default function MainPage() {
     const nowIso = new Date().toISOString();
 
     try {
-      // 1) DB 반영
       const { error: rentalErr } = await supabase.from('rentals').update({ status: '반납완료', returned_at: nowIso }).in('rental_id', activeRentalIds);
       if (rentalErr) throw rentalErr;
 
       const { error: gameErr } = await supabase.from('games').update({ status: '대여가능' }).in('game_id', activeGameIds);
       if (gameErr) throw gameErr;
 
-      // ⚡ 2) rentals State 즉시 업데이트
       setRentals(prevRentals =>
         prevRentals.map(r =>
           activeRentalIds.includes(r.rentalId) ? { ...r, status: '반납완료', returnedAt: nowIso } : r
         )
       );
 
-      // ⚡ 3) games State 즉시 업데이트
       setGames(prevGames =>
         prevGames.map(g =>
           activeGameIds.includes(g.gameId) ? { ...g, status: '대여가능' as GameStatus } : g
@@ -357,18 +349,40 @@ export default function MainPage() {
     }
   };
 
+  // ⚡ [정렬 순서 보존 평점 저장] fetchInitialData를 빼고 allRatings State만 즉시 업데이트
   const handleSaveRating = async () => {
     if (!currentUser || !ratingModalGame) return;
-    const existing = allRatings.find(r => r.userId === currentUser.userId && r.gameId === ratingModalGame.gameId);
-    if (existing) await supabase.from('ratings').update({ score: selectedScore, updated_at: new Date().toISOString() }).eq('user_id', currentUser.userId).eq('game_id', ratingModalGame.gameId);
-    else await supabase.from('ratings').insert([{ user_id: currentUser.userId, game_id: ratingModalGame.gameId, score: selectedScore }]);
-    setRatingModalGame(null); fetchInitialData();
+    const gameId = ratingModalGame.gameId;
+
+    try {
+      const existing = allRatings.find(r => r.userId === currentUser.userId && r.gameId === gameId);
+      if (existing) {
+        await supabase.from('ratings').update({ score: selectedScore, updated_at: new Date().toISOString() }).eq('user_id', currentUser.userId).eq('game_id', gameId);
+      } else {
+        await supabase.from('ratings').insert([{ user_id: currentUser.userId, game_id: gameId, score: selectedScore }]);
+      }
+
+      setAllRatings(prev => {
+        const filtered = prev.filter(r => !(r.userId === currentUser.userId && r.gameId === gameId));
+        return [...filtered, { userId: currentUser.userId, gameId, score: selectedScore }];
+      });
+
+      setRatingModalGame(null);
+    } catch (err: any) {
+      alert('평점 저장 중 오류가 발생했습니다: ' + (err.message || err));
+    }
   };
 
+  // ⚡ [정렬 순서 보존 평점 삭제] fetchInitialData를 빼고 allRatings State만 즉시 업데이트
   const handleDeleteMyRating = async (gameId: string) => {
     if (!currentUser) return;
     if (window.confirm('삭제하시겠습니까?')) {
-      await supabase.from('ratings').delete().eq('user_id', currentUser.userId).eq('game_id', gameId); fetchInitialData();
+      try {
+        await supabase.from('ratings').delete().eq('user_id', currentUser.userId).eq('game_id', gameId);
+        setAllRatings(prev => prev.filter(r => !(r.userId === currentUser.userId && r.gameId === gameId)));
+      } catch (err: any) {
+        alert('평점 삭제 중 오류가 발생했습니다: ' + (err.message || err));
+      }
     }
   };
 

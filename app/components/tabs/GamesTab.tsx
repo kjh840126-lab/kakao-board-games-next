@@ -76,13 +76,13 @@ export const GamesTab = memo(({
       <div onClick={() => { if (recentNoticesList.length > 0) handleNoticeClick(recentNoticesList[noticeIndex % recentNoticesList.length]); }} className="w-full px-3.5 py-3 rounded-2xl flex items-center gap-2.5 shadow-sm overflow-hidden h-11 cursor-pointer transition active:scale-[0.99] bg-slate-900 text-white">
         <Bell size={16} className="text-[#FEE500] flex-shrink-0 z-10" />
         <div className="flex-1 h-5 overflow-hidden relative">
-          {recentNoticesList.length > 0 ? (
+          {recentNoticesList.length > 0 && (
             <div className={`flex flex-col ${isNoticeTransition ? 'transition-transform duration-500 ease-in-out' : ''}`} style={{ transform: `translateY(-${noticeIndex * 20}px)` }}>
               {[...recentNoticesList, recentNoticesList[0]].map((notice: any, idx: number) => (
                 <div key={`${notice.noticeId}-${idx}`} className="h-5 flex items-center justify-between"><span className="text-[#FEE500] font-extrabold truncate">{notice.title}</span></div>
               ))}
             </div>
-          ) : <span className="text-slate-300">1인당 최대 <strong className="text-[#FEE500]">3개</strong> 대여 가능</span>}
+          )}
         </div>
         {recentNoticesList.length > 0 && <ChevronRight size={14} className="text-slate-400 flex-shrink-0" />}
       </div>
@@ -154,7 +154,6 @@ export const GamesTab = memo(({
                         <h3 className={`font-bold leading-snug break-keep ${isLargeFont ? 'text-sm' : 'text-xs'} text-slate-900`}>
                           <span>{game.title}</span><span className="text-slate-400 font-normal ml-1 text-xs">({game.releaseYear}년)</span>
                         </h3>
-                        {/* ⚡ 게임 ID 폰트 크기 11px로 변경 */}
                         <span className="text-slate-400/80 text-[11px] font-medium tracking-wide flex-shrink-0 pt-0.5">{game.gameId}</span>
                       </div>
                       <div className="flex flex-wrap gap-x-2 gap-y-0.5 font-semibold mt-1.5 text-xs text-slate-600">

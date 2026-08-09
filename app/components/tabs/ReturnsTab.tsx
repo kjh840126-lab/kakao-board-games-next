@@ -11,12 +11,12 @@ const getDaysDifference = (dateStr1: string, dateStr2: string) => {
 };
 
 export const ReturnsTab = memo(({ rentals, currentUser, today, returnGame, returnAllGames }: any) => {
-  // ⚡ 1) 현재 사용자의 대여 중인 목록 (rentals State 변경 시 즉시 재계산)
+  // 1) 현재 사용자의 대여 중인 목록
   const activeRentals = useMemo(() => {
     return rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
   }, [rentals, currentUser]);
 
-  // ⚡ 2) 현재 사용자의 반납 완료된 목록 (rentals State 변경 시 즉시 재계산 -> 핵심 수정!)
+  // 2) 현재 사용자의 반납 완료된 목록
   const returnedRentalsList = useMemo(() => {
     return rentals
       .filter((r: Rental) => r.userId === currentUser?.userId && r.status === '반납완료')
@@ -52,9 +52,10 @@ export const ReturnsTab = memo(({ rentals, currentUser, today, returnGame, retur
             return (
               <div key={rental.rentalId} className={`w-full border p-3.5 rounded-2xl flex justify-between items-center ${isOverdue ? 'border-rose-300 bg-rose-50/40' : 'border-amber-300/60 bg-amber-50/40'}`}>
                 <div className="min-w-0 flex-1 pr-2">
+                  {/* ⚡ 게임명 바로 뒤에 게임 ID 노출 */}
                   <h4 className="font-bold text-slate-900 text-xs leading-snug break-words">
                     {rental.gameTitle}{' '}
-                    <span className="text-slate-400 font-normal block sm:inline">({rental.gameId})</span>
+                    <span className="text-slate-400 font-medium ml-1">({rental.gameId})</span>
                   </h4>
                   <div className="mt-1 space-y-0.5 text-xs text-slate-500">
                     <div>대여일: {rental.startDate}</div>
@@ -81,9 +82,10 @@ export const ReturnsTab = memo(({ rentals, currentUser, today, returnGame, retur
               <div className="min-w-0 flex-1">
                 <div className="flex items-start gap-1.5">
                   <CheckCircle2 size={15} className="text-emerald-600 flex-shrink-0 mt-0.5" />
+                  {/* ⚡ 게임명 바로 뒤에 게임 ID 노출 */}
                   <h4 style={{ color: '#0f172a' }} className="font-bold text-xs leading-snug break-words">
                     {rental.gameTitle}{' '}
-                    <span className="text-slate-400 font-normal block sm:inline">({rental.gameId})</span>
+                    <span className="text-slate-400 font-medium ml-1">({rental.gameId})</span>
                   </h4>
                 </div>
                 <p className="text-slate-500 mt-1 text-xs pl-5">대여일: {rental.startDate} | 반납일: {rental.returnedAt?.split('T')[0] || rental.startDate}</p>

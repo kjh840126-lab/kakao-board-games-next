@@ -171,6 +171,7 @@ export default function MainPage() {
     }
   }, [noticeIndex, recentNoticesList.length]);
 
+  // ⚡ [핵심 개선] 데이터를 전부 다 수신받은 시점에만 일괄적으로 State를 업데이트합니다.
   const fetchInitialData = async () => {
     try {
       const [{ data: usersData }, { data: rentalsData }, { data: ratingsData }, { data: gamesData }, { data: noticeData }, { data: reportsData }, { data: sitesData }] = await Promise.all([
@@ -558,7 +559,6 @@ export default function MainPage() {
       <main 
         ref={mainScrollRef} 
         style={{ 
-          // ⚡ 아이폰 상단 여백을 1px 축소 (보통: 96px / 크게: 114px)
           paddingTop: isLargeFont ? (isIosDevice ? '114px' : '110px') : (isIosDevice ? '96px' : '92px'), 
           paddingBottom: '80px' 
         }} 

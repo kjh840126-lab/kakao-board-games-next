@@ -49,6 +49,7 @@ const StarRating = ({ rating = 0, size = 12, colorClass = "text-rose-500" }: { r
 
 export default function MainPage() {
   const [mounted, setMounted] = useState(false);
+  const [isInitialLoaded, setIsInitialLoaded] = useState(false); // ⚡ 공통 로딩 완료 체크 플래그
   const [users, setUsers] = useState<UserData[]>([]);
   const [games, setGames] = useState<Game[]>([]);
   const [rentals, setRentals] = useState<Rental[]>([]);
@@ -220,7 +221,10 @@ export default function MainPage() {
       if (noticeData) setNoticeList(noticeData.map(n => ({ noticeId: n.notice_id, title: n.title, content: n.content, createdAt: n.created_at?.split('T')[0] || today })));
       if (reportsData) setReportList(reportsData.map(r => ({ reportId: r.report_id || r.id, userId: r.user_id, category: r.category || '신고/건의', title: r.title, content: r.content, createdAt: r.created_at?.replace('T', ' ').substring(0, 16) || today, isRead: !!r.is_read })));
       if (sitesData) setSiteList(sitesData.map(s => ({ siteId: s.site_id, name: s.name, url: s.url, bannerUrl: s.banner_url || '', description: s.description || '', isVisible: s.is_visible || 'Y' })));
-    } catch (e) {}
+    } catch (e) {
+    } finally {
+      setIsInitialLoaded(true); // ⚡ 데이터 조회 완료 플래그 설정
+    }
   };
 
   const toggleFavorite = useCallback(async (gameId: string) => {
@@ -558,19 +562,19 @@ export default function MainPage() {
       <main 
         ref={mainScrollRef} 
         style={{ 
-          // ⚡ 아이폰 상단 여백을 1px 축소 (보통: 96px / 크게: 114px)
           paddingTop: isLargeFont ? (isIosDevice ? '114px' : '110px') : (isIosDevice ? '96px' : '92px'), 
           paddingBottom: '80px' 
         }} 
         className="flex-1 w-full py-4 px-4 bg-white text-slate-900 text-xs transition-all relative"
       >
+        {/* ⚡ 모든 탭 컴포넌트에 isInitialLoaded 전달 */}
         <div className={activeTab === 'games' ? 'block' : 'hidden'}>
-          <GamesTab games={games} rentals={rentals} userFavorites={userFavorites} allRatings={allRatings} currentUser={currentUser} today={today} isIosDevice={isIosDevice} isLargeFont={isLargeFont} recentNoticesList={recentNoticesList} noticeIndex={noticeIndex} isNoticeTransition={isNoticeTransition} handleNoticeClick={handleNoticeClick} toggleCartItem={toggleCartItem} toggleFavorite={toggleFavorite} cart={cart} setRatingModalGame={setRatingModalGame} setSelectedScore={setSelectedScore} />
+          <GamesTab isInitialLoaded={isInitialLoaded} games={games} rentals={rentals} userFavorites={userFavorites} allRatings={allRatings} currentUser={currentUser} today={today} isIosDevice={isIosDevice} isLargeFont={isLargeFont} recentNoticesList={recentNoticesList} noticeIndex={noticeIndex} isNoticeTransition={isNoticeTransition} handleNoticeClick={handleNoticeClick} toggleCartItem={toggleCartItem} toggleFavorite={toggleFavorite} cart={cart} setRatingModalGame={setRatingModalGame} setSelectedScore={setSelectedScore} />
         </div>
-        <div className={activeTab === 'returns' ? 'block' : 'hidden'}><ReturnsTab rentals={rentals} currentUser={currentUser} today={today} returnGame={returnGame} returnAllGames={returnAllGames} returnedRentalsList={returnedRentalsList} /></div>
-        <div className={activeTab === 'ranking' ? 'block' : 'hidden'}><RankingTab games={games} rentals={rentals} allRatings={allRatings} /></div>
-        <div className={activeTab === 'sites' ? 'block' : 'hidden'}><SitesTab visibleSitesList={visibleSitesList} /></div>
-        {isAdmin && <div className={activeTab === 'admin' ? 'block' : 'hidden'}><AdminTab games={games} users={users} rentals={rentals} sites={sites} notices={notices} currentUser={currentUser} setIsEditingMode={setIsEditingMode} setEditingGame={setEditingGame} setIsGameModalOpen={setIsGameModalOpen} deleteGame={deleteGame} setEditingSite={setEditingSite} setIsSiteModalOpen={setIsSiteModalOpen} deleteSite={deleteSite} handleUserRoleChange={handleUserRoleChange} setEditingNotice={setEditingNotice} setIsNoticeModalOpen={setIsNoticeModalOpen} deleteNotice={deleteNotice} returnGame={returnGame} /></div>}
+        <div className={activeTab === 'returns' ? 'block' : 'hidden'}><ReturnsTab isInitialLoaded={isInitialLoaded} rentals={rentals} currentUser={currentUser} today={today} returnGame={returnGame} returnAllGames={returnAllGames} returnedRentalsList={returnedRentalsList} /></div>
+        <div className={activeTab === 'ranking' ? 'block' : 'hidden'}><RankingTab isInitialLoaded={isInitialLoaded} games={games} rentals={rentals} allRatings={allRatings} /></div>
+        <div className={activeTab === 'sites' ? 'block' : 'hidden'}><SitesTab isInitialLoaded={isInitialLoaded} visibleSitesList={visibleSitesList} /></div>
+        {isAdmin && <div className={activeTab === 'admin' ? 'block' : 'hidden'}><AdminTab isInitialLoaded={isInitialLoaded} games={games} users={users} rentals={rentals} sites={sites} notices={notices} currentUser={currentUser} setIsEditingMode={setIsEditingMode} setEditingGame={setEditingGame} setIsGameModalOpen={setIsGameModalOpen} deleteGame={deleteGame} setEditingSite={setEditingSite} setIsSiteModalOpen={setIsSiteModalOpen} deleteSite={deleteSite} handleUserRoleChange={handleUserRoleChange} setEditingNotice={setEditingNotice} setIsNoticeModalOpen={setIsNoticeModalOpen} deleteNotice={deleteNotice} returnGame={returnGame} /></div>}
       </main>
 
       {/* 장바구니 플로팅 버튼 */}

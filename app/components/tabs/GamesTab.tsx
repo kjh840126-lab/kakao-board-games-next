@@ -2,7 +2,7 @@
 
 import { useState, useMemo, memo } from 'react';
 import { Game, Rental, UserRating } from '../../types';
-import { Search, Filter, Bell, ChevronRight, X, Heart, Clock, Brain, Users as PlayerIcon, RotateCcw as ResetIcon, Star } from 'lucide-react';
+import { Search, Filter, Bell, ChevronRight, X, Heart, Clock, Brain, Users as PlayerIcon, RotateCcw as ResetIcon, Star, Loader2 } from 'lucide-react';
 
 const PRESET_GENRES = ['전략게임', '파티게임', '추상전략', '타일 놓기', '카드게임', '가족게임', '협동게임', '마피아'];
 
@@ -36,7 +36,7 @@ const StarRating = memo(({ rating = 0, size = 12, colorClass = "text-rose-500" }
 StarRating.displayName = 'StarRating';
 
 export const GamesTab = memo(({
-  games, rentals, userFavorites, allRatings, currentUser, today, isIosDevice, isLargeFont,
+  isInitialLoaded, games, rentals, userFavorites, allRatings, currentUser, today, isIosDevice, isLargeFont,
   recentNoticesList, noticeIndex, isNoticeTransition, handleNoticeClick,
   toggleCartItem, toggleFavorite, cart, setRatingModalGame, setSelectedScore
 }: any) => {
@@ -134,8 +134,13 @@ export const GamesTab = memo(({
       )}
 
       {/* 게임 목록 */}
-      <div className="grid gap-3 w-full">
-        {filteredGameList.length === 0 ? (
+      <div className="grid gap-3 w-full min-h-[160px] relative">
+        {!isInitialLoaded ? (
+          <div className="flex flex-col items-center justify-center py-12 gap-2 text-slate-400">
+            <Loader2 size={20} className="animate-spin text-slate-500" />
+            <span className="text-[11px] font-medium text-slate-400">목록을 불러오는 중...</span>
+          </div>
+        ) : filteredGameList.length === 0 ? (
           <div className="text-center py-12 border border-dashed border-slate-300/40 text-slate-400 rounded-2xl w-full text-xs">보드게임이 없습니다.</div>
         ) : (
           filteredGameList.map((game: Game) => {

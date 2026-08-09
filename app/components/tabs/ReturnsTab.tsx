@@ -2,7 +2,7 @@
 
 import { memo, useMemo } from 'react';
 import { Rental } from '../../types';
-import { RotateCcw, CheckCircle2 } from 'lucide-react';
+import { RotateCcw, CheckCircle2, Loader2 } from 'lucide-react';
 
 const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   if (!dateStr1 || !dateStr2) return 0;
@@ -10,7 +10,7 @@ const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   return Math.floor((d1.getTime() - d2.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 };
 
-export const ReturnsTab = memo(({ rentals, currentUser, today, returnGame, returnAllGames }: any) => {
+export const ReturnsTab = memo(({ isInitialLoaded, rentals, currentUser, today, returnGame, returnAllGames }: any) => {
   // 1) 현재 사용자의 대여 중인 목록
   const activeRentals = useMemo(() => {
     return rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
@@ -39,12 +39,20 @@ export const ReturnsTab = memo(({ rentals, currentUser, today, returnGame, retur
       </div>
 
       {/* 1. 대여중인 게임 */}
-      <section className="space-y-2.5 w-full">
+      <section className="space-y-2.5 w-full min-h-[100px] relative">
         <h3 className="font-extrabold tracking-tight flex items-center gap-2 text-slate-900">
           <span className="w-1.5 h-3.5 bg-slate-900 rounded-full inline-block"></span> 대여중인 게임
         </h3>
-        {activeRentals.length === 0 ? (
-          <div className="text-center py-8 border border-dashed border-slate-300/40 text-slate-400 rounded-2xl w-full">대여 중인 보드게임이 없습니다.</div>
+        
+        {!isInitialLoaded ? (
+          <div className="flex flex-col items-center justify-center py-8 gap-2 text-slate-400">
+            <Loader2 size={18} className="animate-spin text-slate-500" />
+            <span className="text-[11px] font-medium text-slate-400">대여 내역을 불러오는 중...</span>
+          </div>
+        ) : activeRentals.length === 0 ? (
+          <div className="text-center py-8 border border-dashed border-slate-300/40 text-slate-400 rounded-2xl w-full">
+            대여 중인 보드게임이 없습니다.
+          </div>
         ) : (
           activeRentals.map((rental: Rental) => {
             const isOverdue = today > rental.endDate;
@@ -52,7 +60,6 @@ export const ReturnsTab = memo(({ rentals, currentUser, today, returnGame, retur
             return (
               <div key={rental.rentalId} className={`w-full border p-3.5 rounded-2xl flex justify-between items-center ${isOverdue ? 'border-rose-300 bg-rose-50/40' : 'border-amber-300/60 bg-amber-50/40'}`}>
                 <div className="min-w-0 flex-1 pr-2">
-                  {/* ⚡ 게임명과 게임 ID 사이 딱 한 칸만 공백 추가 */}
                   <h4 className="font-bold text-slate-900 text-xs leading-snug break-words">
                     {rental.gameTitle} <span className="text-slate-400 font-medium">({rental.gameId})</span>
                   </h4>
@@ -69,19 +76,26 @@ export const ReturnsTab = memo(({ rentals, currentUser, today, returnGame, retur
       </section>
 
       {/* 2. 대여 및 반납 이력 */}
-      <section className="space-y-2.5 w-full">
+      <section className="space-y-2.5 w-full min-h-[100px] relative">
         <h3 className="font-extrabold tracking-tight flex items-center gap-2 text-slate-900">
           <span className="w-1.5 h-3.5 bg-slate-400 rounded-full inline-block"></span> 대여 및 반납 이력
         </h3>
-        {returnedRentalsList.length === 0 ? (
-          <div className="text-center py-8 border border-dashed border-slate-300/40 text-slate-400 rounded-2xl w-full">반납 이력이 없습니다.</div>
+        
+        {!isInitialLoaded ? (
+          <div className="flex flex-col items-center justify-center py-8 gap-2 text-slate-400">
+            <Loader2 size={18} className="animate-spin text-slate-500" />
+            <span className="text-[11px] font-medium text-slate-400">반납 이력을 불러오는 중...</span>
+          </div>
+        ) : returnedRentalsList.length === 0 ? (
+          <div className="text-center py-8 border border-dashed border-slate-300/40 text-slate-400 rounded-2xl w-full">
+            반납 이력이 없습니다.
+          </div>
         ) : (
           returnedRentalsList.map((rental: Rental) => (
             <div key={rental.rentalId} className="w-full border p-3.5 rounded-2xl flex justify-between items-center bg-white border-slate-200/80">
               <div className="min-w-0 flex-1">
                 <div className="flex items-start gap-1.5">
                   <CheckCircle2 size={15} className="text-emerald-600 flex-shrink-0 mt-0.5" />
-                  {/* ⚡ 게임명과 게임 ID 사이 딱 한 칸만 공백 추가 */}
                   <h4 style={{ color: '#0f172a' }} className="font-bold text-xs leading-snug break-words">
                     {rental.gameTitle} <span className="text-slate-400 font-medium">({rental.gameId})</span>
                   </h4>

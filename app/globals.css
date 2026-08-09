@@ -71,3 +71,16 @@ html:not(.dark) main h4 {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* 4. 모바일 터치 포커스 시 화면 강제 줌인(Zoom-in) 방지 */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

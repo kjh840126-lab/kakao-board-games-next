@@ -397,22 +397,24 @@ export function ModalsContainer({
                 <label className="font-bold block mb-1 flex items-center gap-1"><Image size={13} /> 이미지 URL</label>
                 <input type="url" placeholder="https://example.com/image.jpg" value={editingGame.imageUrl} onChange={(e) => setEditingGame({ ...editingGame, imageUrl: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" />
                 
-                {/* 실시간 이미지 미리보기 */}
-                <div className="mt-2 w-full h-32 bg-slate-100 rounded-xl border border-slate-200 flex flex-col items-center justify-center overflow-hidden relative">
-                  {editingGame.imageUrl ? (
-                    <img
-                      src={editingGame.imageUrl}
-                      alt="게임 미리보기"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=300';
-                      }}
-                    />
-                  ) : (
-                    <span className="text-slate-400 text-[11px] font-medium">이미지 URL을 입력하면 미리보기가 표시됩니다.</span>
-                  )}
-                  <span className="absolute bottom-1.5 right-1.5 bg-slate-900/60 text-white text-[10px] px-2 py-0.5 rounded-full backdrop-blur-sm">미리보기</span>
-                </div>
+                {/* ⚡ URL이 등록되어 있는 경우에만 1:1 정사각형 카드 미리보기 노출 */}
+                {editingGame.imageUrl && (
+                  <div className="mt-2.5 flex justify-center items-center">
+                    <div className="w-24 h-24 rounded-2xl border border-slate-200/80 bg-slate-100 overflow-hidden relative shadow-sm flex-shrink-0">
+                      <img
+                        src={editingGame.imageUrl}
+                        alt="게임 미리보기"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=300';
+                        }}
+                      />
+                      <span className="absolute bottom-1 right-1 bg-slate-900/70 text-white text-[9px] px-1.5 py-0.5 rounded-md backdrop-blur-xs font-bold">
+                        미리보기
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-2">
@@ -436,7 +438,7 @@ export function ModalsContainer({
                 </div>
               </div>
 
-              {/* ⚡ 장르 선택 (최대 3개, 3개 도달 시 미선택 버튼 딤드 처리) */}
+              {/* ⚡ 장르 선택 (최대 3개, 시인성이 확보된 딤드 스타일 적용) */}
               <div className="space-y-1.5 pt-1">
                 <div className="flex justify-between items-center">
                   <label className="font-bold block">장르 선택 (최대 3개)</label>
@@ -459,7 +461,7 @@ export function ModalsContainer({
                           isSelected
                             ? 'bg-slate-900 text-white shadow-sm cursor-pointer'
                             : isDisabled
-                            ? 'bg-slate-100 text-slate-300 border border-slate-100 cursor-not-allowed opacity-40'
+                            ? 'bg-slate-200/70 text-slate-400 border border-slate-300 border-dashed cursor-not-allowed'
                             : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200 cursor-pointer'
                         }`}
                       >

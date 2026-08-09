@@ -49,7 +49,6 @@ export const GamesTab = memo(({
   const isFilterActive = playerFilter > 0 || genreFilter !== '' || difficultyFilter !== 'all';
   const resetFilters = () => { setPlayerFilter(0); setGenreFilter(''); setDifficultyFilter('all'); };
 
-  // ⚡ 캐시 변수를 사용하지 않고 부모에서 전달받은 섞인 games 배열을 직접 필터링
   const filteredGameList = useMemo(() => {
     if (!games || games.length === 0) return [];
     const query = gameListSearch.trim().toLowerCase();
@@ -155,7 +154,8 @@ export const GamesTab = memo(({
                         <h3 className={`font-bold leading-snug break-keep ${isLargeFont ? 'text-sm' : 'text-xs'} text-slate-900`}>
                           <span>{game.title}</span><span className="text-slate-400 font-normal ml-1 text-xs">({game.releaseYear}년)</span>
                         </h3>
-                        <span className="text-slate-400/80 text-[10px] font-medium tracking-wide flex-shrink-0 pt-0.5">{game.gameId}</span>
+                        {/* ⚡ 게임 ID 폰트 크기 11px로 변경 */}
+                        <span className="text-slate-400/80 text-[11px] font-medium tracking-wide flex-shrink-0 pt-0.5">{game.gameId}</span>
                       </div>
                       <div className="flex flex-wrap gap-x-2 gap-y-0.5 font-semibold mt-1.5 text-xs text-slate-600">
                         <span className="flex items-center gap-0.5"><PlayerIcon size={12} /> {game.minPlayers}-{game.maxPlayers}인</span>

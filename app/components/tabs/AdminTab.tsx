@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, memo } from 'react';
 import { Game, UserData, Rental, BoardSite, Notice } from '../../types';
+import { supabase } from '../../supabaseClient';
 import { 
   Search, Plus, Edit, Trash2, CheckCircle2, UserX, UserCheck, 
   ShieldAlert, AlertTriangle, Eye, EyeOff, RotateCcw, ShieldCheck, 
@@ -45,6 +46,17 @@ export const AdminTab = memo(({
     setAdminSubTab(newSubTab);
     if (typeof window !== 'undefined') {
       localStorage.setItem('kakao_bg_adminSubTab', newSubTab);
+    }
+  };
+
+  // ⚡ 공지사항 노출/숨김 토글 처리 함수
+  const toggleNoticeVisibility = async (notice: Notice) => {
+    const nextStatus = (notice as any).isVisible === 'N' ? 'Y' : 'N';
+    const { error } = await supabase.from('notices').update({ is_visible: nextStatus }).eq('notice_id', notice.noticeId);
+    if (error) {
+      alert('공지사항 상태 변경 실패: ' + error.message);
+    } else {
+      window.location.reload();
     }
   };
 
@@ -416,12 +428,12 @@ export const AdminTab = memo(({
         </div>
       )}
 
-      {/* E. 공지사항 관리 */}
+      {/* E. 공지사항 관리 (⚡ 눈 아이콘 토글 추가) */}
       {adminSubTab === 'noticeAdmin' && (
         <div className="space-y-4 w-full min-h-[200px] relative">
           <div className="flex justify-between items-center h-10 pb-2 border-b border-slate-200/80">
             <h2 className="font-bold text-sm flex items-center gap-2 text-slate-900"><span className="w-2 h-4 bg-sky-400 border border-sky-500 rounded-sm inline-block"></span> 공지사항 관리</h2>
-            <button onClick={() => { setEditingNotice({ id: undefined, title: '', content: '' }); setIsNoticeModalOpen(true); }} className="bg-slate-900 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-sm hover:bg-slate-800">
+            <button onClick={() => { setEditingNotice({ id: undefined, title: '', content: '', isVisible: 'Y' }); setIsNoticeModalOpen(true); }} className="bg-slate-900 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-sm hover:bg-slate-800">
               <Plus size={14} /> 공지 작성
             </button>
           </div>
@@ -437,37 +449,53 @@ export const AdminTab = memo(({
                 등록된 공지사항이 없습니다.
               </div>
             ) : (
-              (notices || []).map((n: Notice) => (
-                <div key={n.noticeId} className="w-full border border-slate-200 p-4 rounded-2xl bg-white text-slate-900 shadow-sm">
-                  <div className="flex justify-between items-start gap-2">
-                    <h3 className="font-bold text-sm text-slate-900 flex-1 leading-snug">{n.title}</h3>
-                    <div className="flex items-center gap-1.5 flex-shrink-0 pt-0.5">
-                      <button 
-                        onClick={() => { setEditingNotice({ id: n.noticeId, title: n.title, content: n.content }); setIsNoticeModalOpen(true); }} 
-                        className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
-                        title="공지 수정"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button 
-                        onClick={() => deleteNotice(n.noticeId)} 
-                        className="p-1 text-slate-400 hover:text-rose-500 cursor-pointer"
-                        title="공지 삭제"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+              (notices || []).map((n: Notice) => {
+                const isVisible = (n as any).isVisible !== 'N';
+
+                return (
+                  <div key={n.noticeId} className="w-full border border-slate-200 p-4 rounded-2xl bg-white text-slate-900 shadow-sm">
+                    <div className="flex justify-between items-start gap-2">
+                      <h3 className="font-bold text-sm text-slate-900 flex-1 leading-snug">{n.title}</h3>
+                      <div className="flex items-center gap-1 flex-shrink-0 pt-0.5">
+                        {/* ⚡ 눈 아이콘 (노출/숨김 상태 표시 및 클릭 시 토글) */}
+                        <button
+                          onClick={() => toggleNoticeVisibility(n)}
+                          className="p-1 cursor-pointer"
+                          title={isVisible ? "현재 노출 상태 (클릭 시 숨김)" : "현재 미노출 상태 (클릭 시 노출)"}
+                        >
+                          {isVisible ? (
+                            <Eye size={16} className="text-emerald-500 hover:text-emerald-600" />
+                          ) : (
+                            <EyeOff size={16} className="text-slate-300 hover:text-slate-500" />
+                          )}
+                        </button>
+                        <button 
+                          onClick={() => { setEditingNotice({ id: n.noticeId, title: n.title, content: n.content, isVisible: (n as any).isVisible || 'Y' }); setIsNoticeModalOpen(true); }} 
+                          className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
+                          title="공지 수정"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button 
+                          onClick={() => deleteNotice(n.noticeId)} 
+                          className="p-1 text-slate-400 hover:text-rose-500 cursor-pointer"
+                          title="공지 삭제"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-slate-500 leading-snug whitespace-pre-wrap break-all mt-1.5 mb-2.5">
+                      {n.content}
+                    </p>
+
+                    <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-400 font-medium">
+                      {n.createdAt} 작성
                     </div>
                   </div>
-
-                  <p className="text-xs text-slate-500 leading-snug whitespace-pre-wrap break-all mt-1.5 mb-2.5">
-                    {n.content}
-                  </p>
-
-                  <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-400 font-medium">
-                    {n.createdAt} 작성
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

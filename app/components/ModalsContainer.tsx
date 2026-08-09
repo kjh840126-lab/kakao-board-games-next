@@ -8,7 +8,6 @@ import {
 import { Game, Notice, ReportData, BoardSite, UserData } from '../types';
 
 interface ModalsContainerProps {
-  // 모달 및 드로어 오픈 상태
   isAdminReportDrawerOpen: boolean;
   setIsAdminReportDrawerOpen: (open: boolean) => void;
   selectedReport: ReportData | null;
@@ -393,7 +392,6 @@ export function ModalsContainer({
               <button onClick={() => setIsGameModalOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button>
             </div>
             <form onSubmit={saveGame} className="space-y-3">
-              {/* ⚡ 텍스트 박스 세로 길이(42px)와 100% 일치하는 썸네일 그룹핑 */}
               <div>
                 <label className="font-bold block mb-1 flex items-center gap-1"><Image size={13} /> 이미지 URL</label>
                 <div className="flex items-center gap-1.5">
@@ -404,7 +402,6 @@ export function ModalsContainer({
                     onChange={(e) => setEditingGame({ ...editingGame, imageUrl: e.target.value })}
                     className="flex-1 min-w-0 border border-slate-200 p-2.5 rounded-xl text-slate-900 focus:outline-none"
                   />
-                  {/* 입력창 높이와 동일한 42px 정사각형 썸네일 */}
                   <div className="w-[42px] h-[42px] rounded-xl border border-slate-200 bg-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0 relative shadow-2xs">
                     {editingGame.imageUrl ? (
                       <img
@@ -483,7 +480,7 @@ export function ModalsContainer({
         </div>
       )}
 
-      {/* 11. 공지 작성 모달 (⚡ 노출 여부 항목 추가) */}
+      {/* 11. 공지 작성 모달 (⚡ 노출 여부 영문 제거 적용) */}
       {isNoticeModalOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="rounded-2xl w-full max-w-sm p-5 space-y-3.5 shadow-2xl border bg-white border-slate-100 text-slate-900 text-xs">
@@ -492,7 +489,7 @@ export function ModalsContainer({
               <div><label className="font-bold block mb-1">공지 제목</label><input type="text" required value={editingNotice.title} onChange={(e) => setEditingNotice({ ...editingNotice, title: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
               <div><label className="font-bold block mb-1">공지 내용</label><textarea required rows={4} value={editingNotice.content} onChange={(e) => setEditingNotice({ ...editingNotice, content: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900 resize-none"></textarea></div>
               
-              {/* ⚡ 공지사항 노출 여부 항목 추가 */}
+              {/* ⚡ 노출 여부 선택지에서 영문(Y/N) 제거 */}
               <div>
                 <label className="font-bold block mb-1">노출 여부</label>
                 <select
@@ -500,8 +497,8 @@ export function ModalsContainer({
                   onChange={(e) => setEditingNotice({ ...editingNotice, isVisible: e.target.value })}
                   className="w-full border border-slate-200 p-2.5 rounded-xl bg-slate-50 text-slate-900 font-semibold cursor-pointer"
                 >
-                  <option value="Y">노출 (Y)</option>
-                  <option value="N">숨김 (N)</option>
+                  <option value="Y">노출</option>
+                  <option value="N">숨김</option>
                 </select>
               </div>
 

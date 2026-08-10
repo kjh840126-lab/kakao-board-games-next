@@ -36,6 +36,7 @@ export const AuthScreen = ({
         {/* 탭 네비게이션 */}
         <div className="flex border-b border-slate-200 bg-slate-50">
           <button
+            type="button"
             onClick={() => setAuthTab('login')}
             className={`flex-1 py-2.5 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer ${
               authTab === 'login'
@@ -46,6 +47,7 @@ export const AuthScreen = ({
             <LogIn size={15} /> 로그인
           </button>
           <button
+            type="button"
             onClick={() => setAuthTab('signup')}
             className={`flex-1 py-2.5 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer ${
               authTab === 'signup'
@@ -60,13 +62,17 @@ export const AuthScreen = ({
         {/* 폼 영역 */}
         <div className="p-4">
           {authTab === 'login' ? (
+            /* ⚡ [로그인 폼] 키체인 자동완성을 위한 autocomplete="username" / "current-password" 적용 */
             <form onSubmit={handleLogin} className="space-y-3">
               <div className="space-y-1">
-                <label className="font-bold text-slate-900 text-xs block">
+                <label htmlFor="login-username" className="font-bold text-slate-900 text-xs block">
                   아이디 (LDAP)
                 </label>
                 <input
+                  id="login-username"
+                  name="username"
                   type="text"
+                  autoComplete="username"
                   placeholder="예: user.kakao"
                   value={loginId}
                   /* ⚡ 대문자 입력 시 소문자로 자동 변환 */
@@ -77,7 +83,7 @@ export const AuthScreen = ({
 
               <div className="space-y-1">
                 <div className="flex justify-between items-center">
-                  <label className="font-bold text-slate-900 text-xs block">
+                  <label htmlFor="login-password" className="font-bold text-slate-900 text-xs block">
                     비밀번호
                   </label>
                   <button
@@ -91,7 +97,10 @@ export const AuthScreen = ({
                   </button>
                 </div>
                 <input
+                  id="login-password"
+                  name="password"
                   type="password"
+                  autoComplete="current-password"
                   placeholder="비밀번호 입력"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
@@ -107,13 +116,17 @@ export const AuthScreen = ({
               </button>
             </form>
           ) : (
+            /* ⚡ [회원가입 폼] 키체인 자동완성을 위한 new-password 적용 */
             <form onSubmit={handleSignUp} className="space-y-2">
               <div className="space-y-0.5">
-                <label className="font-bold text-slate-900 text-xs block">
+                <label htmlFor="signup-username" className="font-bold text-slate-900 text-xs block">
                   아이디
                 </label>
                 <input
+                  id="signup-username"
+                  name="username"
                   type="text"
+                  autoComplete="username"
                   placeholder="예: user.kakao"
                   value={signUpForm.userId}
                   /* ⚡ 대문자 입력 시 소문자로 자동 변환 */
@@ -125,11 +138,14 @@ export const AuthScreen = ({
               </div>
 
               <div className="space-y-0.5">
-                <label className="font-bold text-slate-900 text-xs block">
+                <label htmlFor="signup-name" className="font-bold text-slate-900 text-xs block">
                   이름
                 </label>
                 <input
+                  id="signup-name"
+                  name="name"
                   type="text"
+                  autoComplete="name"
                   placeholder="홍길동"
                   value={signUpForm.name}
                   onChange={(e) =>
@@ -140,12 +156,15 @@ export const AuthScreen = ({
               </div>
 
               <div className="space-y-0.5">
-                <label className="font-bold text-slate-900 text-xs block">
+                <label htmlFor="signup-email-prefix" className="font-bold text-slate-900 text-xs block">
                   이메일
                 </label>
                 <div className="flex gap-1 items-center">
                   <input
+                    id="signup-email-prefix"
+                    name="email"
                     type="text"
+                    autoComplete="email"
                     placeholder="이메일 아이디"
                     value={signUpForm.emailPrefix}
                     /* ⚡ 대문자 입력 시 소문자로 자동 변환 */
@@ -187,11 +206,14 @@ export const AuthScreen = ({
               </div>
 
               <div className="space-y-0.5">
-                <label className="font-bold text-slate-900 text-xs block">
+                <label htmlFor="signup-password" className="font-bold text-slate-900 text-xs block">
                   비밀번호
                 </label>
                 <input
+                  id="signup-password"
+                  name="new-password"
                   type="password"
+                  autoComplete="new-password"
                   placeholder="비밀번호 입력"
                   value={signUpForm.password}
                   onChange={(e) =>
@@ -202,11 +224,14 @@ export const AuthScreen = ({
               </div>
 
               <div className="space-y-0.5">
-                <label className="font-bold text-slate-900 text-xs block">
+                <label htmlFor="signup-password-confirm" className="font-bold text-slate-900 text-xs block">
                   비밀번호 확인
                 </label>
                 <input
+                  id="signup-password-confirm"
+                  name="new-password-confirm"
                   type="password"
+                  autoComplete="new-password"
                   placeholder="비밀번호 재입력"
                   value={signUpForm.passwordConfirm}
                   onChange={(e) =>

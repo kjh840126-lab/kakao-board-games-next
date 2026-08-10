@@ -27,6 +27,12 @@ const checkIsIosDevice = () => {
   return /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
 };
 
+// ⚡ 한국 표준시(KST) 기준 YYYY-MM-DD 날짜 반환 함수
+const getTodayKST = () => {
+  const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' });
+  return formatter.format(new Date());
+};
+
 // ⚡ 1. 자정(UTC 00:00:00) 기준 날짜 차이(연체 일수) 정확히 계산
 const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   if (!dateStr1 || !dateStr2) return 0;
@@ -195,7 +201,9 @@ export default function MainPage() {
   const isLargeFont = fontSize === 'large';
   const headerRef = useRef<HTMLElement | null>(null); 
   const mainScrollRef = useRef<HTMLDivElement | null>(null);
-  const today = new Date().toISOString().split('T')[0];
+  
+  // ⚡ 한국 표준시(KST) 기준 오늘 날짜 고정 (YYYY-MM-DD)
+  const today = getTodayKST();
 
   // ⚡ 테마 및 폰트 크기 동적 반영 Effect
   useEffect(() => {

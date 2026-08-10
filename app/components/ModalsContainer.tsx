@@ -201,15 +201,18 @@ export function ModalsContainer({
 
             <div className="space-y-2 pt-1">
               <h4 className="font-bold text-slate-400">전체 목록 ({reports.length})</h4>
-              {reports.map((report: any) => {
-                const isCompleted = report.status === 'COMPLETED';
-                const isUnread = !report.isRead && !report.is_read;
+              {reports.map((report: ReportData) => {
+                const r = report as any;
+                const isCompleted = r.status === 'COMPLETED';
+                const isUnread = !r.isRead && !r.is_read;
+                const currentReportId = r.reportId || r.id;
+                const selectedReportId = (selectedReport as any)?.reportId || (selectedReport as any)?.id;
 
                 return (
                   <div
-                    key={report.reportId || report.id}
+                    key={currentReportId}
                     className={`p-3 rounded-xl border transition space-y-2 ${
-                      selectedReport?.reportId === report.reportId || selectedReport?.id === report.id
+                      selectedReportId === currentReportId
                         ? 'border-sky-500 bg-sky-50/50'
                         : isUnread
                         ? 'border-amber-300 bg-amber-50/30'
@@ -241,12 +244,12 @@ export function ModalsContainer({
                           )}
 
                           <span className="text-slate-400 font-mono text-[10px]">
-                            {report.userId || report.user_id}
+                            {r.userId || r.user_id}
                           </span>
                         </div>
 
                         <p className="font-bold text-slate-900 truncate leading-snug">
-                          {report.title}
+                          {r.title}
                         </p>
                       </div>
 

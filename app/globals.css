@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
-/* 1. 카카오 폰트 매핑 (font-display: block 적용으로 깜빡임 방지) */
+/* ⚡ 1. Tailwind v4 전용 다크모드 커스텀 바리언트 선언 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* 2. 카카오 폰트 매핑 */
 @font-face {
   font-family: 'Kakao';
   font-style: normal;
@@ -33,12 +36,12 @@
   font-display: block;
 }
 
-/* 2. Tailwind v4 기본 폰트 등록 */
+/* 3. Tailwind v4 기본 폰트 등록 */
 @theme {
   --font-sans: 'Kakao', 'KakaoBig', -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
 }
 
-/* 3. 전체 렌더링 적용 */
+/* 4. 전체 렌더링 적용 */
 html, body {
   font-family: 'Kakao', 'KakaoBig', -apple-system, BlinkMacSystemFont, sans-serif !important;
   width: 100%;
@@ -59,11 +62,55 @@ html.text-large {
   font-size: 115% !important;
 }
 
+/* 라이트 모드 제목 색상 지정 */
 html:not(.dark) main h3,
 html:not(.dark) main h4 {
   color: #0f172a !important;
 }
 
+/* ⚡ 5. 다크모드(html.dark) 스타일 덮어쓰기 설정 */
+html.dark {
+  color-scheme: dark;
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+html.dark body,
+html.dark main {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+/* 다크모드 시 흰색 카드 및 배경 요소 자동 어둡게 처리 */
+html.dark .bg-white {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+html.dark main h3,
+html.dark main h4,
+html.dark h1,
+html.dark h2,
+html.dark p,
+html.dark span {
+  color: #f8fafc !important;
+}
+
+/* 다크모드 시 밝은 회색 테두리를 어두운 테두리로 변경 */
+html.dark .border-slate-200,
+html.dark .border-slate-100,
+html.dark .border-slate-300 {
+  border-color: #334155 !important;
+}
+
+/* 다크모드 시 밝은 배경 요소 가독성 확보 */
+html.dark .bg-slate-50,
+html.dark .bg-slate-100 {
+  background-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+/* 6. 스크롤바 숨김 */
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }

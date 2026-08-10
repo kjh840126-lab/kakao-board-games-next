@@ -37,8 +37,7 @@ export const FixedHeader = memo(({
         paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)',
         fontSize: '12px' 
       }} 
-      /* ⚡ z-40 -> z-30으로 변경하여 모달/드로어 오버레이(z-50) 뒤로 확실히 배치 */
-      className={`fixed top-0 left-0 right-0 w-full px-4 pb-2.5 z-30 shadow-sm flex justify-between items-center transition-colors border-0 outline-none ${
+      className={`fixed top-0 left-0 right-0 w-full px-4 pb-2.5 z-40 shadow-sm flex justify-between items-center transition-colors border-0 outline-none ${
         isHeaderAdminTheme ? 'bg-sky-400 border-b border-sky-500/40 text-slate-900' : 'bg-[#FEE500] border-b border-amber-300/40 text-slate-900'
       }`}
     >
@@ -59,6 +58,7 @@ export const FixedHeader = memo(({
               <span>{currentUser?.userId}</span>
             </div>
 
+            {/* ⚡ 통합 뱃지: 예전 AlertCircle 아이콘 복원 & 패널티 n점 볼드체 제거(font-normal) */}
             {hasPenaltyPoints && (
               <span className={`bg-rose-600 text-white px-2 py-0.5 rounded-md flex items-center gap-1 shadow-xs ${
                 isIosDevice ? IOS_CONFIG.HEADER_BADGE_TEXT_SIZE : 'text-[10px]'
@@ -114,8 +114,7 @@ export const FixedBottomNav = memo(({
   return (
     <nav 
       style={{ fontSize: '11px' }}
-      /* ⚡ 하단 네비게이션도 z-30으로 변경하여 모달 오픈 시 레이어 정리 */
-      className={`fixed bottom-0 left-0 right-0 w-full z-30 shadow-lg transition-colors border-t ${
+      className={`fixed bottom-0 left-0 right-0 w-full z-40 shadow-lg transition-colors border-t ${
         isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200/80'
       } ${isIosDevice ? IOS_CONFIG.NAV_PADDING_BOTTOM : 'pb-[calc(env(safe-area-inset-bottom,0px)+12px)]'}`}
     >

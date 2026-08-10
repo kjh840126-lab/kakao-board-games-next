@@ -136,17 +136,20 @@ export const RankingTab = memo(({ isInitialLoaded, games, rentals, allRatings }:
                   {rank === 1 ? (
                     <div className="relative flex items-center justify-center">
                       <Medal size={28} className="text-amber-400 fill-amber-300" />
-                      <span className="absolute top-[7px] font-black text-[10px] text-amber-950">{rank}</span>
+                      {/* ⚡ 1위 금메달: 짙은 검은 글자 (!text-amber-950) 보정 */}
+                      <span className="absolute top-[7px] font-black text-[10px] !text-amber-950">{rank}</span>
                     </div>
                   ) : rank === 2 ? (
                     <div className="relative flex items-center justify-center">
                       <Medal size={28} className="text-slate-300 fill-slate-200" />
-                      <span className="absolute top-[7px] font-black text-[10px] text-slate-800">{rank}</span>
+                      {/* ⚡ 2위 은메달: 짙은 검은 글자 (!text-slate-900) 보정 */}
+                      <span className="absolute top-[7px] font-black text-[10px] !text-slate-900">{rank}</span>
                     </div>
                   ) : rank === 3 ? (
                     <div className="relative flex items-center justify-center">
                       <Medal size={28} className="text-amber-700 fill-amber-600" />
-                      <span className="absolute top-[7px] font-black text-[10px] text-white">{rank}</span>
+                      {/* ⚡ 3위 동메달: 흰색 글자 (!text-white) 보정 */}
+                      <span className="absolute top-[7px] font-black text-[10px] !text-white">{rank}</span>
                     </div>
                   ) : (
                     <div className="w-7 h-7 rounded-xl font-black text-xs flex items-center justify-center bg-slate-100 text-slate-700 border border-slate-200/60">

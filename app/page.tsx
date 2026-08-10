@@ -72,7 +72,22 @@ export default function MainPage() {
   const [isFavoritesModalOpen, setIsFavoritesModalOpen] = useState(false);
   const [isMyRatingsModalOpen, setIsMyRatingsModalOpen] = useState(false);
 
-  const [fontSize, setFontSize] = useState<'normal' | 'large'>('normal');
+  // ⚡ 폰트 크기 상태 초기화 (localStorage 연동)
+  const [fontSize, setFontSize] = useState<'normal' | 'large'>(() => {
+    if (typeof window !== 'undefined') {
+      const savedFont = localStorage.getItem('kakao_bg_fontSize');
+      if (savedFont === 'large' || savedFont === 'normal') return savedFont;
+    }
+    return 'normal';
+  });
+
+  // ⚡ 폰트 변경 전용 토글 함수 (상태 변경 + localStorage 즉시 저장)
+  const handleSetFontSize = useCallback((size: 'normal' | 'large') => {
+    setFontSize(size);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('kakao_bg_fontSize', size);
+    }
+  }, []);
 
   // ⚡ 다크모드 상태 관리 추가
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -135,7 +150,7 @@ export default function MainPage() {
   const [isIosDevice, setIsIosDevice] = useState(false);
   const scrollPositions = useRef<{ [key: string]: number }>({ games: 0, returns: 0, ranking: 0, sites: 0, admin: 0 });
 
-  // ⚡ 마운트 및 폰트 크기/유저 상태 초기 로드 (새로고침시 폰트크기 유지 적용)
+  // ⚡ 마운트 초기 로드
   useEffect(() => {
     setMounted(true);
     setIsIosDevice(checkIsIosDevice());
@@ -148,13 +163,12 @@ export default function MainPage() {
       try {
         const savedUser = localStorage.getItem('kakao_boardgame_user'); if (savedUser) setCurrentUser(JSON.parse(savedUser));
         const savedFont = localStorage.getItem('kakao_bg_fontSize'); 
-        if (savedFont) {
-          setFontSize(savedFont as any);
-          if (savedFont === 'large') {
-            document.documentElement.classList.add('text-large');
-          } else {
-            document.documentElement.classList.remove('text-large');
-          }
+        if (savedFont === 'large') {
+          setFontSize('large');
+          document.documentElement.classList.add('text-large');
+        } else {
+          setFontSize('normal');
+          document.documentElement.classList.remove('text-large');
         }
       } catch (e) {}
     }
@@ -166,7 +180,7 @@ export default function MainPage() {
   const mainScrollRef = useRef<HTMLDivElement | null>(null);
   const today = new Date().toISOString().split('T')[0];
 
-  // ⚡ 테마 토글 및 폰트 크기 동적 반영 Effect
+  // ⚡ 테마 및 폰트 크기 동적 반영 Effect
   useEffect(() => {
     if (typeof document !== 'undefined' && mounted) {
       const root = document.documentElement;
@@ -184,6 +198,8 @@ export default function MainPage() {
 
       root.style.setProperty('--bg-header', isHeaderAdminTheme ? '#38bdf8' : '#FEE500');
       if (metaTheme) metaTheme.setAttribute('content', isHeaderAdminTheme ? '#38bdf8' : '#FEE500');
+      
+      // ⚡ 폰트 클래스 토글
       if (isLargeFont) root.classList.add('text-large');
       else root.classList.remove('text-large');
 
@@ -526,7 +542,6 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 제보함 읽음 및 완료 처리 (Supabase 예외 핸들링 보정)
   const handleMarkReportAsRead = async (report: ReportData) => {
     setSelectedReport(report);
     if (!report.isRead) {
@@ -740,7 +755,7 @@ export default function MainPage() {
       <ModalsContainer 
         isAdminReportDrawerOpen={isAdminReportDrawerOpen} setIsAdminReportDrawerOpen={setIsAdminReportDrawerOpen} selectedReport={selectedReport} reports={reports} unreadReportsCount={unreadReportsCount} handleMarkReportAsRead={handleMarkReportAsRead} handleMarkAllReportsAsRead={handleMarkAllReportsAsRead}
         isSettingsOpen={isSettingsOpen} setIsSettingsOpen={setIsSettingsOpen} currentUser={currentUser} setEditName={setEditName} setNewPasswordInput={setNewPasswordInput} setNewPasswordConfirmInput={setNewPasswordConfirmInput} setIsEditProfileOpen={setIsEditProfileOpen} setIsFavoritesModalOpen={setIsFavoritesModalOpen} setIsMyRatingsModalOpen={setIsMyRatingsModalOpen} userFavorites={userFavorites} favoriteGamesList={favoriteGamesList} myRatingGamesList={myRatingGamesList} setReportForm={setReportForm} setIsReportModalOpen={setIsReportModalOpen} 
-        fontSize={fontSize} setFontSize={setFontSize} 
+        fontSize={fontSize} setFontSize={handleSetFontSize} 
         theme={theme} setTheme={setTheme}
         handleLogout={handleLogout}
         isNoticeDrawerOpen={isNoticeDrawerOpen} setIsNoticeDrawerOpen={setIsNoticeDrawerOpen} notices={visibleNoticesList} expandedNoticeId={expandedNoticeId} handleNoticeClick={handleNoticeClick}

@@ -27,12 +27,17 @@ const checkIsIosDevice = () => {
   return /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
 };
 
-// ⚡ 날짜 차이(연체 일수) 계산 함수
+// ⚡ 날짜 차이(연체 일수) 계산 함수 - 자정 기준 생성 및 Math.round로 버림 오차(-1일) 완벽 방지
 const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   if (!dateStr1 || !dateStr2) return 0;
-  const d1 = new Date(dateStr1); 
-  const d2 = new Date(dateStr2);
-  return Math.floor((d1.getTime() - d2.getTime()) / (1000 * 60 * 60 * 24));
+  
+  const [y1, m1, d1] = dateStr1.split('-').map(Number);
+  const [y2, m2, d2] = dateStr2.split('-').map(Number);
+  
+  const date1 = new Date(y1, m1 - 1, d1);
+  const date2 = new Date(y2, m2 - 1, d2);
+  
+  return Math.round((date1.getTime() - date2.getTime()) / (1000 * 60 * 60 * 24));
 };
 
 // ⚡ 날짜 객체를 타임존 차감 없이 YYYY-MM-DD 포맷으로 변환하는 함수
@@ -413,7 +418,7 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 개별 반납 처리 (시차로 인한 하루 차감 버그 보정)
+  // ⚡ 개별 반납 처리 (연체일 오차 및 시차 보정)
   const returnGame = async (rentalId: number, gameId: string) => {
     if (!currentUser) return;
     const nowIso = new Date().toISOString();
@@ -435,10 +440,11 @@ export default function MainPage() {
         const hasFuturePenalty = currentUser.penaltyEndDate && String(currentUser.penaltyEndDate) >= today;
         const baseDateStr = hasFuturePenalty ? String(currentUser.penaltyEndDate) : today;
 
-        const penaltyEnd = new Date(baseDateStr);
+        const [bYear, bMonth, bDay] = baseDateStr.split('-').map(Number);
+        const penaltyEnd = new Date(bYear, bMonth - 1, bDay);
         penaltyEnd.setDate(penaltyEnd.getDate() + overdueDays);
         
-        // ⭕ toISOString 대신 로컬 날짜 추출로 -9시간 시차 차감 방지
+        // ⭕ 로컬 YYYY-MM-DD 포맷 적용
         const penaltyEndDateStr = formatDateToYYYYMMDD(penaltyEnd);
 
         const newPenaltyPoints = (currentUser.penaltyPoints || 0) + overdueDays;
@@ -462,7 +468,7 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 일괄 반납 처리 (시차로 인한 하루 차감 버그 보정)
+  // ⚡ 일괄 반납 처리 (연체일 오차 및 시차 보정)
   const returnAllGames = async () => {
     if (!currentUser) return;
     const userActiveRentals = rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
@@ -494,10 +500,11 @@ export default function MainPage() {
         const hasFuturePenalty = currentUser.penaltyEndDate && String(currentUser.penaltyEndDate) >= today;
         const baseDateStr = hasFuturePenalty ? String(currentUser.penaltyEndDate) : today;
 
-        const penaltyEnd = new Date(baseDateStr);
+        const [bYear, bMonth, bDay] = baseDateStr.split('-').map(Number);
+        const penaltyEnd = new Date(bYear, bMonth - 1, bDay);
         penaltyEnd.setDate(penaltyEnd.getDate() + totalOverdueDays);
         
-        // ⭕ toISOString 대신 로컬 날짜 추출로 -9시간 시차 차감 방지
+        // ⭕ 로컬 YYYY-MM-DD 포맷 적용
         const penaltyEndDateStr = formatDateToYYYYMMDD(penaltyEnd);
 
         const newPenaltyPoints = (currentUser.penaltyPoints || 0) + totalOverdueDays;

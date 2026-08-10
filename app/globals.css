@@ -41,7 +41,7 @@
   --font-sans: 'Kakao', 'KakaoBig', -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
 }
 
-/* 4. 전체 렌더링 및 기본 설정 (라이트모드 100% 원본 유지) */
+/* 4. 전체 렌더링 및 기본 설정 (라이트모드 기존 유지) */
 html, body {
   font-family: 'Kakao', 'KakaoBig', -apple-system, BlinkMacSystemFont, sans-serif !important;
   width: 100%;
@@ -69,7 +69,7 @@ html:not(.dark) main h4 {
 }
 
 /* ========================================================= */
-/* ⚡ 5. 다크모드 전용(html.dark) 기본 배경 및 가독성 규칙 */
+/* ⚡ 5. 다크모드 전용(html.dark) 스타일 - 라이트모드에 영향 없음 */
 /* ========================================================= */
 
 html.dark {
@@ -84,43 +84,125 @@ html.dark main {
   color: #f8fafc !important;
 }
 
-/* 본문 영역 기본 타이틀/텍스트 보정 */
-html.dark main h1,
-html.dark main h2,
-html.dark main h3,
-html.dark main h4,
-html.dark main h5,
-html.dark main strong {
+/* [다크모드 전용] 텍스트 가독성 강제 적용 */
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark strong,
+html.dark .text-slate-900,
+html.dark .text-slate-800 {
   color: #ffffff !important;
 }
 
-html.dark main p,
-html.dark main label {
-  color: #e2e8f0;
+html.dark p,
+html.dark span,
+html.dark div,
+html.dark label,
+html.dark .text-slate-700,
+html.dark .text-slate-600 {
+  color: #e2e8f0 !important;
 }
 
-/* 다크모드 시 입력창 배경/글자색 보정 */
-html.dark main input[type="text"],
-html.dark main input[type="number"],
-html.dark main input[type="password"],
-html.dark main input[type="url"],
-html.dark main textarea,
-html.dark main select {
+/* [다크모드 전용] 보조 텍스트 (날짜, ID 등) */
+html.dark .text-slate-400,
+html.dark .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+html.dark .text-slate-300 {
+  color: #cbd5e1 !important;
+}
+
+/* [다크모드 전용] 배경 및 모달 카드 */
+html.dark .bg-white {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+html.dark .bg-slate-50,
+html.dark .bg-slate-100 {
+  background-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+/* [다크모드 전용] 드로어 내부 연한 황동/파랑/분홍 박스 보정 */
+html.dark .bg-amber-50\/60,
+html.dark .bg-amber-50\/40,
+html.dark .bg-amber-50 {
+  background-color: #2e2815 !important;
+  color: #fef08a !important;
+}
+
+html.dark .bg-sky-50\/70,
+html.dark .bg-sky-50 {
+  background-color: #1a314b !important;
+  color: #e0f2fe !important;
+}
+
+html.dark .bg-rose-50\/40,
+html.dark .bg-rose-50 {
+  background-color: #3f1922 !important;
+  color: #fecdd3 !important;
+}
+
+/* [다크모드 전용] 입력창/검색창 */
+html.dark input[type="text"],
+html.dark input[type="number"],
+html.dark input[type="password"],
+html.dark input[type="url"],
+html.dark textarea,
+html.dark select {
   background-color: #1e293b !important;
   color: #ffffff !important;
   border-color: #475569 !important;
 }
 
-html.dark main input::placeholder,
-html.dark main textarea::placeholder {
+html.dark input::placeholder,
+html.dark textarea::placeholder {
   color: #64748b !important;
 }
 
+/* [다크모드 전용] 테두리 구분선 */
+html.dark .border-slate-200,
+html.dark .border-slate-100,
+html.dark .border-slate-300,
+html.dark .border-slate-200\/80 {
+  border-color: #334155 !important;
+}
+
+/* [다크모드 전용] 뱃지 */
+html.dark .bg-rose-100 {
+  background-color: #881337 !important;
+}
+html.dark .text-rose-600,
+html.dark .text-rose-500 {
+  color: #fda4af !important;
+}
+
+html.dark .bg-amber-100 {
+  background-color: #713f12 !important;
+}
+html.dark .text-amber-600,
+html.dark .text-amber-500 {
+  color: #fde047 !important;
+}
+
+/* [다크모드 전용] 드로어 하단 '닫기' 버튼 */
+html.dark .bg-slate-900 {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+  border: 1px solid #475569;
+}
+
 /* ========================================================= */
-/* ⚡ 6. 상단 네비게이션(header) 다크모드 예외 처리 (라이트모드 고정) */
+/* ⚡ 6. 상단 네비게이션 & 드로어 상단 헤더 (라이트 모드 고정) */
 /* ========================================================= */
 
-html.dark header {
+html.dark header,
+html.dark div.bg-\[\#FEE500\],
+html.dark div.bg-sky-400 {
   background-color: var(--bg-header) !important;
 }
 

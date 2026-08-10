@@ -62,14 +62,14 @@ html.text-large {
   font-size: 115% !important;
 }
 
-/* 라이트 모드 전용 세부 스타일 */
+/* 라이트 모드 전용 세부 스타일 (기존 원본 그대로 유지) */
 html:not(.dark) main h3,
 html:not(.dark) main h4 {
   color: #0f172a !important;
 }
 
 /* ========================================================= */
-/* ⚡ 5. 다크모드 전용(html.dark) 스타일 */
+/* ⚡ 5. 다크모드 전용(html.dark) 스타일 - 라이트모드에 영향 없음 */
 /* ========================================================= */
 
 html.dark {
@@ -84,7 +84,7 @@ html.dark main {
   color: #f8fafc !important;
 }
 
-/* [다크모드 전용] 일반 텍스트 가독성 */
+/* [다크모드 전용] 본문 일반 타이틀 가독성 */
 html.dark main h1,
 html.dark main h2,
 html.dark main h3,
@@ -92,18 +92,6 @@ html.dark main h4,
 html.dark main h5,
 html.dark main strong {
   color: #ffffff !important;
-}
-
-html.dark main p,
-html.dark main label {
-  color: #e2e8f0;
-}
-
-html.dark main span:not(.bg-\[\#FEE500\]),
-html.dark main div:not(.bg-\[\#FEE500\]),
-html.dark main .text-slate-700,
-html.dark main .text-slate-600 {
-  color: #e2e8f0 !important;
 }
 
 /* [다크모드 전용] 보조 텍스트 (날짜, ID 등) */
@@ -116,11 +104,9 @@ html.dark main .text-slate-300 {
   color: #cbd5e1 !important;
 }
 
-/* [다크모드 전용] 노란색 배경 버튼(대여가능) 최우선 고정 */
-html.dark main button[class*="bg-[#FEE500]"],
-html.dark main button[class*="bg-[#FEE500]"] *,
-html.dark main .bg-\[\#FEE500\],
-html.dark main .bg-\[\#FEE500\] * {
+/* ⚡ [대여가능 버튼 핀셋 보정] 노란색 배경 버튼 내부 글자색만 검은색(#0f172a) 최우선 고정 */
+html.dark main button.bg-\[\#FEE500\],
+html.dark main button.bg-\[\#FEE500\] * {
   color: #0f172a !important;
 }
 
@@ -136,7 +122,7 @@ html.dark .bg-slate-100 {
   color: #f8fafc !important;
 }
 
-/* [다크모드 전용] 드로어 내부 연한 박스 보정 */
+/* [다크모드 전용] 드로어 내부 연한 황동/파랑/분홍 박스 보정 */
 html.dark .bg-amber-50\/60,
 html.dark .bg-amber-50\/40,
 html.dark .bg-amber-50 {
@@ -206,8 +192,12 @@ html.dark .bg-slate-900 {
 }
 
 /* ========================================================= */
-/* ⚡⚡⚡ 6. 상단 네비게이션(header) - 절대적 최우선 고정 ⚡⚡⚡ */
+/* ⚡ 6. 상단 네비게이션 & 드로어 상단 헤더 (라이트 모드 고정) */
 /* ========================================================= */
+
+html.dark header {
+  background-color: var(--bg-header) !important;
+}
 
 html.dark header,
 html.dark header *,
@@ -217,10 +207,6 @@ html.dark header p,
 html.dark header button,
 html.dark header svg {
   color: #0f172a !important;
-}
-
-html.dark header {
-  background-color: var(--bg-header) !important;
 }
 
 html.dark div.bg-\[\#FEE500\],
@@ -234,7 +220,7 @@ html.dark header button.bg-white\/80 {
   border: none !important;
 }
 
-/* 빨간색 대여정지 뱃지 내부 글자만 예외(흰색) 유지 */
+/* 빨간색 대여정지 뱃지 내부 글자(흰색) 유지 */
 html.dark header .bg-rose-600,
 html.dark header .bg-rose-600 * {
   color: #ffffff !important;

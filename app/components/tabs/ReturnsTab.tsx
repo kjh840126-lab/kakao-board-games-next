@@ -4,10 +4,11 @@ import { memo, useMemo } from 'react';
 import { Rental } from '../../types';
 import { RotateCcw, CheckCircle2, Loader2 } from 'lucide-react';
 
-// ⚡ + 1을 제거하여 정확한 연체 일수(8/9 반납 -> 8/10 오늘 = 1일 연체)로 수정[cite: 3]
+// ⚡ 날짜 차이 계산 함수
 const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   if (!dateStr1 || !dateStr2) return 0;
-  const d1 = new Date(dateStr1); const d2 = new Date(dateStr2);
+  const d1 = new Date(dateStr1); 
+  const d2 = new Date(dateStr2);
   return Math.floor((d1.getTime() - d2.getTime()) / (1000 * 60 * 60 * 24));
 };
 
@@ -92,19 +93,40 @@ export const ReturnsTab = memo(({ isInitialLoaded, rentals, currentUser, today, 
             반납 이력이 없습니다.
           </div>
         ) : (
-          returnedRentalsList.map((rental: Rental) => (
-            <div key={rental.rentalId} className="w-full border p-3.5 rounded-2xl flex justify-between items-center bg-white border-slate-200/80">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start gap-1.5">
-                  <CheckCircle2 size={15} className="text-emerald-600 flex-shrink-0 mt-0.5" />
-                  <h4 style={{ color: '#0f172a' }} className="font-bold text-xs leading-snug break-words">
-                    {rental.gameTitle} <span className="text-slate-400 font-medium">({rental.gameId})</span>
-                  </h4>
+          returnedRentalsList.map((rental: Rental) => {
+            // ⚡ 반납 당시 연체 여부 계산 (실제 반납일 > 반납예정일)
+            const returnedDate = rental.returnedAt?.split('T')[0] || rental.startDate;
+            const isOverdueReturned = rental.endDate && returnedDate > rental.endDate;
+            const overdueDays = isOverdueReturned ? getDaysDifference(returnedDate, rental.endDate) : 0;
+
+            return (
+              <div key={rental.rentalId} className="w-full border p-3.5 rounded-2xl flex justify-between items-center bg-white border-slate-200/80 shadow-2xs">
+                <div className="min-w-0 flex-1">
+                  {/* 게임명 행 (우측 끝에 연체 뱃지 노출) */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-start gap-1.5 min-w-0 flex-1">
+                      <CheckCircle2 size={15} className="text-emerald-600 flex-shrink-0 mt-0.5" />
+                      <h4 style={{ color: '#0f172a' }} className="font-bold text-xs leading-snug break-words">
+                        {rental.gameTitle} <span className="text-slate-400 font-medium">({rental.gameId})</span>
+                      </h4>
+                    </div>
+
+                    {/* ⚡ 우측 끝: 연체 반납된 경우 붉은색 뱃지 표시 */}
+                    {isOverdueReturned && overdueDays > 0 && (
+                      <span className="bg-rose-100 text-rose-600 font-extrabold text-[10px] px-2 py-0.5 rounded-md flex-shrink-0">
+                        연체 {overdueDays}일
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 날짜 정보 행 */}
+                  <p className="text-slate-500 mt-1 text-xs pl-5">
+                    대여일: {rental.startDate} | 반납일: {returnedDate}
+                  </p>
                 </div>
-                <p className="text-slate-500 mt-1 text-xs pl-5">대여일: {rental.startDate} | 반납일: {rental.returnedAt?.split('T')[0] || rental.startDate}</p>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </section>
     </div>

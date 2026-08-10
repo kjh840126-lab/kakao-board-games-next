@@ -187,11 +187,14 @@ export const GamesTab = memo(({
                       <Heart size={16} className={isFav ? "fill-rose-500 text-rose-500" : "text-slate-400"} />
                     </button>
                     {isAvailable ? (
-                      /* ⚡ 인라인 style로 글자색 최우선 고정 -> 전역 CSS 간섭 100% 방지 */
+                      /* ⚡ 다크모드 시 버튼 배경을 amber-500(어두운 옐로우/황동), 글씨를 text-white로 변환 */
                       <button 
                         onClick={() => toggleCartItem(game)} 
-                        style={{ color: isSelectedInCart ? '#ffffff' : '#0f172a' }}
-                        className={`px-3.5 py-1.5 rounded-xl font-bold text-xs cursor-pointer ${isSelectedInCart ? 'bg-slate-900' : 'bg-[#FEE500]'}`}
+                        className={`px-3.5 py-1.5 rounded-xl font-bold text-xs cursor-pointer ${
+                          isSelectedInCart 
+                            ? 'bg-slate-900 text-white' 
+                            : 'bg-[#FEE500] text-slate-900 dark:bg-amber-500 dark:text-white'
+                        }`}
                       >
                         {isSelectedInCart ? '선택취소' : '대여가능'}
                       </button>

@@ -168,10 +168,22 @@ export function ModalsContainer({
         <div className={overlayClass} onClick={() => setIsAdminReportDrawerOpen(false)} />
         <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs transition-transform duration-200 ease-out transform-gpu ${isAdminReportDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           
-          {/* ⚡ 접수함 타이틀 헤더: 배경색(bg-sky-400) 및 텍스트/아이콘 폰트색(!text-slate-900)을 라이트모드로 완전 고정 */}
-          <div className="p-4 bg-sky-400 dark:bg-sky-400 !text-slate-900 flex justify-between items-center font-bold text-base">
-            <span className="flex items-center gap-2 !text-slate-900"><Siren size={18} className="!text-slate-900" /> 접수함</span>
-            <button onClick={() => setIsAdminReportDrawerOpen(false)} className="p-1 cursor-pointer !text-slate-900 hover:opacity-70"><X size={18} className="!text-slate-900" /></button>
+          {/* ⚡ 접수함 최상단 타이틀 영역: 인라인 스타일로 배경색(#38bdf8)과 폰트/아이콘 색상(#0f172a)을 라이트 모드와 100% 동일하게 강제 고정 */}
+          <div 
+            style={{ backgroundColor: '#38bdf8', color: '#0f172a' }} 
+            className="p-4 flex justify-between items-center font-bold text-base"
+          >
+            <span className="flex items-center gap-2" style={{ color: '#0f172a' }}>
+              <Siren size={18} style={{ color: '#0f172a' }} /> 접수함
+            </span>
+            <button 
+              type="button" 
+              onClick={() => setIsAdminReportDrawerOpen(false)} 
+              className="p-1 cursor-pointer hover:opacity-70"
+              style={{ color: '#0f172a' }}
+            >
+              <X size={18} style={{ color: '#0f172a' }} />
+            </button>
           </div>
 
           <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200/80 flex items-center text-xs">

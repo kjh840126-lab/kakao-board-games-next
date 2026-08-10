@@ -105,6 +105,14 @@ html.dark .text-slate-600 {
   color: #e2e8f0 !important;
 }
 
+/* ⚡ [다크모드 예외] 대여가능 노란색 버튼 글자색 어둡게 고정 */
+html.dark main button.bg-[#FEE500],
+html.dark main button.bg-yellow-400,
+html.dark main button.bg-amber-300,
+html.dark main button.bg-amber-400 {
+  color: #0f172a !important;
+}
+
 /* [다크모드 전용] 보조 텍스트 (날짜, ID 등) */
 html.dark .text-slate-400,
 html.dark .text-slate-500 {

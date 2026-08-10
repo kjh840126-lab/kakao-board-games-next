@@ -135,6 +135,7 @@ export default function MainPage() {
   const [isIosDevice, setIsIosDevice] = useState(false);
   const scrollPositions = useRef<{ [key: string]: number }>({ games: 0, returns: 0, ranking: 0, sites: 0, admin: 0 });
 
+  // ⚡ 마운트 및 폰트 크기/유저 상태 초기 로드 (새로고침시 폰트크기 유지 적용)
   useEffect(() => {
     setMounted(true);
     setIsIosDevice(checkIsIosDevice());
@@ -146,7 +147,15 @@ export default function MainPage() {
     if (typeof window !== 'undefined') {
       try {
         const savedUser = localStorage.getItem('kakao_boardgame_user'); if (savedUser) setCurrentUser(JSON.parse(savedUser));
-        const savedFont = localStorage.getItem('kakao_bg_fontSize'); if (savedFont) setFontSize(savedFont as any);
+        const savedFont = localStorage.getItem('kakao_bg_fontSize'); 
+        if (savedFont) {
+          setFontSize(savedFont as any);
+          if (savedFont === 'large') {
+            document.documentElement.classList.add('text-large');
+          } else {
+            document.documentElement.classList.remove('text-large');
+          }
+        }
       } catch (e) {}
     }
   }, []);
@@ -157,7 +166,7 @@ export default function MainPage() {
   const mainScrollRef = useRef<HTMLDivElement | null>(null);
   const today = new Date().toISOString().split('T')[0];
 
-  // ⚡ 테마 토글 동적 반영 Effect
+  // ⚡ 테마 토글 및 폰트 크기 동적 반영 Effect
   useEffect(() => {
     if (typeof document !== 'undefined' && mounted) {
       const root = document.documentElement;
@@ -179,8 +188,9 @@ export default function MainPage() {
       else root.classList.remove('text-large');
 
       localStorage.setItem('kakao_bg_theme', theme);
+      localStorage.setItem('kakao_bg_fontSize', fontSize);
     }
-  }, [theme, isHeaderAdminTheme, isLargeFont, mounted]);
+  }, [theme, isHeaderAdminTheme, isLargeFont, fontSize, mounted]);
 
   useEffect(() => { if (mounted) fetchInitialData(); }, [mounted]);
 
@@ -516,11 +526,16 @@ export default function MainPage() {
     }
   };
 
+  // ⚡ 제보함 읽음 및 완료 처리 (Supabase 예외 핸들링 보정)
   const handleMarkReportAsRead = async (report: ReportData) => {
     setSelectedReport(report);
     if (!report.isRead) {
       setReportList(prev => prev.map(r => r.reportId === report.reportId ? { ...r, isRead: true } : r));
-      await supabase.from('reports').update({ is_read: true }).eq('report_id', report.reportId);
+      const { error } = await supabase.from('reports').update({ is_read: true }).eq('report_id', report.reportId);
+      if (error) {
+        console.error('제보 읽기 처리 오류:', error.message);
+        alert('완료 처리 실패: ' + error.message);
+      }
     }
   };
 
@@ -528,7 +543,11 @@ export default function MainPage() {
     const unreadIds = reports.filter(r => !r.isRead).map(r => r.reportId);
     if (unreadIds.length === 0) return;
     setReportList(prev => prev.map(r => ({ ...r, isRead: true })));
-    await supabase.from('reports').update({ is_read: true }).in('report_id', unreadIds);
+    const { error } = await supabase.from('reports').update({ is_read: true }).in('report_id', unreadIds);
+    if (error) {
+      console.error('제보 전체 읽기 오류:', error.message);
+      alert('전체 완료 처리 실패: ' + error.message);
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -717,7 +736,7 @@ export default function MainPage() {
         </div>
       )}
 
-      {/* 모달 및 드로어 모음 (테마 props 전달) */}
+      {/* 모달 및 드로어 모음 */}
       <ModalsContainer 
         isAdminReportDrawerOpen={isAdminReportDrawerOpen} setIsAdminReportDrawerOpen={setIsAdminReportDrawerOpen} selectedReport={selectedReport} reports={reports} unreadReportsCount={unreadReportsCount} handleMarkReportAsRead={handleMarkReportAsRead} handleMarkAllReportsAsRead={handleMarkAllReportsAsRead}
         isSettingsOpen={isSettingsOpen} setIsSettingsOpen={setIsSettingsOpen} currentUser={currentUser} setEditName={setEditName} setNewPasswordInput={setNewPasswordInput} setNewPasswordConfirmInput={setNewPasswordConfirmInput} setIsEditProfileOpen={setIsEditProfileOpen} setIsFavoritesModalOpen={setIsFavoritesModalOpen} setIsMyRatingsModalOpen={setIsMyRatingsModalOpen} userFavorites={userFavorites} favoriteGamesList={favoriteGamesList} myRatingGamesList={myRatingGamesList} setReportForm={setReportForm} setIsReportModalOpen={setIsReportModalOpen} 

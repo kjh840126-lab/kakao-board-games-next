@@ -120,10 +120,10 @@ export function ModalsContainer({
   const unreadCount = (reports || []).filter((r: any) => !r.isRead && !r.is_read).length;
   const pendingCount = (reports || []).filter((r: any) => (r.isRead || r.is_read) && r.status !== 'COMPLETED').length;
 
-  // ⚡ [처리완료] 버튼 클릭 시 동작
+  // ⚡ [처리완료] 버튼 클릭 시 동작 (PK 칼럼명 report_id 대응 보정)
   const handleCompleteReport = async (report: any) => {
     try {
-      const reportId = report.reportId || report.id;
+      const reportId = report.report_id || report.reportId || report.id;
       const nowISO = new Date().toISOString();
 
       const { error } = await supabase
@@ -134,9 +134,10 @@ export function ModalsContainer({
           completed_at: nowISO,
           completed_by: currentUser?.userId || 'admin',
         })
-        .eq('id', reportId);
+        .eq('report_id', reportId);
 
       if (error) {
+        console.error('Supabase update error:', error);
         alert('처리 완료 업데이트 실패: ' + error.message);
         return;
       }
@@ -144,15 +145,16 @@ export function ModalsContainer({
       if (setReports) {
         setReports((prev: any[]) =>
           prev.map((r) => {
-            const currentId = r.reportId || r.id;
+            const currentId = r.report_id || r.reportId || r.id;
             return currentId === reportId
               ? { ...r, status: 'COMPLETED', isRead: true, is_read: true, completedAt: nowISO, completed_at: nowISO }
               : r;
           })
         );
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Report complete error:', err);
+      alert('처리 중 오류 발생: ' + (err.message || err));
     }
   };
 
@@ -215,8 +217,8 @@ export function ModalsContainer({
                 const r = report as any;
                 const isCompleted = r.status === 'COMPLETED';
                 const isUnread = !r.isRead && !r.is_read;
-                const currentReportId = r.reportId || r.id;
-                const selectedReportId = (selectedReport as any)?.reportId || (selectedReport as any)?.id;
+                const currentReportId = r.report_id || r.reportId || r.id;
+                const selectedReportId = (selectedReport as any)?.report_id || (selectedReport as any)?.reportId || (selectedReport as any)?.id;
                 const isSelected = selectedReportId === currentReportId;
 
                 return (
@@ -244,7 +246,7 @@ export function ModalsContainer({
         </div>
       </div>
 
-      {/* 2. ⚡ 설정 드로어 (화면 테마 라이트/다크 추가) */}
+      {/* 2. 설정 드로어 */}
       <div className={`fixed inset-0 z-50 transition-all duration-300 ${isSettingsOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs" onClick={() => setIsSettingsOpen(false)} />
         <div className="absolute top-0 right-0 h-full w-[80%] max-w-[320px] bg-white flex flex-col justify-between shadow-2xl text-slate-900 text-xs">
@@ -329,7 +331,7 @@ export function ModalsContainer({
 
             <hr className="border-slate-100" />
 
-            {/* ⚡ 화면 설정 (테마 라이트/다크 + 글자 크기) */}
+            {/* 화면 설정 */}
             <div className="space-y-1">
               <h4 className="font-bold text-slate-400 text-[11px] px-1 mb-1">화면 설정</h4>
               

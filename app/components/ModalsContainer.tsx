@@ -471,7 +471,7 @@ export function ModalsContainer({
 
       {/* 5. 찜한 보드게임 모달 */}
       {isFavoritesModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
           <div className="rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl border max-h-[85vh] flex flex-col bg-white border-slate-100 text-slate-900 text-xs">
             <div className="flex justify-between items-center pb-2 border-b border-slate-200/20">
               <h3 className="font-extrabold text-base flex items-center gap-2"><Heart size={18} className="text-rose-500 fill-rose-500" /> 찜한 보드게임 ({favoriteGamesList.length})</h3>
@@ -495,7 +495,7 @@ export function ModalsContainer({
 
       {/* 6. 내가 평가한 보드게임 모달 */}
       {isMyRatingsModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
           <div className="rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl border max-h-[85vh] flex flex-col bg-white border-slate-100 text-slate-900 text-xs">
             <div className="flex justify-between items-center pb-2 border-b border-slate-200/20">
               <h3 className="font-extrabold text-base flex items-center gap-2"><Star size={18} className="text-rose-500 fill-rose-500" /> 내가 평가한 보드게임 ({myRatingGamesList.length})</h3>
@@ -519,7 +519,7 @@ export function ModalsContainer({
 
       {/* 7. 평점 등록 모달 */}
       {ratingModalGame && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
           <div className="rounded-2xl w-full max-w-xs p-5 space-y-4 shadow-2xl border text-center bg-white border-slate-100 text-slate-900 text-xs">
             <div className="flex justify-between items-center pb-2 border-b border-slate-200/20">
               <h3 className="font-extrabold truncate flex items-center gap-1.5"><Star size={16} className="text-rose-500 fill-rose-500" /> 나의 평점 등록/수정</h3>
@@ -542,7 +542,7 @@ export function ModalsContainer({
 
       {/* 8. 신고/건의 모달 */}
       {isReportModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
           <div className="rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl border bg-white border-slate-100 text-slate-900 text-xs">
             <div className="flex justify-between items-center pb-2 border-b border-slate-200/20">
               <h3 className="font-extrabold text-base flex items-center gap-2"><Siren size={18} className="text-rose-600" /> 신고 및 건의하기</h3>
@@ -573,7 +573,7 @@ export function ModalsContainer({
 
       {/* 9. 프로필 수정 모달 */}
       {isEditProfileOpen && currentUser && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
           <div className="rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl border bg-white border-slate-100 text-slate-900 text-xs">
             <div className="flex justify-between items-center pb-2 border-b border-slate-200/20">
               <h3 className="font-extrabold text-base flex items-center gap-2"><User size={18} /> 내 정보 / 비밀번호 변경</h3>
@@ -599,7 +599,7 @@ export function ModalsContainer({
 
       {/* 10. 게임 등록/수정 모달 */}
       {isGameModalOpen && editingGame && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
           <div className="rounded-2xl w-full max-w-sm p-5 space-y-3.5 max-h-[90vh] overflow-y-auto shadow-2xl border bg-white border-slate-100 text-slate-900 text-xs">
             <div className="flex justify-between items-center pb-2 border-b border-slate-200/20">
               <h3 className="font-extrabold text-base">{isEditingMode ? '게임 정보 수정' : '신규 게임 등록'}</h3>
@@ -695,7 +695,7 @@ export function ModalsContainer({
 
       {/* 11. 공지 작성 모달 */}
       {isNoticeModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
           <div className="rounded-2xl w-full max-w-sm p-5 space-y-3.5 shadow-2xl border bg-white border-slate-100 text-slate-900 text-xs">
             <div className="flex justify-between items-center pb-2 border-b border-slate-200/20"><h3 className="font-extrabold text-base">{editingNotice.id ? '공지사항 수정' : '공지사항 작성'}</h3><button onClick={() => setIsNoticeModalOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button></div>
             <form onSubmit={saveNotice} className="space-y-3">
@@ -722,7 +722,7 @@ export function ModalsContainer({
 
       {/* 12. 추천 사이트 등록 모달 */}
       {isSiteModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
           <div className="rounded-2xl w-full max-w-sm p-5 space-y-3.5 shadow-2xl border bg-white border-slate-100 text-slate-900 text-xs">
             <div className="flex justify-between items-center pb-2 border-b border-slate-200/20"><h3 className="font-extrabold text-base">{editingSite.siteId > 0 ? '추천 사이트 수정' : '추천 사이트 등록'}</h3><button onClick={() => setIsSiteModalOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button></div>
             <form onSubmit={saveSite} className="space-y-3">

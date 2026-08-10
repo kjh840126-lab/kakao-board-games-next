@@ -35,6 +35,14 @@ const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   return Math.floor((d1.getTime() - d2.getTime()) / (1000 * 60 * 60 * 24));
 };
 
+// ⚡ 날짜 객체를 타임존 차감 없이 YYYY-MM-DD 포맷으로 변환하는 함수
+const formatDateToYYYYMMDD = (dateObj: Date) => {
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const StarRating = ({ rating = 0, size = 12, colorClass = "text-rose-500" }: { rating?: number; size?: number; colorClass?: string }) => {
   const safeRating = Number(rating) || 0;
   return (
@@ -405,6 +413,7 @@ export default function MainPage() {
     }
   };
 
+  // ⚡ 개별 반납 처리 (시차로 인한 하루 차감 버그 보정)
   const returnGame = async (rentalId: number, gameId: string) => {
     if (!currentUser) return;
     const nowIso = new Date().toISOString();
@@ -428,7 +437,9 @@ export default function MainPage() {
 
         const penaltyEnd = new Date(baseDateStr);
         penaltyEnd.setDate(penaltyEnd.getDate() + overdueDays);
-        const penaltyEndDateStr = penaltyEnd.toISOString().split('T')[0];
+        
+        // ⭕ toISOString 대신 로컬 날짜 추출로 -9시간 시차 차감 방지
+        const penaltyEndDateStr = formatDateToYYYYMMDD(penaltyEnd);
 
         const newPenaltyPoints = (currentUser.penaltyPoints || 0) + overdueDays;
 
@@ -451,6 +462,7 @@ export default function MainPage() {
     }
   };
 
+  // ⚡ 일괄 반납 처리 (시차로 인한 하루 차감 버그 보정)
   const returnAllGames = async () => {
     if (!currentUser) return;
     const userActiveRentals = rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
@@ -484,7 +496,9 @@ export default function MainPage() {
 
         const penaltyEnd = new Date(baseDateStr);
         penaltyEnd.setDate(penaltyEnd.getDate() + totalOverdueDays);
-        const penaltyEndDateStr = penaltyEnd.toISOString().split('T')[0];
+        
+        // ⭕ toISOString 대신 로컬 날짜 추출로 -9시간 시차 차감 방지
+        const penaltyEndDateStr = formatDateToYYYYMMDD(penaltyEnd);
 
         const newPenaltyPoints = (currentUser.penaltyPoints || 0) + totalOverdueDays;
 

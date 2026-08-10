@@ -84,21 +84,29 @@ html.dark main {
   color: #f8fafc !important;
 }
 
-/* [다크모드 전용] 텍스트 가독성 강제 적용 */
+/* [다크모드 전용] 텍스트 가독성 강제 적용 (노란색 대여버튼 예외 지정) */
 html.dark h1,
 html.dark h2,
 html.dark h3,
 html.dark h4,
 html.dark h5,
 html.dark strong,
-html.dark .text-slate-900,
-html.dark .text-slate-800 {
+html.dark .text-slate-900:not(.bg-\[\#FEE500\]),
+html.dark .text-slate-800:not(.bg-\[\#FEE500\]) {
   color: #ffffff !important;
 }
 
+/* ⚡ [대여가능 버튼] 노란색 배경 버튼 내부 글자색 검은색(#0f172a) 최우선 적용 */
+html.dark button.bg-\[\#FEE500\],
+html.dark button.bg-\[\#FEE500\] *,
+html.dark .bg-\[\#FEE500\],
+html.dark .bg-\[\#FEE500\] * {
+  color: #0f172a !important;
+}
+
 html.dark p,
-html.dark span,
-html.dark div,
+html.dark span:not(.bg-\[\#FEE500\]),
+html.dark div:not(.bg-\[\#FEE500\]),
 html.dark label,
 html.dark .text-slate-700,
 html.dark .text-slate-600 {

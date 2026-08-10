@@ -3,7 +3,7 @@
 import React from 'react';
 import { 
   Siren, Settings, Bell, X, ChevronDown, ChevronRight, Heart, Star, User, LogOut, 
-  Type, Calendar, Trash2, Image, Clock, Brain, Tag, ShoppingCart, MailUnread, CheckCircle2, Check 
+  Type, Calendar, Trash2, Image, Clock, ShoppingCart, MailUnread, CheckCircle2, Check 
 } from 'lucide-react';
 import { Game, Notice, ReportData, BoardSite, UserData } from '../types';
 import { supabase } from '../supabaseClient';

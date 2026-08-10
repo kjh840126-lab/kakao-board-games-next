@@ -3,7 +3,7 @@ import './globals.css';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {
-  title: 'KGB',
+  title: 'KBG',
   description: '카카오보드게임즈',
   icons: {
     icon: '/favicon.ico?v=10',

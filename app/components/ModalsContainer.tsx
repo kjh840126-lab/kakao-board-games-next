@@ -167,7 +167,7 @@ export function ModalsContainer({
             <button onClick={() => setIsAdminReportDrawerOpen(false)} className="p-1 cursor-pointer"><X size={18} /></button>
           </div>
 
-          {/* ⚡ 1. 상단 심플 요약 (미확인 N 뱃지 & 미처리 시계 아이콘 + 하이픈 구분) */}
+          {/* ⚡ 1. 상단 심플 요약 */}
           <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200/80 flex items-center text-xs">
             <div className="flex items-center gap-2 text-slate-500 font-medium">
               <span className="flex items-center gap-1">
@@ -188,8 +188,6 @@ export function ModalsContainer({
 
           {/* 목록 및 상세보기 영역 */}
           <div className="flex-1 p-4 overflow-y-auto space-y-4">
-            
-            {/* 2. 클릭 시 표출되는 상세 카드 */}
             {selectedReport && (() => {
               const sr = selectedReport as any;
               const isSrCompleted = sr.status === 'COMPLETED';
@@ -213,7 +211,6 @@ export function ModalsContainer({
                     {sr.content || sr.description}
                   </p>
 
-                  {/* 상세 하단: [처리완료] 버튼 또는 완료 상태 표기 */}
                   <div className="pt-2 border-t border-sky-200/60 flex justify-end items-center">
                     {!isSrCompleted ? (
                       <button
@@ -235,7 +232,6 @@ export function ModalsContainer({
               );
             })()}
 
-            {/* 전체 리스트 목록 */}
             <div className="space-y-2 pt-1">
               <h4 className="font-bold text-slate-400 text-xs">전체 목록 ({reports.length})</h4>
               {reports.map((report: ReportData) => {
@@ -259,7 +255,6 @@ export function ModalsContainer({
                     }`}
                   >
                     <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                      {/* ⚡ 상태 뱃지: '미확인' (N) / '완료' / '미처리' */}
                       {isUnread ? (
                         <span className="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md flex-shrink-0">
                           미확인
@@ -274,13 +269,11 @@ export function ModalsContainer({
                         </span>
                       )}
 
-                      {/* 제목 */}
                       <span className={`truncate text-xs ${isSelected ? 'text-slate-900 font-extrabold' : 'text-slate-800 font-medium'}`}>
                         {r.title}
                       </span>
                     </div>
 
-                    {/* 우측 아이디 */}
                     <span className={`text-[10px] font-mono flex-shrink-0 ${isSelected ? 'text-slate-800' : 'text-slate-400'}`}>
                       {r.userId || r.user_id}
                     </span>
@@ -296,50 +289,133 @@ export function ModalsContainer({
         </div>
       </div>
 
-      {/* 2. 설정 */}
+      {/* 2. ⚡ 개편된 컴팩트 설정 드로어 */}
       <div className={`fixed inset-0 z-50 transition-all duration-300 ${isSettingsOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsSettingsOpen(false)} />
-        <div className="absolute top-0 right-0 h-full w-[52%] flex flex-col justify-between shadow-2xl bg-white text-slate-900 text-xs">
-          <div className="p-4 bg-[#FEE500] text-slate-900 flex justify-between items-center font-bold text-base">
-            <span className="flex items-center gap-1.5"><Settings size={18} /> 설정</span>
-            <button onClick={() => setIsSettingsOpen(false)} className="p-1 cursor-pointer"><X size={18} /></button>
+        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs" onClick={() => setIsSettingsOpen(false)} />
+        <div className="absolute top-0 right-0 h-full w-[80%] max-w-[320px] bg-white flex flex-col justify-between shadow-2xl text-slate-900 text-xs">
+          
+          {/* 헤더 */}
+          <div className="p-4 bg-[#FEE500] text-slate-900 flex justify-between items-center font-bold text-base border-b border-amber-300">
+            <span className="flex items-center gap-2"><Settings size={18} /> 설정</span>
+            <button onClick={() => setIsSettingsOpen(false)} className="p-1 cursor-pointer hover:bg-black/5 rounded-full transition"><X size={18} /></button>
           </div>
-          <div className="flex-1 p-4 overflow-y-auto space-y-5">
-            <div className="space-y-2">
-              <h4 className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 text-xs"><User size={14} /> 계정 설정</h4>
-              <button onClick={() => { if (currentUser) { setEditName(currentUser.name); setNewPasswordInput(''); setNewPasswordConfirmInput(''); setIsEditProfileOpen(true); setIsSettingsOpen(false); } }} className="w-full p-2.5 rounded-xl border text-left flex justify-between items-center cursor-pointer bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100">
-                <span className="font-normal">내 정보 / 비밀번호 변경</span><ChevronRight size={15} className="text-slate-400" />
+
+          {/* 리스트 구역 */}
+          <div className="flex-1 p-4 overflow-y-auto space-y-4">
+            {/* 계정 설정 */}
+            <div className="space-y-1">
+              <h4 className="font-bold text-slate-400 text-[11px] px-1 mb-1">계정 설정</h4>
+              <button 
+                onClick={() => { if (currentUser) { setEditName(currentUser.name); setNewPasswordInput(''); setNewPasswordConfirmInput(''); setIsEditProfileOpen(true); setIsSettingsOpen(false); } }} 
+                className="w-full py-2.5 px-2.5 rounded-xl text-left flex justify-between items-center cursor-pointer hover:bg-slate-100 text-slate-800 font-bold transition"
+              >
+                <div className="flex items-center gap-2.5">
+                  <User size={16} className="text-slate-500" />
+                  <span>내 정보 / 비밀번호 변경</span>
+                </div>
+                <ChevronRight size={16} className="text-slate-300" />
               </button>
             </div>
-            <div className="space-y-2 pt-2 border-t border-slate-100">
-              <h4 className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 text-xs"><Heart size={14} className="text-rose-500" /> 나의 활동</h4>
-              <button onClick={() => { setIsFavoritesModalOpen(true); setIsSettingsOpen(false); }} className="w-full p-2.5 rounded-xl border text-left flex justify-between items-center cursor-pointer bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100">
-                <span className="font-normal">찜목록</span>
-                <div className="flex items-center gap-1"><span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-500 font-medium text-[11px] border border-rose-100/80 flex items-center gap-1"><Heart size={10} className="fill-rose-500" /> {userFavorites.length}</span><ChevronRight size={15} className="text-slate-400" /></div>
+
+            <hr className="border-slate-100" />
+
+            {/* 나의 활동 */}
+            <div className="space-y-1">
+              <h4 className="font-bold text-slate-400 text-[11px] px-1 mb-1">나의 활동</h4>
+              <button 
+                onClick={() => { setIsFavoritesModalOpen(true); setIsSettingsOpen(false); }} 
+                className="w-full py-2.5 px-2.5 rounded-xl text-left flex justify-between items-center cursor-pointer hover:bg-slate-100 text-slate-800 font-bold transition"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Heart size={16} className="text-rose-500 fill-rose-500" />
+                  <span>찜목록</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 font-extrabold text-[11px] border border-rose-100/80">
+                    {userFavorites?.length || 0}
+                  </span>
+                  <ChevronRight size={16} className="text-slate-300" />
+                </div>
               </button>
-              <button onClick={() => { setIsMyRatingsModalOpen(true); setIsSettingsOpen(false); }} className="w-full p-2.5 rounded-xl border text-left flex justify-between items-center cursor-pointer bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100">
-                <span className="font-normal">내 평점</span>
-                <div className="flex items-center gap-1"><span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-medium text-[11px] border border-amber-200/60 flex items-center gap-1"><Star size={10} className="fill-amber-400 text-amber-400" /> {myRatingGamesList.length}</span><ChevronRight size={15} className="text-slate-400" /></div>
+
+              <button 
+                onClick={() => { setIsMyRatingsModalOpen(true); setIsSettingsOpen(false); }} 
+                className="w-full py-2.5 px-2.5 rounded-xl text-left flex justify-between items-center cursor-pointer hover:bg-slate-100 text-slate-800 font-bold transition"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Star size={16} className="text-amber-500 fill-amber-400" />
+                  <span>내 평점</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-extrabold text-[11px] border border-amber-200/60">
+                    {myRatingGamesList?.length || 0}
+                  </span>
+                  <ChevronRight size={16} className="text-slate-300" />
+                </div>
               </button>
             </div>
-            <div className="space-y-2 pt-2 border-t border-slate-100">
-              <h4 className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 text-xs"><Siren size={14} /> 고객지원</h4>
-              <button onClick={() => { setReportForm({ title: '', content: '', category: '' }); setIsReportModalOpen(true); setIsSettingsOpen(false); }} className="w-full p-2.5 rounded-xl border text-left flex justify-between items-center cursor-pointer bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100">
-                <span className="font-normal">신고 및 건의</span><ChevronRight size={15} className="text-slate-400" />
+
+            <hr className="border-slate-100" />
+
+            {/* 고객지원 */}
+            <div className="space-y-1">
+              <h4 className="font-bold text-slate-400 text-[11px] px-1 mb-1">고객 지원</h4>
+              <button 
+                onClick={() => { setReportForm({ title: '', content: '', category: '' }); setIsReportModalOpen(true); setIsSettingsOpen(false); }} 
+                className="w-full py-2.5 px-2.5 rounded-xl text-left flex justify-between items-center cursor-pointer hover:bg-slate-100 text-slate-800 font-bold transition"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Siren size={16} className="text-slate-500" />
+                  <span>신고 및 건의</span>
+                </div>
+                <ChevronRight size={16} className="text-slate-300" />
               </button>
             </div>
-            <div className="space-y-2 pt-2 border-t border-slate-100">
-              <h4 className="font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 text-xs"><Type size={14} /> 글자 크기</h4>
-              <div className="flex p-1 rounded-xl bg-slate-100">
-                <button onClick={() => setFontSize('normal')} className={`flex-1 py-2 rounded-lg transition text-center cursor-pointer ${fontSize === 'normal' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}>보통</button>
-                <button onClick={() => setFontSize('large')} className={`flex-1 py-2 rounded-lg transition text-center cursor-pointer ${fontSize === 'large' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}>크게</button>
+
+            <hr className="border-slate-100" />
+
+            {/* 글자 크기 */}
+            <div className="space-y-1">
+              <h4 className="font-bold text-slate-400 text-[11px] px-1 mb-1">화면 설정</h4>
+              <div className="flex justify-between items-center py-1 px-2.5">
+                <div className="flex items-center gap-2.5 text-slate-800 font-bold">
+                  <Type size={16} className="text-slate-500" />
+                  <span>글자 크기</span>
+                </div>
+                <div className="flex p-0.5 rounded-lg bg-slate-100 text-[11px]">
+                  <button 
+                    onClick={() => setFontSize('normal')} 
+                    className={`px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${fontSize === 'normal' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-400'}`}
+                  >
+                    보통
+                  </button>
+                  <button 
+                    onClick={() => setFontSize('large')} 
+                    className={`px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${fontSize === 'large' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-400'}`}
+                  >
+                    크게
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="pt-2 border-t border-slate-100 flex justify-end">
-              <button onClick={handleLogout} className="px-3 py-1.5 rounded-xl font-normal transition flex items-center gap-1.5 border border-slate-200 bg-slate-50 text-slate-500 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 cursor-pointer text-xs"><LogOut size={13} /> 로그아웃</button>
+
+            <hr className="border-slate-100" />
+
+            {/* 로그아웃 버튼 */}
+            <div className="pt-1">
+              <button 
+                onClick={handleLogout} 
+                className="w-full py-2.5 px-2.5 rounded-xl text-left flex items-center gap-2.5 cursor-pointer text-rose-600 font-bold hover:bg-rose-50 transition"
+              >
+                <LogOut size={16} />
+                <span>로그아웃</span>
+              </button>
             </div>
           </div>
-          <div className="p-4 border-t border-slate-200 bg-slate-50"><button onClick={() => setIsSettingsOpen(false)} className="w-full bg-slate-900 text-white py-2.5 rounded-xl font-medium cursor-pointer text-xs">닫기</button></div>
+
+          <div className="p-4 border-t border-slate-200 bg-white">
+            <button onClick={() => setIsSettingsOpen(false)} className="w-full bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer hover:bg-slate-800">닫기</button>
+          </div>
         </div>
       </div>
 
@@ -591,7 +667,6 @@ export function ModalsContainer({
                 </div>
               </div>
 
-              {/* 장르 선택 (최대 3개, 딤드 시인성 적용) */}
               <div className="space-y-1.5 pt-1">
                 <div className="flex justify-between items-center">
                   <label className="font-bold block">장르 선택 (최대 3개)</label>

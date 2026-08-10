@@ -3,7 +3,7 @@
 import React from 'react';
 import { 
   Siren, Settings, Bell, X, ChevronDown, ChevronRight, Heart, Star, User, LogOut, 
-  Type, Calendar, Trash2, Image, Clock, ShoppingCart, MailUnread, CheckCircle2, Check 
+  Type, Calendar, Trash2, Image, Clock, ShoppingCart, Mail, CheckCircle2, Check 
 } from 'lucide-react';
 import { Game, Notice, ReportData, BoardSite, UserData } from '../types';
 import { supabase } from '../supabaseClient';
@@ -13,7 +13,7 @@ interface ModalsContainerProps {
   setIsAdminReportDrawerOpen: (open: boolean) => void;
   selectedReport: ReportData | null;
   reports: ReportData[];
-  setReports?: React.Dispatch<React.SetStateAction<ReportData[]>>;
+  setReports?: any;
   unreadReportsCount: number;
   handleMarkReportAsRead: (report: ReportData) => void;
   handleMarkAllReportsAsRead: () => void;
@@ -171,7 +171,7 @@ export function ModalsContainer({
           <div className="p-3 bg-slate-100 grid grid-cols-2 gap-2 border-b border-slate-200 text-xs">
             <div className="bg-amber-50 border border-amber-200/80 p-2 rounded-xl flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <MailUnread size={14} className="text-amber-600" />
+                <Mail size={14} className="text-amber-600" />
                 <span className="text-[11px] font-bold text-amber-900">안읽음</span>
               </div>
               <span className="text-xs font-black text-amber-600">{unreadCount}건</span>
@@ -616,7 +616,7 @@ export function ModalsContainer({
         </div>
       )}
 
-      {/* 11. 공지 작성 모달 (⚡ 노출 여부 영문 제거 적용) */}
+      {/* 11. 공지 작성 모달 */}
       {isNoticeModalOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="rounded-2xl w-full max-w-sm p-5 space-y-3.5 shadow-2xl border bg-white border-slate-100 text-slate-900 text-xs">
@@ -625,7 +625,6 @@ export function ModalsContainer({
               <div><label className="font-bold block mb-1">공지 제목</label><input type="text" required value={editingNotice.title} onChange={(e) => setEditingNotice({ ...editingNotice, title: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
               <div><label className="font-bold block mb-1">공지 내용</label><textarea required rows={4} value={editingNotice.content} onChange={(e) => setEditingNotice({ ...editingNotice, content: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900 resize-none"></textarea></div>
               
-              {/* ⚡ 노출 여부 선택지에서 영문(Y/N) 제거 */}
               <div>
                 <label className="font-bold block mb-1">노출 여부</label>
                 <select

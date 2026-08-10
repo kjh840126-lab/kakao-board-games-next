@@ -174,7 +174,7 @@ export function ModalsContainer({
             className="p-4 flex justify-between items-center font-bold text-base"
           >
             <span className="flex items-center gap-2" style={{ color: '#0f172a' }}>
-              <Siren size={18} style={{ color: '#0f172a' }} /> 접수함
+              <span style={{ color: '#0f172a' }} className="!text-[#0f172a]"> 접수함
             </span>
             <button 
               type="button" 

@@ -3,15 +3,17 @@
 import React from 'react';
 import { 
   Siren, Settings, Bell, X, ChevronDown, ChevronRight, Heart, Star, User, LogOut, 
-  Type, Calendar, Trash2, Image, Clock, Brain, Tag, ShoppingCart 
+  Type, Calendar, Trash2, Image, Clock, Brain, Tag, ShoppingCart, MailUnread, CheckCircle2, Check 
 } from 'lucide-react';
 import { Game, Notice, ReportData, BoardSite, UserData } from '../types';
+import { supabase } from '../supabaseClient';
 
 interface ModalsContainerProps {
   isAdminReportDrawerOpen: boolean;
   setIsAdminReportDrawerOpen: (open: boolean) => void;
   selectedReport: ReportData | null;
   reports: ReportData[];
+  setReports?: React.Dispatch<React.SetStateAction<ReportData[]>>;
   unreadReportsCount: number;
   handleMarkReportAsRead: (report: ReportData) => void;
   handleMarkAllReportsAsRead: () => void;
@@ -95,7 +97,7 @@ interface ModalsContainerProps {
 }
 
 export function ModalsContainer({
-  isAdminReportDrawerOpen, setIsAdminReportDrawerOpen, selectedReport, reports, unreadReportsCount, handleMarkReportAsRead, handleMarkAllReportsAsRead,
+  isAdminReportDrawerOpen, setIsAdminReportDrawerOpen, selectedReport, reports, setReports, unreadReportsCount, handleMarkReportAsRead, handleMarkAllReportsAsRead,
   isSettingsOpen, setIsSettingsOpen, currentUser, setEditName, setNewPasswordInput, setNewPasswordConfirmInput, setIsEditProfileOpen, setIsFavoritesModalOpen, setIsMyRatingsModalOpen, userFavorites, myRatingGamesList, setReportForm, setIsReportModalOpen, fontSize, setFontSize, handleLogout,
   isNoticeDrawerOpen, setIsNoticeDrawerOpen, notices, expandedNoticeId, handleNoticeClick,
   isCartOpen, setIsCartOpen, cart, rentalDays, setRentalDays, calculateEndDate, removeFromCart, processCheckout,
@@ -111,37 +113,171 @@ export function ModalsContainer({
   const currentGenres = editingGame?.genres || [];
   const isMaxGenreReached = currentGenres.length >= 3;
 
+  // ⚡ 카운터 계산: 안읽음 / 처리대기
+  const unreadCount = (reports || []).filter((r: any) => !r.isRead && !r.is_read).length;
+  const pendingCount = (reports || []).filter((r: any) => (r.isRead || r.is_read) && r.status !== 'COMPLETED').length;
+
+  // ⚡ [처리완료] 버튼 클릭 시 동작
+  const handleCompleteReport = async (report: any) => {
+    try {
+      const reportId = report.reportId || report.id;
+      const nowISO = new Date().toISOString();
+
+      const { error } = await supabase
+        .from('reports')
+        .update({
+          status: 'COMPLETED',
+          is_read: true,
+          completed_at: nowISO,
+          completed_by: currentUser?.userId || 'admin',
+        })
+        .eq('id', reportId);
+
+      if (error) {
+        alert('처리 완료 업데이트 실패: ' + error.message);
+        return;
+      }
+
+      // 로컬 UI 상태 업데이트
+      if (setReports) {
+        setReports((prev: any[]) =>
+          prev.map((r) => {
+            const currentId = r.reportId || r.id;
+            return currentId === reportId
+              ? { ...r, status: 'COMPLETED', isRead: true, is_read: true, completedAt: nowISO, completed_at: nowISO }
+              : r;
+          })
+        );
+      }
+    } catch (err) {
+      console.error('Report complete error:', err);
+    }
+  };
+
   return (
     <>
       {/* 1. 관리자 접수함 */}
       <div className={`fixed inset-0 z-50 transition-all duration-300 ${isAdminReportDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsAdminReportDrawerOpen(false)} />
         <div className="absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs">
+          
+          {/* 드로어 상단 헤더 */}
           <div className="p-4 bg-sky-400 text-slate-900 flex justify-between items-center font-bold text-base">
             <span className="flex items-center gap-2"><Siren size={18} /> 접수함</span>
             <button onClick={() => setIsAdminReportDrawerOpen(false)} className="p-1 cursor-pointer"><X size={18} /></button>
           </div>
-          <div className="p-3 bg-slate-100 flex justify-between items-center border-b border-slate-200 text-xs">
-            <span className="text-slate-500">안읽음: <strong className="text-rose-500 font-extrabold">{unreadReportsCount}</strong>건</span>
-            {unreadReportsCount > 0 && <button onClick={handleMarkAllReportsAsRead} className="font-bold bg-slate-900 text-white px-2 py-1 rounded-md text-[10px]">모두 읽음</button>}
+
+          {/* 📊 상단 요약 카운터 (안읽음 / 처리대기) */}
+          <div className="p-3 bg-slate-100 grid grid-cols-2 gap-2 border-b border-slate-200 text-xs">
+            <div className="bg-amber-50 border border-amber-200/80 p-2 rounded-xl flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <MailUnread size={14} className="text-amber-600" />
+                <span className="text-[11px] font-bold text-amber-900">안읽음</span>
+              </div>
+              <span className="text-xs font-black text-amber-600">{unreadCount}건</span>
+            </div>
+
+            <div className="bg-rose-50 border border-rose-200/80 p-2 rounded-xl flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Clock size={14} className="text-rose-600" />
+                <span className="text-[11px] font-bold text-rose-900">처리대기</span>
+              </div>
+              <span className="text-xs font-black text-rose-600">{pendingCount}건</span>
+            </div>
           </div>
-          <div className="flex-1 p-4 overflow-y-auto space-y-4">
+
+          {/* 목록 영역 */}
+          <div className="flex-1 p-4 overflow-y-auto space-y-3">
             {selectedReport && (
               <div className="p-3.5 rounded-2xl space-y-2 border bg-sky-50 border-sky-300">
-                <div className="flex justify-between items-center gap-2"><span className="text-sky-800 font-extrabold bg-sky-200 px-2 py-0.5 rounded-md">{selectedReport.category}</span><span className="text-slate-400 font-mono">{selectedReport.userId}</span></div>
+                <div className="flex justify-between items-center gap-2">
+                  <span className="text-sky-800 font-extrabold bg-sky-200 px-2 py-0.5 rounded-md">{selectedReport.category}</span>
+                  <span className="text-slate-400 font-mono">{selectedReport.userId}</span>
+                </div>
                 <h3 className="font-extrabold text-slate-900 break-all leading-snug">{selectedReport.title}</h3>
                 <p className="whitespace-pre-wrap break-all pt-1.5 border-t border-sky-200 text-slate-700">{selectedReport.content}</p>
               </div>
             )}
-            <div className="space-y-2 pt-1"><h4 className="font-bold text-slate-400">전체 목록 ({reports.length})</h4>
-              {reports.map((report: ReportData) => (
-                <div key={report.reportId} onClick={() => handleMarkReportAsRead(report)} className={`p-2.5 rounded-xl border cursor-pointer ${selectedReport?.reportId === report.reportId ? 'border-sky-500 bg-sky-500 text-slate-900 font-bold' : 'border-slate-200 bg-white'}`}>
-                  <div className="flex items-center gap-1">{!report.isRead && <span className="bg-rose-600 text-white text-[8px] font-black px-1 py-0.5 rounded-full">N</span>}<span className="truncate">{report.title}</span></div>
-                </div>
-              ))}
+
+            <div className="space-y-2 pt-1">
+              <h4 className="font-bold text-slate-400">전체 목록 ({reports.length})</h4>
+              {reports.map((report: any) => {
+                const isCompleted = report.status === 'COMPLETED';
+                const isUnread = !report.isRead && !report.is_read;
+
+                return (
+                  <div
+                    key={report.reportId || report.id}
+                    className={`p-3 rounded-xl border transition space-y-2 ${
+                      selectedReport?.reportId === report.reportId || selectedReport?.id === report.id
+                        ? 'border-sky-500 bg-sky-50/50'
+                        : isUnread
+                        ? 'border-amber-300 bg-amber-50/30'
+                        : 'border-slate-200 bg-white'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <div 
+                        onClick={() => handleMarkReportAsRead(report)}
+                        className="flex-1 min-w-0 cursor-pointer space-y-1"
+                      >
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {/* 뱃지: 안읽음 */}
+                          {isUnread && (
+                            <span className="bg-amber-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-md flex-shrink-0">
+                              안읽음
+                            </span>
+                          )}
+
+                          {/* 뱃지: 처리대기 / 처리완료 */}
+                          {isCompleted ? (
+                            <span className="bg-emerald-100 text-emerald-700 text-[9px] font-extrabold px-1.5 py-0.5 rounded-md flex-shrink-0">
+                              처리완료
+                            </span>
+                          ) : (
+                            <span className="bg-rose-100 text-rose-700 text-[9px] font-extrabold px-1.5 py-0.5 rounded-md flex-shrink-0">
+                              처리대기
+                            </span>
+                          )}
+
+                          <span className="text-slate-400 font-mono text-[10px]">
+                            {report.userId || report.user_id}
+                          </span>
+                        </div>
+
+                        <p className="font-bold text-slate-900 truncate leading-snug">
+                          {report.title}
+                        </p>
+                      </div>
+
+                      {/* ⚡ 우측: [처리완료] 버튼 */}
+                      <div className="flex-shrink-0 pt-0.5">
+                        {!isCompleted ? (
+                          <button
+                            type="button"
+                            onClick={() => handleCompleteReport(report)}
+                            className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-[10px] px-2.5 py-1.5 rounded-xl flex items-center gap-1 transition active:scale-95 cursor-pointer shadow-xs"
+                          >
+                            <CheckCircle2 size={12} />
+                            처리완료
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 font-medium flex items-center gap-0.5 pr-1">
+                            <Check size={12} className="text-emerald-500" />
+                            완료됨
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
-          <div className="p-4 border-t border-slate-200"><button onClick={() => setIsAdminReportDrawerOpen(false)} className="w-full bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer">닫기</button></div>
+
+          <div className="p-4 border-t border-slate-200">
+            <button onClick={() => setIsAdminReportDrawerOpen(false)} className="w-full bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer">닫기</button>
+          </div>
         </div>
       </div>
 

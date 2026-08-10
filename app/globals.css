@@ -249,3 +249,31 @@ html.dark .bg-purple-100 {
 html.dark .bg-purple-100 * {
   color: #ddd6fe !important;
 }
+
+/* ========================================================= */
+/* ⚡ 접수함 드로어 뱃지 가독성 & 컬러 보정 */
+/* ========================================================= */
+
+/* 1. [공통] 미확인 뱃지 및 'N' 아이콘을 제보함(미처리) 뱃지와 동일한 빨간색 고정 */
+.bg-amber-500:has-text("미확인"),
+span.bg-amber-500,
+.bg-orange-500,
+.bg-amber-500 {
+  background-color: #e11d48 !important; /* Rose-600 빨간색 */
+  color: #ffffff !important;
+}
+
+/* 2. [다크모드] 드로어 상단 카테고리 뱃지 가독성 보정 (보드게임 분실/누락 등) */
+html.dark div[class*="bg-sky"],
+html.dark span[class*="bg-sky"],
+html.dark .bg-sky-100,
+html.dark .bg-sky-200 {
+  background-color: #0c4a6e !important; /* 짙은 네이비 블루 배경 */
+  color: #38bdf8 !important; /* 선명하고 눈에 띄는 하늘색 글자 */
+  border: 1px solid #0284c7 !important; /* 명확한 테두리 구획 */
+}
+
+html.dark div[class*="bg-sky"] *,
+html.dark span[class*="bg-sky"] * {
+  color: #38bdf8 !important;
+}

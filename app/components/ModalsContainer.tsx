@@ -3,7 +3,7 @@
 import React from 'react';
 import { 
   Siren, Settings, Bell, X, ChevronDown, ChevronRight, Heart, Star, User, LogOut, 
-  Type, Calendar, Trash2, Image, Clock, ShoppingCart, CheckCircle2, Check 
+  Type, Calendar, Trash2, Image, Clock, ShoppingCart, CheckCircle2, Check, Sun, Moon 
 } from 'lucide-react';
 import { Game, Notice, ReportData, BoardSite, UserData } from '../types';
 import { supabase } from '../supabaseClient';
@@ -33,6 +33,9 @@ interface ModalsContainerProps {
   setIsReportModalOpen: (open: boolean) => void;
   fontSize: 'normal' | 'large';
   setFontSize: (size: 'normal' | 'large') => void;
+  // ⚡ 테마 Props 추가 (선택적 사용 지원)
+  theme?: 'light' | 'dark';
+  setTheme?: (theme: 'light' | 'dark') => void;
   handleLogout: () => void;
 
   isNoticeDrawerOpen: boolean;
@@ -98,7 +101,7 @@ interface ModalsContainerProps {
 
 export function ModalsContainer({
   isAdminReportDrawerOpen, setIsAdminReportDrawerOpen, selectedReport, reports, setReports, unreadReportsCount, handleMarkReportAsRead, handleMarkAllReportsAsRead,
-  isSettingsOpen, setIsSettingsOpen, currentUser, setEditName, setNewPasswordInput, setNewPasswordConfirmInput, setIsEditProfileOpen, setIsFavoritesModalOpen, setIsMyRatingsModalOpen, userFavorites, myRatingGamesList, setReportForm, setIsReportModalOpen, fontSize, setFontSize, handleLogout,
+  isSettingsOpen, setIsSettingsOpen, currentUser, setEditName, setNewPasswordInput, setNewPasswordConfirmInput, setIsEditProfileOpen, setIsFavoritesModalOpen, setIsMyRatingsModalOpen, userFavorites, myRatingGamesList, setReportForm, setIsReportModalOpen, fontSize, setFontSize, theme = 'light', setTheme, handleLogout,
   isNoticeDrawerOpen, setIsNoticeDrawerOpen, notices, expandedNoticeId, handleNoticeClick,
   isCartOpen, setIsCartOpen, cart, rentalDays, setRentalDays, calculateEndDate, removeFromCart, processCheckout,
   isFavoritesModalOpen, favoriteGamesList, toggleFavorite,
@@ -138,7 +141,6 @@ export function ModalsContainer({
         return;
       }
 
-      // 로컬 UI 상태 반영
       if (setReports) {
         setReports((prev: any[]) =>
           prev.map((r) => {
@@ -160,25 +162,18 @@ export function ModalsContainer({
       <div className={`fixed inset-0 z-50 transition-all duration-300 ${isAdminReportDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs" onClick={() => setIsAdminReportDrawerOpen(false)} />
         <div className="absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs">
-          
-          {/* 드로어 상단 헤더 */}
           <div className="p-4 bg-sky-400 text-slate-900 flex justify-between items-center font-bold text-base">
             <span className="flex items-center gap-2"><Siren size={18} /> 접수함</span>
             <button onClick={() => setIsAdminReportDrawerOpen(false)} className="p-1 cursor-pointer"><X size={18} /></button>
           </div>
 
-          {/* ⚡ 1. 상단 심플 요약 */}
           <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200/80 flex items-center text-xs">
             <div className="flex items-center gap-2 text-slate-500 font-medium">
               <span className="flex items-center gap-1">
-                <span className="w-3.5 h-3.5 rounded-full bg-amber-500 text-white font-black text-[8px] flex items-center justify-center leading-none">
-                  N
-                </span>
+                <span className="w-3.5 h-3.5 rounded-full bg-amber-500 text-white font-black text-[8px] flex items-center justify-center leading-none">N</span>
                 미확인 <strong className="text-amber-600 font-bold ml-0.5">{unreadCount}</strong>건
               </span>
-              
               <span className="text-slate-300 font-normal">-</span>
-              
               <span className="flex items-center gap-1">
                 <Clock size={13} className="text-rose-500" />
                 미처리 <strong className="text-rose-600 font-bold ml-0.5">{pendingCount}</strong>건
@@ -186,7 +181,6 @@ export function ModalsContainer({
             </div>
           </div>
 
-          {/* 목록 및 상세보기 영역 */}
           <div className="flex-1 p-4 overflow-y-auto space-y-4">
             {selectedReport && (() => {
               const sr = selectedReport as any;
@@ -195,36 +189,19 @@ export function ModalsContainer({
               return (
                 <div className="p-3.5 rounded-2xl space-y-2.5 border bg-sky-50/70 border-sky-300 shadow-xs">
                   <div className="flex justify-between items-center gap-2">
-                    <span className="text-sky-800 font-extrabold bg-sky-200/80 px-2 py-0.5 rounded-md text-[11px]">
-                      {sr.category || '기타'}
-                    </span>
-                    <span className="text-slate-400 font-mono text-[11px]">
-                      {sr.userId || sr.user_id}
-                    </span>
+                    <span className="text-sky-800 font-extrabold bg-sky-200/80 px-2 py-0.5 rounded-md text-[11px]">{sr.category || '기타'}</span>
+                    <span className="text-slate-400 font-mono text-[11px]">{sr.userId || sr.user_id}</span>
                   </div>
-
-                  <h3 className="font-extrabold text-slate-900 break-all leading-snug text-sm">
-                    {sr.title}
-                  </h3>
-
-                  <p className="whitespace-pre-wrap break-all pt-2 border-t border-sky-200/80 text-slate-700 leading-relaxed text-xs">
-                    {sr.content || sr.description}
-                  </p>
-
+                  <h3 className="font-extrabold text-slate-900 break-all leading-snug text-sm">{sr.title}</h3>
+                  <p className="whitespace-pre-wrap break-all pt-2 border-t border-sky-200/80 text-slate-700 leading-relaxed text-xs">{sr.content || sr.description}</p>
                   <div className="pt-2 border-t border-sky-200/60 flex justify-end items-center">
                     {!isSrCompleted ? (
-                      <button
-                        type="button"
-                        onClick={() => handleCompleteReport(selectedReport)}
-                        className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
-                      >
-                        <CheckCircle2 size={13} />
-                        처리완료
+                      <button type="button" onClick={() => handleCompleteReport(selectedReport)} className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs">
+                        <CheckCircle2 size={13} /> 처리완료
                       </button>
                     ) : (
                       <span className="text-xs text-emerald-600 font-bold flex items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/80">
-                        <Check size={13} />
-                        처리완료 됨
+                        <Check size={13} /> 처리완료 됨
                       </span>
                     )}
                   </div>
@@ -243,40 +220,18 @@ export function ModalsContainer({
                 const isSelected = selectedReportId === currentReportId;
 
                 return (
-                  <div
-                    key={currentReportId}
-                    onClick={() => handleMarkReportAsRead(report)}
-                    className={`p-3 rounded-xl border cursor-pointer transition flex items-center justify-between gap-2 ${
-                      isSelected
-                        ? 'border-sky-500 bg-sky-500 text-slate-900 font-bold shadow-xs'
-                        : isUnread
-                        ? 'border-amber-300 bg-amber-50/40 hover:bg-amber-50'
-                        : 'border-slate-200 bg-white hover:bg-slate-50'
-                    }`}
-                  >
+                  <div key={currentReportId} onClick={() => handleMarkReportAsRead(report)} className={`p-3 rounded-xl border cursor-pointer transition flex items-center justify-between gap-2 ${isSelected ? 'border-sky-500 bg-sky-500 text-slate-900 font-bold shadow-xs' : isUnread ? 'border-amber-300 bg-amber-50/40 hover:bg-amber-50' : 'border-slate-200 bg-white hover:bg-slate-50'}`}>
                     <div className="flex items-center gap-1.5 min-w-0 flex-1">
                       {isUnread ? (
-                        <span className="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md flex-shrink-0">
-                          미확인
-                        </span>
+                        <span className="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md flex-shrink-0">미확인</span>
                       ) : isCompleted ? (
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0 ${isSelected ? 'bg-sky-700 text-white' : 'bg-emerald-100 text-emerald-700'}`}>
-                          완료
-                        </span>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0 ${isSelected ? 'bg-sky-700 text-white' : 'bg-emerald-100 text-emerald-700'}`}>완료</span>
                       ) : (
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0 ${isSelected ? 'bg-sky-700 text-white' : 'bg-rose-100 text-rose-700'}`}>
-                          미처리
-                        </span>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0 ${isSelected ? 'bg-sky-700 text-white' : 'bg-rose-100 text-rose-700'}`}>미처리</span>
                       )}
-
-                      <span className={`truncate text-xs ${isSelected ? 'text-slate-900 font-extrabold' : 'text-slate-800 font-medium'}`}>
-                        {r.title}
-                      </span>
+                      <span className={`truncate text-xs ${isSelected ? 'text-slate-900 font-extrabold' : 'text-slate-800 font-medium'}`}>{r.title}</span>
                     </div>
-
-                    <span className={`text-[10px] font-mono flex-shrink-0 ${isSelected ? 'text-slate-800' : 'text-slate-400'}`}>
-                      {r.userId || r.user_id}
-                    </span>
+                    <span className={`text-[10px] font-mono flex-shrink-0 ${isSelected ? 'text-slate-800' : 'text-slate-400'}`}>{r.userId || r.user_id}</span>
                   </div>
                 );
               })}
@@ -289,7 +244,7 @@ export function ModalsContainer({
         </div>
       </div>
 
-      {/* 2. ⚡ 개편된 컴팩트 설정 드로어 */}
+      {/* 2. ⚡ 설정 드로어 (화면 테마 라이트/다크 추가) */}
       <div className={`fixed inset-0 z-50 transition-all duration-300 ${isSettingsOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs" onClick={() => setIsSettingsOpen(false)} />
         <div className="absolute top-0 right-0 h-full w-[80%] max-w-[320px] bg-white flex flex-col justify-between shadow-2xl text-slate-900 text-xs">
@@ -374,9 +329,33 @@ export function ModalsContainer({
 
             <hr className="border-slate-100" />
 
-            {/* 글자 크기 */}
+            {/* ⚡ 화면 설정 (테마 라이트/다크 + 글자 크기) */}
             <div className="space-y-1">
               <h4 className="font-bold text-slate-400 text-[11px] px-1 mb-1">화면 설정</h4>
+              
+              {/* 화면 테마 선택 */}
+              <div className="flex justify-between items-center py-1 px-2.5">
+                <div className="flex items-center gap-2.5 text-slate-800 font-bold">
+                  {theme === 'dark' ? <Moon size={16} className="text-amber-500" /> : <Sun size={16} className="text-amber-500" />}
+                  <span>화면 테마</span>
+                </div>
+                <div className="flex p-0.5 rounded-lg bg-slate-100 text-[11px]">
+                  <button 
+                    onClick={() => setTheme && setTheme('light')} 
+                    className={`px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${theme === 'light' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-400'}`}
+                  >
+                    라이트
+                  </button>
+                  <button 
+                    onClick={() => setTheme && setTheme('dark')} 
+                    className={`px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${theme === 'dark' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-400'}`}
+                  >
+                    다크
+                  </button>
+                </div>
+              </div>
+
+              {/* 글자 크기 선택 */}
               <div className="flex justify-between items-center py-1 px-2.5">
                 <div className="flex items-center gap-2.5 text-slate-800 font-bold">
                   <Type size={16} className="text-slate-500" />

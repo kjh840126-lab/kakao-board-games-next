@@ -1,7 +1,9 @@
 {
-  "name": "카카오 보드게임 대여",
-  "short_name": "카카오 보드게임",
+  "name": "KGB",
+  "short_name": "KGB",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#FEE500",

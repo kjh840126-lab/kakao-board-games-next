@@ -113,7 +113,7 @@ export function ModalsContainer({
   const currentGenres = editingGame?.genres || [];
   const isMaxGenreReached = currentGenres.length >= 3;
 
-  // ⚡ 카운터 계산: 안읽음 / 처리대기
+  // ⚡ 심플 텍스트용 건수 집계
   const unreadCount = (reports || []).filter((r: any) => !r.isRead && !r.is_read).length;
   const pendingCount = (reports || []).filter((r: any) => (r.isRead || r.is_read) && r.status !== 'COMPLETED').length;
 
@@ -138,7 +138,7 @@ export function ModalsContainer({
         return;
       }
 
-      // 로컬 UI 상태 업데이트
+      // 로컬 UI 상태 반영
       if (setReports) {
         setReports((prev: any[]) =>
           prev.map((r) => {
@@ -158,7 +158,7 @@ export function ModalsContainer({
     <>
       {/* 1. 관리자 접수함 */}
       <div className={`fixed inset-0 z-50 transition-all duration-300 ${isAdminReportDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsAdminReportDrawerOpen(false)} />
+        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs" onClick={() => setIsAdminReportDrawerOpen(false)} />
         <div className="absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs">
           
           {/* 드로어 상단 헤더 */}
@@ -167,119 +167,129 @@ export function ModalsContainer({
             <button onClick={() => setIsAdminReportDrawerOpen(false)} className="p-1 cursor-pointer"><X size={18} /></button>
           </div>
 
-          {/* 📊 상단 요약 카운터 (안읽음 / 처리대기) */}
-          <div className="p-3 bg-slate-100 grid grid-cols-2 gap-2 border-b border-slate-200 text-xs">
-            <div className="bg-amber-50 border border-amber-200/80 p-2 rounded-xl flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <Mail size={14} className="text-amber-600" />
-                <span className="text-[11px] font-bold text-amber-900">안읽음</span>
-              </div>
-              <span className="text-xs font-black text-amber-600">{unreadCount}건</span>
+          {/* ⚡ 1. 상단 심플 텍스트 표기 (안읽음 · 처리대기) */}
+          <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200/80 flex justify-between items-center text-xs">
+            <div className="flex items-center gap-2 text-slate-500 font-medium">
+              <span>안읽음 <strong className="text-amber-600 font-bold">{unreadCount}</strong>건</span>
+              <span className="text-slate-300">·</span>
+              <span>처리대기 <strong className="text-rose-600 font-bold">{pendingCount}</strong>건</span>
             </div>
-
-            <div className="bg-rose-50 border border-rose-200/80 p-2 rounded-xl flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <Clock size={14} className="text-rose-600" />
-                <span className="text-[11px] font-bold text-rose-900">처리대기</span>
-              </div>
-              <span className="text-xs font-black text-rose-600">{pendingCount}건</span>
-            </div>
+            {unreadCount > 0 && (
+              <button 
+                onClick={handleMarkAllReportsAsRead} 
+                className="font-bold bg-slate-900 text-white px-2 py-1 rounded-md text-[10px] cursor-pointer hover:bg-slate-800"
+              >
+                모두 읽음
+              </button>
+            )}
           </div>
 
-          {/* 목록 영역 */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3">
-            {selectedReport && (
-              <div className="p-3.5 rounded-2xl space-y-2 border bg-sky-50 border-sky-300">
-                <div className="flex justify-between items-center gap-2">
-                  <span className="text-sky-800 font-extrabold bg-sky-200 px-2 py-0.5 rounded-md">{selectedReport.category}</span>
-                  <span className="text-slate-400 font-mono">{selectedReport.userId}</span>
-                </div>
-                <h3 className="font-extrabold text-slate-900 break-all leading-snug">{selectedReport.title}</h3>
-                <p className="whitespace-pre-wrap break-all pt-1.5 border-t border-sky-200 text-slate-700">{selectedReport.content}</p>
-              </div>
-            )}
+          {/* 목록 및 상세보기 영역 */}
+          <div className="flex-1 p-4 overflow-y-auto space-y-4">
+            
+            {/* ⚡ 2. 클릭했을 때 표시되는 상세보기 카드 (처리완료 버튼 배치) */}
+            {selectedReport && (() => {
+              const sr = selectedReport as any;
+              const isSrCompleted = sr.status === 'COMPLETED';
 
+              return (
+                <div className="p-3.5 rounded-2xl space-y-2.5 border bg-sky-50/70 border-sky-300 shadow-xs">
+                  <div className="flex justify-between items-center gap-2">
+                    <span className="text-sky-800 font-extrabold bg-sky-200/80 px-2 py-0.5 rounded-md text-[11px]">
+                      {sr.category || '기타'}
+                    </span>
+                    <span className="text-slate-400 font-mono text-[11px]">
+                      {sr.userId || sr.user_id}
+                    </span>
+                  </div>
+
+                  <h3 className="font-extrabold text-slate-900 break-all leading-snug text-sm">
+                    {sr.title}
+                  </h3>
+
+                  <p className="whitespace-pre-wrap break-all pt-2 border-t border-sky-200/80 text-slate-700 leading-relaxed text-xs">
+                    {sr.content || sr.description}
+                  </p>
+
+                  {/* ⚡ 상세 영역 하단: [처리완료] 버튼 또는 [완료됨] 상태 표기 */}
+                  <div className="pt-2 border-t border-sky-200/60 flex justify-end items-center">
+                    {!isSrCompleted ? (
+                      <button
+                        type="button"
+                        onClick={() => handleCompleteReport(selectedReport)}
+                        className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
+                      >
+                        <CheckCircle2 size={13} />
+                        처리완료
+                      </button>
+                    ) : (
+                      <span className="text-xs text-emerald-600 font-bold flex items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/80">
+                        <Check size={13} />
+                        처리완료 됨
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* 전체 리스트 목록 */}
             <div className="space-y-2 pt-1">
-              <h4 className="font-bold text-slate-400">전체 목록 ({reports.length})</h4>
+              <h4 className="font-bold text-slate-400 text-xs">전체 목록 ({reports.length})</h4>
               {reports.map((report: ReportData) => {
                 const r = report as any;
                 const isCompleted = r.status === 'COMPLETED';
                 const isUnread = !r.isRead && !r.is_read;
                 const currentReportId = r.reportId || r.id;
                 const selectedReportId = (selectedReport as any)?.reportId || (selectedReport as any)?.id;
+                const isSelected = selectedReportId === currentReportId;
 
                 return (
                   <div
                     key={currentReportId}
-                    className={`p-3 rounded-xl border transition space-y-2 ${
-                      selectedReportId === currentReportId
-                        ? 'border-sky-500 bg-sky-50/50'
+                    onClick={() => handleMarkReportAsRead(report)}
+                    className={`p-3 rounded-xl border cursor-pointer transition flex items-center justify-between gap-2 ${
+                      isSelected
+                        ? 'border-sky-500 bg-sky-500 text-slate-900 font-bold shadow-xs'
                         : isUnread
-                        ? 'border-amber-300 bg-amber-50/30'
-                        : 'border-slate-200 bg-white'
+                        ? 'border-amber-300 bg-amber-50/40 hover:bg-amber-50'
+                        : 'border-slate-200 bg-white hover:bg-slate-50'
                     }`}
                   >
-                    <div className="flex justify-between items-start gap-2">
-                      <div 
-                        onClick={() => handleMarkReportAsRead(report)}
-                        className="flex-1 min-w-0 cursor-pointer space-y-1"
-                      >
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {/* 뱃지: 안읽음 */}
-                          {isUnread && (
-                            <span className="bg-amber-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-md flex-shrink-0">
-                              안읽음
-                            </span>
-                          )}
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                      {/* 상태 뱃지 */}
+                      {isUnread ? (
+                        <span className="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md flex-shrink-0">
+                          안읽음
+                        </span>
+                      ) : isCompleted ? (
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0 ${isSelected ? 'bg-sky-700 text-white' : 'bg-emerald-100 text-emerald-700'}`}>
+                          완료
+                        </span>
+                      ) : (
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0 ${isSelected ? 'bg-sky-700 text-white' : 'bg-rose-100 text-rose-700'}`}>
+                          대기
+                        </span>
+                      )}
 
-                          {/* 뱃지: 처리대기 / 처리완료 */}
-                          {isCompleted ? (
-                            <span className="bg-emerald-100 text-emerald-700 text-[9px] font-extrabold px-1.5 py-0.5 rounded-md flex-shrink-0">
-                              처리완료
-                            </span>
-                          ) : (
-                            <span className="bg-rose-100 text-rose-700 text-[9px] font-extrabold px-1.5 py-0.5 rounded-md flex-shrink-0">
-                              처리대기
-                            </span>
-                          )}
-
-                          <span className="text-slate-400 font-mono text-[10px]">
-                            {r.userId || r.user_id}
-                          </span>
-                        </div>
-
-                        <p className="font-bold text-slate-900 truncate leading-snug">
-                          {r.title}
-                        </p>
-                      </div>
-
-                      {/* ⚡ 우측: [처리완료] 버튼 */}
-                      <div className="flex-shrink-0 pt-0.5">
-                        {!isCompleted ? (
-                          <button
-                            type="button"
-                            onClick={() => handleCompleteReport(report)}
-                            className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-[10px] px-2.5 py-1.5 rounded-xl flex items-center gap-1 transition active:scale-95 cursor-pointer shadow-xs"
-                          >
-                            <CheckCircle2 size={12} />
-                            처리완료
-                          </button>
-                        ) : (
-                          <span className="text-[10px] text-slate-400 font-medium flex items-center gap-0.5 pr-1">
-                            <Check size={12} className="text-emerald-500" />
-                            완료됨
-                          </span>
-                        )}
-                      </div>
+                      {/* 제목 */}
+                      <span className={`truncate text-xs ${isSelected ? 'text-slate-900 font-extrabold' : 'text-slate-800 font-medium'}`}>
+                        {r.title}
+                      </span>
                     </div>
+
+                    {/* 우측 아이디 */}
+                    <span className={`text-[10px] font-mono flex-shrink-0 ${isSelected ? 'text-slate-800' : 'text-slate-400'}`}>
+                      {r.userId || r.user_id}
+                    </span>
                   </div>
                 );
               })}
             </div>
           </div>
 
-          <div className="p-4 border-t border-slate-200">
-            <button onClick={() => setIsAdminReportDrawerOpen(false)} className="w-full bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer">닫기</button>
+          <div className="p-4 border-t border-slate-200 bg-white">
+            <button onClick={() => setIsAdminReportDrawerOpen(false)} className="w-full bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer hover:bg-slate-800">닫기</button>
           </div>
         </div>
       </div>

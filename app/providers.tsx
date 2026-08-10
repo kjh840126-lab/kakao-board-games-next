@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
+import { useIosPwaPullToRefresh } from '../hooks/useIosPwaPullToRefresh';
 
 type Theme = 'light' | 'dark';
 
@@ -15,6 +16,9 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function Providers({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('light');
   const [mounted, setMounted] = useState(false);
+
+  // ⚡ iOS 사파리 홈 화면 추가(PWA) 모드에서만 안전하게 동작하는 당겨서 새로고침
+  useIosPwaPullToRefresh();
 
   useEffect(() => {
     setMounted(true);

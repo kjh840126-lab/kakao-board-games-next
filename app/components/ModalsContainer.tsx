@@ -472,7 +472,7 @@ export function ModalsContainer({
             ))}
           </div>
           <div className="p-4 border-t border-slate-200">
-            {cart.length > 0 ? <button onClick={processCheckout} className="w-full bg-slate-900 text-white py-3.5 rounded-xl font-bold cursor-pointer">선택한 게임 {rentalDays}일간 대여하기</button> : <button onClick={() => setIsCartOpen(false)} className="w-full bg-slate-900 text-white py-3.5 rounded-xl font-bold cursor-pointer">닫기</button>}
+            {cart.length > 0 ? <button onClick={processCheckout} className="w-full bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer">선택한 게임 {rentalDays}일간 대여하기</button> : <button onClick={() => setIsCartOpen(false)} className="w-full bg-slate-900 text-white py-3.5 rounded-xl font-bold cursor-pointer">닫기</button>}
           </div>
         </div>
       </div>

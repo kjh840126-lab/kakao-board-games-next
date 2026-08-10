@@ -27,6 +27,14 @@ const checkIsIosDevice = () => {
   return /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
 };
 
+// ⚡ 날짜 차이(연체 일수) 계산 함수
+const getDaysDifference = (dateStr1: string, dateStr2: string) => {
+  if (!dateStr1 || !dateStr2) return 0;
+  const d1 = new Date(dateStr1); 
+  const d2 = new Date(dateStr2);
+  return Math.floor((d1.getTime() - d2.getTime()) / (1000 * 60 * 60 * 24));
+};
+
 const StarRating = ({ rating = 0, size = 12, colorClass = "text-rose-500" }: { rating?: number; size?: number; colorClass?: string }) => {
   const safeRating = Number(rating) || 0;
   return (
@@ -292,11 +300,10 @@ export default function MainPage() {
 
   const removeFromCart = (gameId: string) => setCart(cart.filter((item: Game) => item.gameId !== gameId));
 
-  // ⚡ 대여 처리 함수 (패널티 존재 시 요청 문구로 알럿 노출)
+  // 대여 처리 함수 (패널티 존재 시 대여 차단)
   const processCheckout = async () => {
     if (!currentUser) return;
 
-    // 1. 패널티 점수가 1점 이상인 회원 대여 제한 및 문구 적용
     const penaltyPoints = Number(currentUser.penaltyPoints || 0);
     if (penaltyPoints >= 1) {
       const endDateText = currentUser.penaltyEndDate ? currentUser.penaltyEndDate : '패널티 해제일';
@@ -304,7 +311,6 @@ export default function MainPage() {
       return;
     }
 
-    // 2. 1인당 최대 3개 대여 가능 수량 체크
     const activeRentalsCount = rentals.filter((r: Rental) => {
       const activeStatuses: string[] = ['대여중', '대여신청', '승인대기'];
       return r.userId === currentUser.userId && activeStatuses.includes(r.status);
@@ -352,9 +358,16 @@ export default function MainPage() {
     }
   };
 
+  // ⚡ 개별 반납 (연체 시 자동으로 패널티 및 대여정지 반영)
   const returnGame = async (rentalId: number, gameId: string) => {
     if (!currentUser) return;
     const nowIso = new Date().toISOString();
+
+    const targetRental = rentals.find((r) => r.rentalId === rentalId);
+    if (!targetRental) return;
+
+    const isOverdue = today > targetRental.endDate;
+    const overdueDays = isOverdue ? getDaysDifference(today, targetRental.endDate) : 0;
 
     try {
       const { error: rentalErr } = await supabase.from('rentals').update({ status: '반납완료', returned_at: nowIso }).eq('rental_id', rentalId);
@@ -363,24 +376,33 @@ export default function MainPage() {
       const { error: gameErr } = await supabase.from('games').update({ status: '대여가능' }).eq('game_id', gameId);
       if (gameErr) throw gameErr;
 
-      setRentals(prevRentals =>
-        prevRentals.map(r =>
-          r.rentalId === rentalId ? { ...r, status: '반납완료', returnedAt: nowIso } : r
-        )
-      );
+      // 연체 시 유저 패널티 업데이트
+      if (isOverdue && overdueDays > 0) {
+        const penaltyEnd = new Date();
+        penaltyEnd.setDate(penaltyEnd.getDate() + overdueDays);
+        const penaltyEndDateStr = penaltyEnd.toISOString().split('T')[0];
+        const newPenaltyPoints = (currentUser.penaltyPoints || 0) + overdueDays;
 
-      setGames(prevGames =>
-        prevGames.map(g =>
-          g.gameId === gameId ? { ...g, status: '대여가능' as GameStatus } : g
-        )
-      );
+        await supabase
+          .from('users')
+          .update({
+            penalty_count: newPenaltyPoints,
+            penalty_end_date: penaltyEndDateStr,
+          })
+          .eq('user_id', currentUser.userId);
 
-      alert('반납이 완료되었습니다.');
+        alert(`반납이 완료되었습니다.\n⚠️ ${overdueDays}일 연체로 인해 ${penaltyEndDateStr}까지 대여가 정지됩니다.`);
+      } else {
+        alert('반납이 완료되었습니다.');
+      }
+
+      fetchInitialData();
     } catch (err: any) {
       alert('반납 처리 실패: ' + (err.message || err));
     }
   };
 
+  // ⚡ 일괄 반납 (연체건 중 최대 연체일 기준으로 패널티 부여)
   const returnAllGames = async () => {
     if (!currentUser) return;
     const userActiveRentals = rentals.filter((r: Rental) => r.userId === currentUser.userId && r.status === '대여중');
@@ -390,6 +412,20 @@ export default function MainPage() {
     const activeGameIds = userActiveRentals.map(r => r.gameId);
     const nowIso = new Date().toISOString();
 
+    // 연체 건들 연체 일수 계산
+    let totalOverdueDays = 0;
+    let maxOverdueDays = 0;
+
+    userActiveRentals.forEach((r) => {
+      if (today > r.endDate) {
+        const days = getDaysDifference(today, r.endDate);
+        if (days > 0) {
+          totalOverdueDays += days;
+          if (days > maxOverdueDays) maxOverdueDays = days;
+        }
+      }
+    });
+
     try {
       const { error: rentalErr } = await supabase.from('rentals').update({ status: '반납완료', returned_at: nowIso }).in('rental_id', activeRentalIds);
       if (rentalErr) throw rentalErr;
@@ -397,19 +433,27 @@ export default function MainPage() {
       const { error: gameErr } = await supabase.from('games').update({ status: '대여가능' }).in('game_id', activeGameIds);
       if (gameErr) throw gameErr;
 
-      setRentals(prevRentals =>
-        prevRentals.map(r =>
-          activeRentalIds.includes(r.rentalId) ? { ...r, status: '반납완료', returnedAt: nowIso } : r
-        )
-      );
+      // 연체건이 존재하는 경우 패널티 처리
+      if (maxOverdueDays > 0) {
+        const penaltyEnd = new Date();
+        penaltyEnd.setDate(penaltyEnd.getDate() + maxOverdueDays);
+        const penaltyEndDateStr = penaltyEnd.toISOString().split('T')[0];
+        const newPenaltyPoints = (currentUser.penaltyPoints || 0) + totalOverdueDays;
 
-      setGames(prevGames =>
-        prevGames.map(g =>
-          activeGameIds.includes(g.gameId) ? { ...g, status: '대여가능' as GameStatus } : g
-        )
-      );
+        await supabase
+          .from('users')
+          .update({
+            penalty_count: newPenaltyPoints,
+            penalty_end_date: penaltyEndDateStr,
+          })
+          .eq('user_id', currentUser.userId);
 
-      alert('모든 보드게임이 반납되었습니다.');
+        alert(`모든 보드게임이 반납되었습니다.\n⚠️ 연체건이 포함되어 있어 ${penaltyEndDateStr}까지 대여가 정지됩니다.`);
+      } else {
+        alert('모든 보드게임이 반납되었습니다.');
+      }
+
+      fetchInitialData();
     } catch (err: any) {
       alert('일괄 반납 처리 실패: ' + (err.message || err));
     }

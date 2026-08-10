@@ -34,7 +34,7 @@ export const ReturnsTab = memo(({ isInitialLoaded, rentals, currentUser, today, 
           <span className="text-lg font-black text-[#FEE500]">{activeRentals.length} / 3 개</span>
         </div>
         {activeRentals.length > 0 && (
-          <button onClick={returnAllGames} className="bg-[#FEE500] dark:bg-slate-700 text-slate-900 font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer flex-shrink-0 ml-3 shadow-sm">
+          <button onClick={returnAllGames} className="bg-[#FEE500] dark:bg-slate-800 text-slate-900 font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer flex-shrink-0 ml-3 shadow-sm">
             <RotateCcw size={14} /> 일괄 반납
           </button>
         )}

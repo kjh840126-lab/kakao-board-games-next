@@ -162,8 +162,8 @@ export function ModalsContainer({
     <>
       {/* 1. 관리자 접수함 */}
       <div className={`fixed inset-0 z-50 transition-all duration-300 ${isAdminReportDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs" onClick={() => setIsAdminReportDrawerOpen(false)} />
-        <div className="absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs">
+        <div className="absolute inset-0 bg-slate-900/60 transition-opacity duration-300 ease-out transform-gpu" onClick={() => setIsAdminReportDrawerOpen(false)} />
+        <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs transition-transform duration-300 ease-out transform-gpu ${isAdminReportDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className="p-4 bg-sky-400 text-slate-900 flex justify-between items-center font-bold text-base">
             <span className="flex items-center gap-2"><Siren size={18} /> 접수함</span>
             <button onClick={() => setIsAdminReportDrawerOpen(false)} className="p-1 cursor-pointer"><X size={18} /></button>
@@ -254,8 +254,8 @@ export function ModalsContainer({
 
       {/* 2. 설정 드로어 */}
       <div className={`fixed inset-0 z-50 transition-all duration-300 ${isSettingsOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-        <div className="absolute inset-0 bg-slate-900/60 transition-opacity duration-200 ease-out transform-gpu" onClick={() => setIsSettingsOpen(false)} />
-        <div className="absolute top-0 right-0 h-full w-[65%] max-w-[320px] bg-white flex flex-col justify-between shadow-2xl text-slate-900 text-xs">
+        <div className="absolute inset-0 bg-slate-900/60 transition-opacity duration-300 ease-out transform-gpu" onClick={() => setIsSettingsOpen(false)} />
+        <div className={`absolute top-0 right-0 h-full w-[40%] min-w-[260px] max-w-[320px] bg-white flex flex-col justify-between shadow-2xl text-slate-900 text-xs transition-transform duration-300 ease-out transform-gpu ${isSettingsOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           
           {/* 헤더 */}
           <div className="p-4 bg-[#FEE500] text-slate-900 flex justify-between items-center font-bold text-base border-b border-amber-300">
@@ -408,8 +408,8 @@ export function ModalsContainer({
 
       {/* 3. 공지사항 목록 */}
       <div className={`fixed inset-0 z-50 transition-all duration-300 ${isNoticeDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsNoticeDrawerOpen(false)} />
-        <div className="absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs">
+        <div className="absolute inset-0 bg-slate-900/60 transition-opacity duration-300 ease-out transform-gpu" onClick={() => setIsNoticeDrawerOpen(false)} />
+        <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs transition-transform duration-300 ease-out transform-gpu ${isNoticeDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className="p-4 bg-[#FEE500] text-slate-900 flex justify-between items-center font-bold text-base">
             <span className="flex items-center gap-2"><Bell size={18} /> 공지사항 목록</span>
             <button onClick={() => setIsNoticeDrawerOpen(false)} className="p-1 cursor-pointer"><X size={18} /></button>
@@ -435,8 +435,8 @@ export function ModalsContainer({
 
       {/* 4. 장바구니 드로어 */}
       <div className={`fixed inset-0 z-50 transition-all duration-300 ${isCartOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsCartOpen(false)} />
-        <div className="absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs">
+        <div className="absolute inset-0 bg-slate-900/60 transition-opacity duration-300 ease-out transform-gpu" onClick={() => setIsCartOpen(false)} />
+        <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs transition-transform duration-300 ease-out transform-gpu ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className="p-4 bg-[#FEE500] text-slate-900 flex justify-between items-center font-bold text-base">
             <span className="flex items-center gap-1.5"><ShoppingCart size={18} /> 장바구니 ({cart.length} / 3)</span>
             <button onClick={() => setIsCartOpen(false)} className="p-1 cursor-pointer"><X size={18} /></button>

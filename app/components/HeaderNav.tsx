@@ -64,9 +64,8 @@ export const FixedHeader = memo(({
                 isIosDevice ? IOS_CONFIG.HEADER_BADGE_TEXT_SIZE : 'text-[10px]'
               }`}>
                 <AlertCircle size={11} className="flex-shrink-0" />
-                <span className="font-normal">패널티 {penaltyScore}점</span>
                 <span className="font-normal opacity-90">
-                  ({isPenaltyActive ? `~${currentUser.penaltyEndDate} 대여불가` : '대여불가'})
+                  ({isPenaltyActive ? `${currentUser.penaltyEndDate} 까지 대여정지` : '대여정지'})
                 </span>
               </span>
             )}

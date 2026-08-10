@@ -65,7 +65,7 @@ export const FixedHeader = memo(({
               }`}>
                 <AlertCircle size={11} className="flex-shrink-0" />
                 <span className="font-normal opacity-90">
-                  ({isPenaltyActive ? `${currentUser.penaltyEndDate} 까지 대여정지` : '대여정지'})
+                  {isPenaltyActive ? `${currentUser.penaltyEndDate} 까지 대여정지` : '대여정지'}
                 </span>
               </span>
             )}

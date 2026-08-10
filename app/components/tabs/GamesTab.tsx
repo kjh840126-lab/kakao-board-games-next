@@ -190,10 +190,10 @@ export const GamesTab = memo(({
                       /* ⚡ 다크모드 시 버튼 배경을 amber-500(어두운 옐로우/황동), 글씨를 text-white로 변환 */
                       <button 
                         onClick={() => toggleCartItem(game)} 
-                        className={`px-3.5 py-[10px] rounded-xl font-bold text-xs cursor-pointer ${
+                        className={`px-3.5 py-[8px] rounded-xl font-bold text-xs cursor-pointer ${
                           isSelectedInCart 
                             ? 'bg-slate-900 text-white' 
-                            : 'bg-[#FEE500] text-slate-900 dark:bg-indigo-950 dark:text-white dark:border dark:border-[#475569]'
+                            : 'bg-[#FEE500] text-slate-900 dark:bg-indigo-1000 dark:text-white dark:border dark:border-[#475569]'
                         }`}
                       >
                         {isSelectedInCart ? '선택취소' : '대여가능'}

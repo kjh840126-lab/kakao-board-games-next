@@ -202,7 +202,8 @@ export function ModalsContainer({
                         <CheckCircle2 size={13} /> 처리완료
                       </button>
                     ) : (
-                      <span className="text-xs text-emerald-600 font-bold flex items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/80">
+                      /* ⚡ 다크모드 '처리완료 됨' 라벨 가독성 보정 */
+                      <span className="text-xs text-emerald-600 dark:text-emerald-300 font-bold flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-200/80 dark:border-emerald-700">
                         <Check size={13} /> 처리완료 됨
                       </span>
                     )}
@@ -227,7 +228,12 @@ export function ModalsContainer({
                       {isUnread ? (
                         <span className="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md flex-shrink-0">미확인</span>
                       ) : isCompleted ? (
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0 ${isSelected ? 'bg-sky-700 text-white' : 'bg-emerald-100 text-emerald-700'}`}>완료</span>
+                        /* ⚡ 다크모드 '완료' 목록 뱃지 가독성 보정 */
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0 ${
+                          isSelected 
+                            ? 'bg-sky-700 text-white' 
+                            : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/90 dark:text-emerald-200 dark:border dark:border-emerald-700'
+                        }`}>완료</span>
                       ) : (
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0 ${isSelected ? 'bg-sky-700 text-white' : 'bg-rose-100 text-rose-700'}`}>미처리</span>
                       )}

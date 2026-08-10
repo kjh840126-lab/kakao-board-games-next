@@ -110,6 +110,14 @@ html.dark main button.bg-\[\#FEE500\] * {
   color: #0f172a !important;
 }
 
+/* ⚡ [하단 네비게이션 전용 핀셋 보정] 선택 상태 색상(노랑/하늘색 등) 인라인 클래스 그대로 보존 */
+html.dark nav,
+html.dark nav *,
+html.dark footer,
+html.dark footer * {
+  color: inherit;
+}
+
 /* [다크모드 전용] 배경 및 모달 카드 */
 html.dark .bg-white {
   background-color: #1e293b !important;
@@ -155,7 +163,7 @@ html.dark main select {
 }
 
 html.dark main input::placeholder,
-html.dark main textarea::placeholder {
+html.dark textarea::placeholder {
   color: #64748b !important;
 }
 

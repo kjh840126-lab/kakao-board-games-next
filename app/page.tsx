@@ -379,7 +379,7 @@ export default function MainPage() {
     const penaltyPoints = Number(currentUser.penaltyPoints || 0);
     if (penaltyPoints >= 1) {
       const endDateText = currentUser.penaltyEndDate ? currentUser.penaltyEndDate : '패널티 해제일';
-      alert(`패널티로 ${endDateText} 까지 보드게임을 대여할 수 없습니다.`);
+      alert(`패널티로 ${endDateText}까지 보드게임을 대여할 수 없습니다.`);
       return;
     }
 

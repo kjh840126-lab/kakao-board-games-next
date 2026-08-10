@@ -159,7 +159,7 @@ export function ModalsContainer({
   };
 
   // ⚡ 공통 배경 오버레이 클래스
-  const overlayClass = "absolute inset-0 bg-slate-900/50 backdrop-blur-[2.5px] transition-opacity duration-75 transform-gpu isolate";
+  const overlayClass = "absolute inset-0 bg-slate-900/60 backdrop-blur-[0.5px] transition-opacity duration-150 transform-gpu isolate";
 
   return (
     <>

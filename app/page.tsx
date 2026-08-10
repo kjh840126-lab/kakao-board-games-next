@@ -358,7 +358,7 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 개별 반납 (연체일수 연장 계산 적용)
+  // ⚡ 개별 반납 (이모티콘 및 '(연장)' 문구 삭제)
   const returnGame = async (rentalId: number, gameId: string) => {
     if (!currentUser) return;
     const nowIso = new Date().toISOString();
@@ -378,7 +378,6 @@ export default function MainPage() {
 
       // 연체 시 유저 패널티 및 대여정지일 연장 처리
       if (isOverdue && overdueDays > 0) {
-        // 기존 대여정지일이 남아있으면 기존 정지일 기준 연장, 없거나 지났으면 오늘 기준
         const hasFuturePenalty = currentUser.penaltyEndDate && String(currentUser.penaltyEndDate) >= today;
         const baseDateStr = hasFuturePenalty ? String(currentUser.penaltyEndDate) : today;
 
@@ -396,7 +395,7 @@ export default function MainPage() {
           })
           .eq('user_id', currentUser.userId);
 
-        alert(`반납이 완료되었습니다.\n⚠️ ${overdueDays}일 연체로 인해 ${penaltyEndDateStr}까지 대여정지가 적용(연장)됩니다.`);
+        alert(`반납이 완료되었습니다.\n${overdueDays}일 연체로 인해 ${penaltyEndDateStr}까지 대여정지가 적용됩니다.`);
       } else {
         alert('반납이 완료되었습니다.');
       }
@@ -407,7 +406,7 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 일괄 반납 (모든 연체건 일수 합산 연장 적용 - 예: 3일 + 8일 = 11일 연장)
+  // ⚡ 일괄 반납 (이모티콘 및 '(연장)' 문구 삭제)
   const returnAllGames = async () => {
     if (!currentUser) return;
     const userActiveRentals = rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
@@ -417,7 +416,6 @@ export default function MainPage() {
     const activeGameIds = userActiveRentals.map(r => r.gameId);
     const nowIso = new Date().toISOString();
 
-    // 연체된 모든 게임의 연체 일수 합산
     let totalOverdueDays = 0;
 
     userActiveRentals.forEach((r) => {
@@ -437,7 +435,6 @@ export default function MainPage() {
       if (gameErr) throw gameErr;
 
       if (totalOverdueDays > 0) {
-        // 기존 대여정지일이 남아있으면 기존 정지일 기준 연장, 없거나 지났으면 오늘 기준
         const hasFuturePenalty = currentUser.penaltyEndDate && String(currentUser.penaltyEndDate) >= today;
         const baseDateStr = hasFuturePenalty ? String(currentUser.penaltyEndDate) : today;
 
@@ -455,7 +452,7 @@ export default function MainPage() {
           })
           .eq('user_id', currentUser.userId);
 
-        alert(`모든 보드게임이 반납되었습니다.\n⚠️ 연체건(총 ${totalOverdueDays}일)으로 인해 ${penaltyEndDateStr}까지 대여정지가 적용(연장)됩니다.`);
+        alert(`모든 보드게임이 반납되었습니다.\n연체건(총 ${totalOverdueDays}일)으로 인해 ${penaltyEndDateStr}까지 대여정지가 적용됩니다.`);
       } else {
         alert('모든 보드게임이 반납되었습니다.');
       }

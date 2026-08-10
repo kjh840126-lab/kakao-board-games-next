@@ -3,7 +3,7 @@
 import React from 'react';
 import { 
   Siren, Settings, Bell, X, ChevronDown, ChevronRight, Heart, Star, User, LogOut, 
-  Type, Calendar, Trash2, Image, Clock, ShoppingCart, Mail, CheckCircle2, Check 
+  Type, Calendar, Trash2, Image, Clock, ShoppingCart, CheckCircle2, Check 
 } from 'lucide-react';
 import { Game, Notice, ReportData, BoardSite, UserData } from '../types';
 import { supabase } from '../supabaseClient';
@@ -113,7 +113,7 @@ export function ModalsContainer({
   const currentGenres = editingGame?.genres || [];
   const isMaxGenreReached = currentGenres.length >= 3;
 
-  // ⚡ 심플 텍스트용 건수 집계
+  // ⚡ 미확인 / 미처리 건수 계산
   const unreadCount = (reports || []).filter((r: any) => !r.isRead && !r.is_read).length;
   const pendingCount = (reports || []).filter((r: any) => (r.isRead || r.is_read) && r.status !== 'COMPLETED').length;
 
@@ -167,27 +167,29 @@ export function ModalsContainer({
             <button onClick={() => setIsAdminReportDrawerOpen(false)} className="p-1 cursor-pointer"><X size={18} /></button>
           </div>
 
-          {/* ⚡ 1. 상단 심플 텍스트 표기 (안읽음 · 처리대기) */}
-          <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200/80 flex justify-between items-center text-xs">
+          {/* ⚡ 1. 상단 심플 요약 (미확인 N 뱃지 & 미처리 시계 아이콘 + 하이픈 구분) */}
+          <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200/80 flex items-center text-xs">
             <div className="flex items-center gap-2 text-slate-500 font-medium">
-              <span>안읽음 <strong className="text-amber-600 font-bold">{unreadCount}</strong>건</span>
-              <span className="text-slate-300">·</span>
-              <span>처리대기 <strong className="text-rose-600 font-bold">{pendingCount}</strong>건</span>
+              <span className="flex items-center gap-1">
+                <span className="w-3.5 h-3.5 rounded-full bg-amber-500 text-white font-black text-[8px] flex items-center justify-center leading-none">
+                  N
+                </span>
+                미확인 <strong className="text-amber-600 font-bold ml-0.5">{unreadCount}</strong>건
+              </span>
+              
+              <span className="text-slate-300 font-normal">-</span>
+              
+              <span className="flex items-center gap-1">
+                <Clock size={13} className="text-rose-500" />
+                미처리 <strong className="text-rose-600 font-bold ml-0.5">{pendingCount}</strong>건
+              </span>
             </div>
-            {unreadCount > 0 && (
-              <button 
-                onClick={handleMarkAllReportsAsRead} 
-                className="font-bold bg-slate-900 text-white px-2 py-1 rounded-md text-[10px] cursor-pointer hover:bg-slate-800"
-              >
-                모두 읽음
-              </button>
-            )}
           </div>
 
           {/* 목록 및 상세보기 영역 */}
           <div className="flex-1 p-4 overflow-y-auto space-y-4">
             
-            {/* ⚡ 2. 클릭했을 때 표시되는 상세보기 카드 (처리완료 버튼 배치) */}
+            {/* 2. 클릭 시 표출되는 상세 카드 */}
             {selectedReport && (() => {
               const sr = selectedReport as any;
               const isSrCompleted = sr.status === 'COMPLETED';
@@ -211,7 +213,7 @@ export function ModalsContainer({
                     {sr.content || sr.description}
                   </p>
 
-                  {/* ⚡ 상세 영역 하단: [처리완료] 버튼 또는 [완료됨] 상태 표기 */}
+                  {/* 상세 하단: [처리완료] 버튼 또는 완료 상태 표기 */}
                   <div className="pt-2 border-t border-sky-200/60 flex justify-end items-center">
                     {!isSrCompleted ? (
                       <button
@@ -257,10 +259,10 @@ export function ModalsContainer({
                     }`}
                   >
                     <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                      {/* 상태 뱃지 */}
+                      {/* ⚡ 상태 뱃지: '미확인' (N) / '완료' / '미처리' */}
                       {isUnread ? (
                         <span className="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md flex-shrink-0">
-                          안읽음
+                          미확인
                         </span>
                       ) : isCompleted ? (
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0 ${isSelected ? 'bg-sky-700 text-white' : 'bg-emerald-100 text-emerald-700'}`}>
@@ -268,7 +270,7 @@ export function ModalsContainer({
                         </span>
                       ) : (
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0 ${isSelected ? 'bg-sky-700 text-white' : 'bg-rose-100 text-rose-700'}`}>
-                          대기
+                          미처리
                         </span>
                       )}
 

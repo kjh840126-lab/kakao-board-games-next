@@ -193,7 +193,7 @@ export const GamesTab = memo(({
                         className={`px-3.5 py-[7.5px] rounded-xl font-bold text-xs cursor-pointer ${
                           isSelectedInCart 
                             ? 'bg-slate-900 text-white dark:border-none' 
-                            : 'bg-[#FEE500] text-slate-900 dark:bg-indigo-950 dark:text-white dark:border-none'
+                            : 'bg-[#FEE500] text-slate-900 dark:bg-amber-600 dark:text-white dark:border-none'
                         }`}
                       >
                         {isSelectedInCart ? '선택취소' : '대여가능'}

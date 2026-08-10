@@ -168,10 +168,10 @@ export function ModalsContainer({
         <div className={overlayClass} onClick={() => setIsAdminReportDrawerOpen(false)} />
         <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs transition-transform duration-200 ease-out transform-gpu ${isAdminReportDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           
-          {/* ⚡ 최상단 접수함 타이틀 헤더만 라이트모드 스타일로 고정 (bg-[#38bdf8] / text-[#0f172a]) */}
-          <div className="p-4 bg-[#38bdf8] text-[#0f172a] flex justify-between items-center font-bold text-base">
-            <span className="flex items-center gap-2"><Siren size={18} /> 접수함</span>
-            <button onClick={() => setIsAdminReportDrawerOpen(false)} className="p-1 cursor-pointer"><X size={18} /></button>
+          {/* ⚡ 접수함 타이틀 헤더: 배경색(bg-sky-400) 및 텍스트/아이콘 폰트색(!text-slate-900)을 라이트모드로 완전 고정 */}
+          <div className="p-4 bg-sky-400 dark:bg-sky-400 !text-slate-900 flex justify-between items-center font-bold text-base">
+            <span className="flex items-center gap-2 !text-slate-900"><Siren size={18} className="!text-slate-900" /> 접수함</span>
+            <button onClick={() => setIsAdminReportDrawerOpen(false)} className="p-1 cursor-pointer !text-slate-900 hover:opacity-70"><X size={18} className="!text-slate-900" /></button>
           </div>
 
           <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200/80 flex items-center text-xs">

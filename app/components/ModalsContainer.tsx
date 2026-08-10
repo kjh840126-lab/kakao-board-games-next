@@ -33,6 +33,7 @@ interface ModalsContainerProps {
   setIsReportModalOpen: (open: boolean) => void;
   fontSize: 'normal' | 'large';
   setFontSize: (size: 'normal' | 'large') => void;
+  // ⚡ 테마 Props 추가 (선택적 사용 지원)
   theme?: 'light' | 'dark';
   setTheme?: (theme: 'light' | 'dark') => void;
   handleLogout: () => void;
@@ -115,9 +116,11 @@ export function ModalsContainer({
   const currentGenres = editingGame?.genres || [];
   const isMaxGenreReached = currentGenres.length >= 3;
 
+  // ⚡ 미확인 / 미처리 건수 계산
   const unreadCount = (reports || []).filter((r: any) => !r.isRead && !r.is_read).length;
   const pendingCount = (reports || []).filter((r: any) => (r.isRead || r.is_read) && r.status !== 'COMPLETED').length;
 
+  // ⚡ [처리완료] 버튼 클릭 시 동작 (PK 칼럼명 report_id 대응 보정)
   const handleCompleteReport = async (report: any) => {
     try {
       const reportId = report.report_id || report.reportId || report.id;
@@ -155,8 +158,8 @@ export function ModalsContainer({
     }
   };
 
-  // ⚡ 투명도(opacity)만 150ms 속도로 빠르게 변화시켜 지연 현상 완벽 제거
-  const overlayClass = "absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity duration-150 transform-gpu";
+  // ⚡ 방법 1 적용: isolate 속성을 부여해 뒤쪽 레이어와 그래픽 연산을 완전히 격리하여 다크모드 외곽선 현상 방지
+  const overlayClass = "absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity duration-150 transform-gpu isolate";
 
   return (
     <>

@@ -255,7 +255,7 @@ export function ModalsContainer({
       {/* 2. 설정 드로어 */}
       <div className={`fixed inset-0 z-50 transition-all duration-300 ${isSettingsOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs" onClick={() => setIsSettingsOpen(false)} />
-        <div className="absolute top-0 right-0 h-full w-[60%] max-w-[320px] bg-white flex flex-col justify-between shadow-2xl text-slate-900 text-xs">
+        <div className="absolute top-0 right-0 h-full w-[65%] max-w-[320px] bg-white flex flex-col justify-between shadow-2xl text-slate-900 text-xs">
           
           {/* 헤더 */}
           <div className="p-4 bg-[#FEE500] text-slate-900 flex justify-between items-center font-bold text-base border-b border-amber-300">
@@ -345,7 +345,7 @@ export function ModalsContainer({
               <div className="flex justify-between items-center py-1 px-2.5">
                 <div className="flex items-center gap-2.5 text-slate-800 font-bold">
                   {theme === 'dark' ? <Moon size={16} className="text-amber-500" /> : <Sun size={16} className="text-amber-500" />}
-                  <span>화면 테마</span>
+                  <span>화면</span>
                 </div>
                 <div className="flex p-0.5 rounded-lg bg-slate-100 text-[11px]">
                   <button 
@@ -367,7 +367,7 @@ export function ModalsContainer({
               <div className="flex justify-between items-center py-1 px-2.5">
                 <div className="flex items-center gap-2.5 text-slate-800 font-bold">
                   <Type size={16} className="text-slate-500" />
-                  <span>글자 크기</span>
+                  <span>폰트</span>
                 </div>
                 <div className="flex p-0.5 rounded-lg bg-slate-100 text-[11px]">
                   <button 

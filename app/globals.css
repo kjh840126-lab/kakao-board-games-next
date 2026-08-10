@@ -101,7 +101,7 @@ html.dark label {
   color: #cbd5e1;
 }
 
-/* 보조 텍스트 보정 */
+/* 보조 텍스트 (기존 잘 안 보이던 text-slate-400, text-slate-500 보정) */
 html.dark .text-slate-400,
 html.dark .text-slate-500 {
   color: #94a3b8 !important;
@@ -117,7 +117,7 @@ html.dark .bg-white {
   color: #f8fafc !important;
 }
 
-/* 연한 배경 보정 */
+/* 밝은 톤 연한 배경 보정 (장바구니, 접수함, 공지사항 카드 등) */
 html.dark .bg-slate-50,
 html.dark .bg-slate-100 {
   background-color: #334155 !important;
@@ -127,7 +127,7 @@ html.dark .bg-slate-100 {
 html.dark .bg-amber-50\/60,
 html.dark .bg-amber-50\/40,
 html.dark .bg-amber-50 {
-  background-color: #332d18 !important;
+  background-color: #332d18 !important; /* 어두운 황동색으로 대비감 형성 */
   color: #fef08a !important;
 }
 
@@ -168,7 +168,7 @@ html.dark .border-slate-200\/80 {
   border-color: #334155 !important;
 }
 
-/* E. 연체 뱃지 & 포인트 뱃지 */
+/* E. 연체 뱃지 & 포인트 뱃지 고대비 보정 */
 html.dark .bg-rose-100 {
   background-color: #881337 !important;
 }
@@ -185,39 +185,13 @@ html.dark .text-amber-500 {
   color: #fde047 !important;
 }
 
-/* F. 소형 버튼 및 태그 */
+/* F. 장르 태그 & 소형 버튼 */
 html.dark .bg-slate-900 {
   background-color: #0f172a !important;
   border: 1px solid #334155;
 }
 
-/* ========================================================= */
-/* ⚡ 6. 상단 네비게이션 & 드로어 타이틀 색상 고정 (다크모드 예외) */
-/* ========================================================= */
-
-/* 카카오 노란색 헤더(#FEE500) & 하늘색 관리자 헤더(#38bdf8 / bg-sky-400) 텍스트/아이콘 일치 */
-header,
-header *,
-header h1,
-header h2,
-header span,
-header button,
-header svg {
-  color: #0f172a !important;
-}
-
-/* 드로어 상단 노란색/하늘색 헤더 영역 (bg-[#FEE500], bg-sky-400) 내부 고정 */
-html.dark .bg-\[\#FEE500\],
-html.dark .bg-sky-400 {
-  color: #0f172a !important;
-}
-
-html.dark .bg-\[\#FEE500\] *,
-html.dark .bg-sky-400 * {
-  color: #0f172a !important;
-}
-
-/* 7. 스크롤바 숨김 */
+/* 6. 스크롤바 숨김 */
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }

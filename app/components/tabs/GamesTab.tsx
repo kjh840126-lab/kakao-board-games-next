@@ -187,7 +187,8 @@ export const GamesTab = memo(({
                       <Heart size={16} className={isFav ? "fill-rose-500 text-rose-500" : "text-slate-400"} />
                     </button>
                     {isAvailable ? (
-                      <button onClick={() => toggleCartItem(game)} className={`px-3.5 py-1.5 rounded-xl font-bold text-xs cursor-pointer ${isSelectedInCart ? 'bg-slate-900 text-white' : 'bg-[#FEE500] text-slate-900'}`}>
+                      /* ⚡ dark:text-slate-900 클래스를 추가하여 다크모드에서도 어두운 글자색 보장 */
+                      <button onClick={() => toggleCartItem(game)} className={`px-3.5 py-1.5 rounded-xl font-bold text-xs cursor-pointer ${isSelectedInCart ? 'bg-slate-900 text-white' : 'bg-[#FEE500] text-slate-900 dark:text-slate-900'}`}>
                         {isSelectedInCart ? '선택취소' : '대여가능'}
                       </button>
                     ) : (

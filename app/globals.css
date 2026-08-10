@@ -115,15 +115,6 @@ html.dark .text-slate-300 {
   color: #cbd5e1 !important;
 }
 
-/* ⚡⚡⚡ [다크모드 전용 핀포인트 최우선 구문] '대여가능' 노란색 버튼 글자색 고정 ⚡⚡⚡ */
-html.dark main button[class*="bg-yellow"],
-html.dark main button[class*="bg-[#FEE500]"],
-html.dark main button[class*="bg-amber"],
-html.dark main button.bg-[#FEE500],
-html.dark main button.bg-yellow-400 {
-  color: #0f172a !important;
-}
-
 /* [다크모드 전용] 배경 및 모달 카드 */
 html.dark .bg-white {
   background-color: #1e293b !important;

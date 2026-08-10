@@ -33,7 +33,6 @@ interface ModalsContainerProps {
   setIsReportModalOpen: (open: boolean) => void;
   fontSize: 'normal' | 'large';
   setFontSize: (size: 'normal' | 'large') => void;
-  // ⚡ 테마 Props 추가 (선택적 사용 지원)
   theme?: 'light' | 'dark';
   setTheme?: (theme: 'light' | 'dark') => void;
   handleLogout: () => void;
@@ -116,11 +115,9 @@ export function ModalsContainer({
   const currentGenres = editingGame?.genres || [];
   const isMaxGenreReached = currentGenres.length >= 3;
 
-  // ⚡ 미확인 / 미처리 건수 계산
   const unreadCount = (reports || []).filter((r: any) => !r.isRead && !r.is_read).length;
   const pendingCount = (reports || []).filter((r: any) => (r.isRead || r.is_read) && r.status !== 'COMPLETED').length;
 
-  // ⚡ [처리완료] 버튼 클릭 시 동작 (PK 칼럼명 report_id 대응 보정)
   const handleCompleteReport = async (report: any) => {
     try {
       const reportId = report.report_id || report.reportId || report.id;
@@ -158,15 +155,15 @@ export function ModalsContainer({
     }
   };
 
-  // ⚡ 공통 배경 오버레이 클래스 (bg-slate-900/40 + 초미세 블러 + will-change 속성 반영)
-  const overlayClass = "absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-all duration-300 ease-out will-change-[backdrop-filter,opacity] transform-gpu";
+  // ⚡ 투명도(opacity)만 150ms 속도로 빠르게 변화시켜 지연 현상 완벽 제거
+  const overlayClass = "absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity duration-150 transform-gpu";
 
   return (
     <>
       {/* 1. 관리자 접수함 */}
-      <div className={`fixed inset-0 z-50 transition-all duration-300 ${isAdminReportDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+      <div className={`fixed inset-0 z-50 transition-all duration-200 ${isAdminReportDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className={overlayClass} onClick={() => setIsAdminReportDrawerOpen(false)} />
-        <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs transition-transform duration-300 ease-out transform-gpu ${isAdminReportDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs transition-transform duration-200 ease-out transform-gpu ${isAdminReportDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className="p-4 bg-sky-400 text-slate-900 flex justify-between items-center font-bold text-base">
             <span className="flex items-center gap-2"><Siren size={18} /> 접수함</span>
             <button onClick={() => setIsAdminReportDrawerOpen(false)} className="p-1 cursor-pointer"><X size={18} /></button>
@@ -205,7 +202,6 @@ export function ModalsContainer({
                         <CheckCircle2 size={13} /> 처리완료
                       </button>
                     ) : (
-                      /* ⚡ 다크모드 '처리완료 됨' 라벨 가독성 보정 */
                       <span className="text-xs text-emerald-600 dark:text-emerald-300 font-bold flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-200/80 dark:border-emerald-700">
                         <Check size={13} /> 처리완료 됨
                       </span>
@@ -231,7 +227,6 @@ export function ModalsContainer({
                       {isUnread ? (
                         <span className="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md flex-shrink-0">미확인</span>
                       ) : isCompleted ? (
-                        /* ⚡ 다크모드 '완료' 목록 뱃지 가독성 보정 */
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0 ${
                           isSelected 
                             ? 'bg-sky-700 text-white' 
@@ -256,19 +251,15 @@ export function ModalsContainer({
       </div>
 
       {/* 2. 설정 드로어 */}
-      <div className={`fixed inset-0 z-50 transition-all duration-300 ${isSettingsOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+      <div className={`fixed inset-0 z-50 transition-all duration-200 ${isSettingsOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className={overlayClass} onClick={() => setIsSettingsOpen(false)} />
-        <div className={`absolute top-0 right-0 h-full w-[40%] min-w-[260px] max-w-[320px] bg-white flex flex-col justify-between shadow-2xl text-slate-900 text-xs transition-transform duration-300 ease-out transform-gpu ${isSettingsOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-          
-          {/* 헤더 */}
+        <div className={`absolute top-0 right-0 h-full w-[40%] min-w-[260px] max-w-[320px] bg-white flex flex-col justify-between shadow-2xl text-slate-900 text-xs transition-transform duration-200 ease-out transform-gpu ${isSettingsOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className="p-4 bg-[#FEE500] text-slate-900 flex justify-between items-center font-bold text-base border-b border-amber-300">
             <span className="flex items-center gap-2"><Settings size={18} /> 설정</span>
             <button onClick={() => setIsSettingsOpen(false)} className="p-1 cursor-pointer hover:bg-black/5 rounded-full transition"><X size={18} /></button>
           </div>
 
-          {/* 리스트 구역 */}
           <div className="flex-1 p-4 overflow-y-auto space-y-4">
-            {/* 계정 설정 */}
             <div className="space-y-1">
               <h4 className="font-bold text-slate-400 text-[11px] px-1 mb-1">계정 설정</h4>
               <button 
@@ -285,7 +276,6 @@ export function ModalsContainer({
 
             <hr className="border-slate-100" />
 
-            {/* 나의 활동 */}
             <div className="space-y-1">
               <h4 className="font-bold text-slate-400 text-[11px] px-1 mb-1">나의 활동</h4>
               <button 
@@ -323,7 +313,6 @@ export function ModalsContainer({
 
             <hr className="border-slate-100" />
 
-            {/* 고객지원 */}
             <div className="space-y-1">
               <h4 className="font-bold text-slate-400 text-[11px] px-1 mb-1">고객 지원</h4>
               <button 
@@ -340,11 +329,9 @@ export function ModalsContainer({
 
             <hr className="border-slate-100" />
 
-            {/* 화면 설정 */}
             <div className="space-y-1">
               <h4 className="font-bold text-slate-400 text-[11px] px-1 mb-1">화면 설정</h4>
               
-              {/* 화면 테마 선택 */}
               <div className="flex justify-between items-center py-1 px-2.5">
                 <div className="flex items-center gap-2.5 text-slate-800 font-bold">
                   {theme === 'dark' ? <Moon size={16} className="text-amber-500" /> : <Sun size={16} className="text-amber-500" />}
@@ -366,7 +353,6 @@ export function ModalsContainer({
                 </div>
               </div>
 
-              {/* 글자 크기 선택 */}
               <div className="flex justify-between items-center py-1 px-2.5">
                 <div className="flex items-center gap-2.5 text-slate-800 font-bold">
                   <Type size={16} className="text-slate-500" />
@@ -391,7 +377,6 @@ export function ModalsContainer({
 
             <hr className="border-slate-100" />
 
-            {/* 로그아웃 버튼 */}
             <div className="pt-1">
               <button 
                 onClick={handleLogout} 
@@ -410,9 +395,9 @@ export function ModalsContainer({
       </div>
 
       {/* 3. 공지사항 목록 */}
-      <div className={`fixed inset-0 z-50 transition-all duration-300 ${isNoticeDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+      <div className={`fixed inset-0 z-50 transition-all duration-200 ${isNoticeDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className={overlayClass} onClick={() => setIsNoticeDrawerOpen(false)} />
-        <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs transition-transform duration-300 ease-out transform-gpu ${isNoticeDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs transition-transform duration-200 ease-out transform-gpu ${isNoticeDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className="p-4 bg-[#FEE500] text-slate-900 flex justify-between items-center font-bold text-base">
             <span className="flex items-center gap-2"><Bell size={18} /> 공지사항 목록</span>
             <button onClick={() => setIsNoticeDrawerOpen(false)} className="p-1 cursor-pointer"><X size={18} /></button>
@@ -437,9 +422,9 @@ export function ModalsContainer({
       </div>
 
       {/* 4. 장바구니 드로어 */}
-      <div className={`fixed inset-0 z-50 transition-all duration-300 ${isCartOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+      <div className={`fixed inset-0 z-50 transition-all duration-200 ${isCartOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className={overlayClass} onClick={() => setIsCartOpen(false)} />
-        <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs transition-transform duration-300 ease-out transform-gpu ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs transition-transform duration-200 ease-out transform-gpu ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className="p-4 bg-[#FEE500] text-slate-900 flex justify-between items-center font-bold text-base">
             <span className="flex items-center gap-1.5"><ShoppingCart size={18} /> 장바구니 ({cart.length} / 3)</span>
             <button onClick={() => setIsCartOpen(false)} className="p-1 cursor-pointer"><X size={18} /></button>

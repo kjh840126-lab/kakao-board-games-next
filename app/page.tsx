@@ -27,6 +27,7 @@ const checkIsIosDevice = () => {
   return /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
 };
 
+// ⚡ 날짜 차이(연체 일수) 계산 함수
 const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   if (!dateStr1 || !dateStr2) return 0;
   const d1 = new Date(dateStr1); 
@@ -71,6 +72,7 @@ export default function MainPage() {
   const [isFavoritesModalOpen, setIsFavoritesModalOpen] = useState(false);
   const [isMyRatingsModalOpen, setIsMyRatingsModalOpen] = useState(false);
 
+  // ⚡ 폰트 크기 상태 초기화 (localStorage 연동)
   const [fontSize, setFontSize] = useState<'normal' | 'large'>(() => {
     if (typeof window !== 'undefined') {
       const savedFont = localStorage.getItem('kakao_bg_fontSize');
@@ -79,6 +81,7 @@ export default function MainPage() {
     return 'normal';
   });
 
+  // ⚡ 폰트 변경 전용 토글 함수 (상태 변경 + localStorage 즉시 저장)
   const handleSetFontSize = useCallback((size: 'normal' | 'large') => {
     setFontSize(size);
     if (typeof window !== 'undefined') {
@@ -86,6 +89,7 @@ export default function MainPage() {
     }
   }, []);
 
+  // ⚡ 다크모드 상태 관리 추가
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('kakao_bg_theme');
@@ -146,6 +150,7 @@ export default function MainPage() {
   const [isIosDevice, setIsIosDevice] = useState(false);
   const scrollPositions = useRef<{ [key: string]: number }>({ games: 0, returns: 0, ranking: 0, sites: 0, admin: 0 });
 
+  // ⚡ 마운트 초기 로드
   useEffect(() => {
     setMounted(true);
     setIsIosDevice(checkIsIosDevice());
@@ -175,6 +180,7 @@ export default function MainPage() {
   const mainScrollRef = useRef<HTMLDivElement | null>(null);
   const today = new Date().toISOString().split('T')[0];
 
+  // ⚡ 테마 및 폰트 크기 동적 반영 Effect
   useEffect(() => {
     if (typeof document !== 'undefined' && mounted) {
       const root = document.documentElement;
@@ -193,6 +199,7 @@ export default function MainPage() {
       root.style.setProperty('--bg-header', isHeaderAdminTheme ? '#38bdf8' : '#FEE500');
       if (metaTheme) metaTheme.setAttribute('content', isHeaderAdminTheme ? '#38bdf8' : '#FEE500');
       
+      // ⚡ 폰트 클래스 토글
       if (isLargeFont) root.classList.add('text-large');
       else root.classList.remove('text-large');
 
@@ -313,7 +320,7 @@ export default function MainPage() {
         })));
       }
 
-      if (reportsData) setReportList(reportsData.map(r => ({ reportId: r.report_id || r.id, userId: r.user_id, category: r.category || '신고/건의', title: r.title, content: r.content, createdAt: r.created_at?.replace('T', ' ').substring(0, 16) || today, isRead: !!r.is_read, status: r.status })));
+      if (reportsData) setReportList(reportsData.map(r => ({ reportId: r.report_id || r.id, userId: r.user_id, category: r.category || '신고/건의', title: r.title, content: r.content, createdAt: r.created_at?.replace('T', ' ').substring(0, 16) || today, isRead: !!r.is_read })));
       if (sitesData) setSiteList(sitesData.map(s => ({ siteId: s.site_id, name: s.name, url: s.url, bannerUrl: s.banner_url || '', description: s.description || '', isVisible: s.is_visible || 'Y' })));
     } catch (e) {
     } finally {
@@ -746,14 +753,7 @@ export default function MainPage() {
 
       {/* 모달 및 드로어 모음 */}
       <ModalsContainer 
-        isAdminReportDrawerOpen={isAdminReportDrawerOpen} 
-        setIsAdminReportDrawerOpen={setIsAdminReportDrawerOpen} 
-        selectedReport={selectedReport} 
-        reports={reports} 
-        setReports={setReportList} 
-        unreadReportsCount={unreadReportsCount} 
-        handleMarkReportAsRead={handleMarkReportAsRead} 
-        handleMarkAllReportsAsRead={handleMarkAllReportsAsRead}
+        isAdminReportDrawerOpen={isAdminReportDrawerOpen} setIsAdminReportDrawerOpen={setIsAdminReportDrawerOpen} selectedReport={selectedReport} reports={reports} unreadReportsCount={unreadReportsCount} handleMarkReportAsRead={handleMarkReportAsRead} handleMarkAllReportsAsRead={handleMarkAllReportsAsRead}
         isSettingsOpen={isSettingsOpen} setIsSettingsOpen={setIsSettingsOpen} currentUser={currentUser} setEditName={setEditName} setNewPasswordInput={setNewPasswordInput} setNewPasswordConfirmInput={setNewPasswordConfirmInput} setIsEditProfileOpen={setIsEditProfileOpen} setIsFavoritesModalOpen={setIsFavoritesModalOpen} setIsMyRatingsModalOpen={setIsMyRatingsModalOpen} userFavorites={userFavorites} favoriteGamesList={favoriteGamesList} myRatingGamesList={myRatingGamesList} setReportForm={setReportForm} setIsReportModalOpen={setIsReportModalOpen} 
         fontSize={fontSize} setFontSize={handleSetFontSize} 
         theme={theme} setTheme={setTheme}

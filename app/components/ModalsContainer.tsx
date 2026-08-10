@@ -255,7 +255,7 @@ export function ModalsContainer({
       {/* 2. 설정 드로어 */}
       <div className={`fixed inset-0 z-50 transition-all duration-300 ${isSettingsOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs" onClick={() => setIsSettingsOpen(false)} />
-        <div className="absolute top-0 right-0 h-full w-[80%] max-w-[320px] bg-white flex flex-col justify-between shadow-2xl text-slate-900 text-xs">
+        <div className="absolute top-0 right-0 h-full w-[40%] max-w-[320px] bg-white flex flex-col justify-between shadow-2xl text-slate-900 text-xs">
           
           {/* 헤더 */}
           <div className="p-4 bg-[#FEE500] text-slate-900 flex justify-between items-center font-bold text-base border-b border-amber-300">

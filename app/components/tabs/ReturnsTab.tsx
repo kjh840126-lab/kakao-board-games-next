@@ -4,10 +4,11 @@ import { memo, useMemo } from 'react';
 import { Rental } from '../../types';
 import { RotateCcw, CheckCircle2, Loader2 } from 'lucide-react';
 
+// ⚡ + 1을 제거하여 정확한 연체 일수(8/9 반납 -> 8/10 오늘 = 1일 연체)로 수정[cite: 3]
 const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   if (!dateStr1 || !dateStr2) return 0;
   const d1 = new Date(dateStr1); const d2 = new Date(dateStr2);
-  return Math.floor((d1.getTime() - d2.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  return Math.floor((d1.getTime() - d2.getTime()) / (1000 * 60 * 60 * 24));
 };
 
 export const ReturnsTab = memo(({ isInitialLoaded, rentals, currentUser, today, returnGame, returnAllGames }: any) => {

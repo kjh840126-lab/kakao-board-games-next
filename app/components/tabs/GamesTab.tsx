@@ -199,7 +199,7 @@ export const GamesTab = memo(({
                         {isSelectedInCart ? '선택취소' : '대여가능'}
                       </button>
                     ) : (
-                      <span className="px-2.5 py-1 rounded-xl font-bold border inline-block text-xs bg-slate-100 text-slate-500 border-slate-200/80">
+                      <span className="px-3.5 py-1 rounded-xl font-bold border inline-block text-xs bg-slate-100 text-slate-500 border-slate-200/80">
                         대여중
                       </span>
                     )}

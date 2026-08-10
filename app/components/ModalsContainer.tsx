@@ -158,7 +158,7 @@ export function ModalsContainer({
     }
   };
 
-  // ⚡ 방법 1 적용: isolate 속성을 부여해 뒤쪽 레이어와 그래픽 연산을 완전히 격리하여 다크모드 외곽선 현상 방지
+  // ⚡ 공통 배경 오버레이 클래스
   const overlayClass = "absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity duration-150 transform-gpu isolate";
 
   return (
@@ -166,14 +166,17 @@ export function ModalsContainer({
       {/* 1. 관리자 접수함 */}
       <div className={`fixed inset-0 z-50 transition-all duration-200 ${isAdminReportDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className={overlayClass} onClick={() => setIsAdminReportDrawerOpen(false)} />
-        <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs transition-transform duration-200 ease-out transform-gpu ${isAdminReportDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-          <div className="p-4 bg-sky-400 text-slate-900 flex justify-between items-center font-bold text-base">
+        <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white dark:bg-white text-slate-900 dark:text-slate-900 text-xs transition-transform duration-200 ease-out transform-gpu ${isAdminReportDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+          
+          {/* ⚡ 접수함 타이틀 헤더 (다크모드 영향 제거 고정 하늘색) */}
+          <div className="p-4 bg-sky-400 dark:bg-sky-400 text-slate-900 dark:text-slate-900 flex justify-between items-center font-bold text-base">
             <span className="flex items-center gap-2"><Siren size={18} /> 접수함</span>
             <button onClick={() => setIsAdminReportDrawerOpen(false)} className="p-1 cursor-pointer"><X size={18} /></button>
           </div>
 
-          <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200/80 flex items-center text-xs">
-            <div className="flex items-center gap-2 text-slate-500 font-medium">
+          {/* ⚡ 요약 영역 (고정 라이트 스타일) */}
+          <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-50 border-b border-slate-200/80 flex items-center text-xs">
+            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-500 font-medium">
               <span className="flex items-center gap-1">
                 <span className="w-3.5 h-3.5 rounded-full bg-amber-500 text-white font-black text-[8px] flex items-center justify-center leading-none">N</span>
                 미확인 <strong className="text-amber-600 font-bold ml-0.5">{unreadCount}</strong>건
@@ -186,7 +189,8 @@ export function ModalsContainer({
             </div>
           </div>
 
-          <div className="flex-1 p-4 overflow-y-auto space-y-4">
+          {/* ⚡ 드로어 본문 목록 영역 */}
+          <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-white dark:bg-white">
             {selectedReport && (() => {
               const sr = selectedReport as any;
               const isSrCompleted = sr.status === 'COMPLETED';
@@ -205,7 +209,7 @@ export function ModalsContainer({
                         <CheckCircle2 size={13} /> 처리완료
                       </button>
                     ) : (
-                      <span className="text-xs text-emerald-600 dark:text-emerald-300 font-bold flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-200/80 dark:border-emerald-700">
+                      <span className="text-xs text-emerald-600 font-bold flex items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/80">
                         <Check size={13} /> 처리완료 됨
                       </span>
                     )}
@@ -233,7 +237,7 @@ export function ModalsContainer({
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0 ${
                           isSelected 
                             ? 'bg-sky-700 text-white' 
-                            : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/90 dark:text-emerald-200 dark:border dark:border-emerald-700'
+                            : 'bg-emerald-100 text-emerald-700'
                         }`}>완료</span>
                       ) : (
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0 ${isSelected ? 'bg-sky-700 text-white' : 'bg-rose-100 text-rose-700'}`}>미처리</span>
@@ -247,7 +251,8 @@ export function ModalsContainer({
             </div>
           </div>
 
-          <div className="p-4 border-t border-slate-200 bg-white">
+          {/* ⚡ 푸터 버튼 (고정 스타일) */}
+          <div className="p-4 border-t border-slate-200 bg-white dark:bg-white">
             <button onClick={() => setIsAdminReportDrawerOpen(false)} className="w-full bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer hover:bg-slate-800">닫기</button>
           </div>
         </div>

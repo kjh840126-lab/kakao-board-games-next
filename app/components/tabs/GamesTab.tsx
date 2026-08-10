@@ -192,8 +192,8 @@ export const GamesTab = memo(({
                         onClick={() => toggleCartItem(game)} 
                         className={`px-3.5 py-[7.5px] rounded-xl font-bold text-xs cursor-pointer ${
                           isSelectedInCart 
-                            ? 'bg-slate-900 text-white !dark:border-none' 
-                            : 'bg-[#FEE500] text-slate-900 dark:bg-amber-850 dark:text-white'
+                            ? 'bg-slate-900 text-white dark:!border-none' 
+                            : 'bg-[#FEE500] text-slate-900 dark:bg-amber-800 dark:text-white'
                         }`}
                       >
                         {isSelectedInCart ? '선택취소' : '대여가능'}

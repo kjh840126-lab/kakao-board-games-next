@@ -27,24 +27,28 @@ const checkIsIosDevice = () => {
   return /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
 };
 
-// ⚡ 날짜 차이(연체 일수) 계산 함수 - 자정 기준 생성 및 Math.round로 버림 오차(-1일) 완벽 방지
+// ⚡ 1. 자정(UTC 00:00:00) 기준 날짜 차이(연체 일수) 정확히 계산
 const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   if (!dateStr1 || !dateStr2) return 0;
   
-  const [y1, m1, d1] = dateStr1.split('-').map(Number);
-  const [y2, m2, d2] = dateStr2.split('-').map(Number);
+  const [y1, m1, d1] = dateStr1.split('T')[0].split('-').map(Number);
+  const [y2, m2, d2] = dateStr2.split('T')[0].split('-').map(Number);
   
-  const date1 = new Date(y1, m1 - 1, d1);
-  const date2 = new Date(y2, m2 - 1, d2);
+  const utc1 = Date.UTC(y1, m1 - 1, d1);
+  const utc2 = Date.UTC(y2, m2 - 1, d2);
   
-  return Math.round((date1.getTime() - date2.getTime()) / (1000 * 60 * 60 * 24));
+  return Math.round((utc1 - utc2) / (1000 * 60 * 60 * 24));
 };
 
-// ⚡ 날짜 객체를 타임존 차감 없이 YYYY-MM-DD 포맷으로 변환하는 함수
-const formatDateToYYYYMMDD = (dateObj: Date) => {
-  const year = dateObj.getFullYear();
-  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const day = String(dateObj.getDate()).padStart(2, '0');
+// ⚡ 2. 자정 기준 대여정지 종료일 정확히 계산 (11일 + 7일 = 18일)
+const calcPenaltyEndDate = (baseDateStr: string, addDays: number) => {
+  const [y, m, d] = baseDateStr.split('T')[0].split('-').map(Number);
+  const targetDate = new Date(y, m - 1, d + addDays);
+  
+  const year = targetDate.getFullYear();
+  const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const day = String(targetDate.getDate()).padStart(2, '0');
+  
   return `${year}-${month}-${day}`;
 };
 
@@ -418,7 +422,7 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 개별 반납 처리 (연체일 오차 및 시차 보정)
+  // ⚡ 개별 반납 처리 (보정된 calcPenaltyEndDate 사용)
   const returnGame = async (rentalId: number, gameId: string) => {
     if (!currentUser) return;
     const nowIso = new Date().toISOString();
@@ -440,13 +444,8 @@ export default function MainPage() {
         const hasFuturePenalty = currentUser.penaltyEndDate && String(currentUser.penaltyEndDate) >= today;
         const baseDateStr = hasFuturePenalty ? String(currentUser.penaltyEndDate) : today;
 
-        const [bYear, bMonth, bDay] = baseDateStr.split('-').map(Number);
-        const penaltyEnd = new Date(bYear, bMonth - 1, bDay);
-        penaltyEnd.setDate(penaltyEnd.getDate() + overdueDays);
-        
-        // ⭕ 로컬 YYYY-MM-DD 포맷 적용
-        const penaltyEndDateStr = formatDateToYYYYMMDD(penaltyEnd);
-
+        // ⭕ 자정 기준 날짜 계산 함수 적용으로 정확한 종료일 산출
+        const penaltyEndDateStr = calcPenaltyEndDate(baseDateStr, overdueDays);
         const newPenaltyPoints = (currentUser.penaltyPoints || 0) + overdueDays;
 
         await supabase
@@ -468,7 +467,7 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 일괄 반납 처리 (연체일 오차 및 시차 보정)
+  // ⚡ 일괄 반납 처리 (보정된 calcPenaltyEndDate 사용)
   const returnAllGames = async () => {
     if (!currentUser) return;
     const userActiveRentals = rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
@@ -500,13 +499,8 @@ export default function MainPage() {
         const hasFuturePenalty = currentUser.penaltyEndDate && String(currentUser.penaltyEndDate) >= today;
         const baseDateStr = hasFuturePenalty ? String(currentUser.penaltyEndDate) : today;
 
-        const [bYear, bMonth, bDay] = baseDateStr.split('-').map(Number);
-        const penaltyEnd = new Date(bYear, bMonth - 1, bDay);
-        penaltyEnd.setDate(penaltyEnd.getDate() + totalOverdueDays);
-        
-        // ⭕ 로컬 YYYY-MM-DD 포맷 적용
-        const penaltyEndDateStr = formatDateToYYYYMMDD(penaltyEnd);
-
+        // ⭕ 자정 기준 날짜 계산 함수 적용으로 정확한 종료일 산출
+        const penaltyEndDateStr = calcPenaltyEndDate(baseDateStr, totalOverdueDays);
         const newPenaltyPoints = (currentUser.penaltyPoints || 0) + totalOverdueDays;
 
         await supabase

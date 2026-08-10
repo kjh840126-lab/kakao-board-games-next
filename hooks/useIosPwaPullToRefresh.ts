@@ -14,39 +14,48 @@ export const useIosPwaPullToRefresh = () => {
       (window.navigator as any).standalone === true || 
       window.matchMedia('(display-mode: standalone)').matches;
 
-    // ⚡ iOS이면서 홈 화면 추가(PWA) 모드일 때만 이벤트 동작! (안드로이드/일반 브라우저 영향 0)
+    // ⚡ iOS PWA 모드가 아니면 완전히 동작 안 함 (안드로이드/일반 브라우저 영향 0%)
     if (!isIos || !isStandalone) return;
 
     let startY = 0;
     let isPulling = false;
 
     const handleTouchStart = (e: TouchEvent) => {
-      if (window.scrollY === 0) {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      // 최상단 근처 스크롤일 때만 감지 시작
+      if (scrollTop <= 5) {
         startY = e.touches[0].clientY;
         isPulling = true;
       }
     };
 
-    const handleTouchEnd = (e: TouchEvent) => {
+    const handleTouchMove = (e: TouchEvent) => {
       if (!isPulling) return;
 
-      const endY = e.changedTouches[0].clientY;
-      const pullDistance = endY - startY;
+      const currentY = e.touches[0].clientY;
+      const pullDistance = currentY - startY;
+      const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
 
-      // 상단에서 아래로 130px 이상 세게 당겼을 때 새로고침 실행
-      if (pullDistance > 130 && window.scrollY === 0) {
+      // ⚡ 터치 이동 중 상단에서 아래로 100px 이상 당겨진 순간 즉시 새로고침 실행!
+      if (pullDistance > 100 && scrollTop <= 5) {
+        isPulling = false; // 중복 실행 방지
         window.location.reload();
       }
+    };
 
+    const handleTouchEnd = () => {
       isPulling = false;
     };
 
-    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+    // iOS 사파리 스크롤 이벤트를 위해 document 레벨 등록
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: true });
+    document.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     return () => {
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
     };
   }, []);
 };

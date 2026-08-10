@@ -73,6 +73,16 @@ export default function MainPage() {
   const [isMyRatingsModalOpen, setIsMyRatingsModalOpen] = useState(false);
 
   const [fontSize, setFontSize] = useState<'normal' | 'large'>('normal');
+
+  // ⚡ 다크모드 상태 관리 추가
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('kakao_bg_theme');
+      if (savedTheme === 'dark' || savedTheme === 'light') return savedTheme;
+    }
+    return 'light';
+  });
+
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAdminReportDrawerOpen, setIsAdminReportDrawerOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<ReportData | null>(null);
@@ -147,18 +157,30 @@ export default function MainPage() {
   const mainScrollRef = useRef<HTMLDivElement | null>(null);
   const today = new Date().toISOString().split('T')[0];
 
+  // ⚡ 테마 토글 동적 반영 Effect
   useEffect(() => {
     if (typeof document !== 'undefined' && mounted) {
       const root = document.documentElement;
       const metaTheme = document.getElementById('theme-color-meta');
-      root.style.setProperty('--bg-main', '#ffffff');
+
+      if (theme === 'dark') {
+        root.classList.add('dark');
+        root.style.setProperty('--bg-main', '#0f172a');
+        document.body.style.backgroundColor = '#0f172a';
+      } else {
+        root.classList.remove('dark');
+        root.style.setProperty('--bg-main', '#ffffff');
+        document.body.style.backgroundColor = '#ffffff';
+      }
+
       root.style.setProperty('--bg-header', isHeaderAdminTheme ? '#38bdf8' : '#FEE500');
-      document.body.style.backgroundColor = '#ffffff';
       if (metaTheme) metaTheme.setAttribute('content', isHeaderAdminTheme ? '#38bdf8' : '#FEE500');
       if (isLargeFont) root.classList.add('text-large');
       else root.classList.remove('text-large');
+
+      localStorage.setItem('kakao_bg_theme', theme);
     }
-  }, [isHeaderAdminTheme, isLargeFont, mounted]);
+  }, [theme, isHeaderAdminTheme, isLargeFont, mounted]);
 
   useEffect(() => { if (mounted) fetchInitialData(); }, [mounted]);
 
@@ -300,7 +322,6 @@ export default function MainPage() {
 
   const removeFromCart = (gameId: string) => setCart(cart.filter((item: Game) => item.gameId !== gameId));
 
-  // 대여 처리 함수 (패널티 존재 시 대여 차단)
   const processCheckout = async () => {
     if (!currentUser) return;
 
@@ -358,7 +379,6 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 개별 반납 (이모티콘 및 '(연장)' 문구 삭제)
   const returnGame = async (rentalId: number, gameId: string) => {
     if (!currentUser) return;
     const nowIso = new Date().toISOString();
@@ -376,7 +396,6 @@ export default function MainPage() {
       const { error: gameErr } = await supabase.from('games').update({ status: '대여가능' }).eq('game_id', gameId);
       if (gameErr) throw gameErr;
 
-      // 연체 시 유저 패널티 및 대여정지일 연장 처리
       if (isOverdue && overdueDays > 0) {
         const hasFuturePenalty = currentUser.penaltyEndDate && String(currentUser.penaltyEndDate) >= today;
         const baseDateStr = hasFuturePenalty ? String(currentUser.penaltyEndDate) : today;
@@ -406,7 +425,6 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 일괄 반납 (이모티콘 및 '(연장)' 문구 삭제)
   const returnAllGames = async () => {
     if (!currentUser) return;
     const userActiveRentals = rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
@@ -699,10 +717,13 @@ export default function MainPage() {
         </div>
       )}
 
-      {/* 모달 및 드로어 모음 */}
+      {/* 모달 및 드로어 모음 (테마 props 전달) */}
       <ModalsContainer 
         isAdminReportDrawerOpen={isAdminReportDrawerOpen} setIsAdminReportDrawerOpen={setIsAdminReportDrawerOpen} selectedReport={selectedReport} reports={reports} unreadReportsCount={unreadReportsCount} handleMarkReportAsRead={handleMarkReportAsRead} handleMarkAllReportsAsRead={handleMarkAllReportsAsRead}
-        isSettingsOpen={isSettingsOpen} setIsSettingsOpen={setIsSettingsOpen} currentUser={currentUser} setEditName={setEditName} setNewPasswordInput={setNewPasswordInput} setNewPasswordConfirmInput={setNewPasswordConfirmInput} setIsEditProfileOpen={setIsEditProfileOpen} setIsFavoritesModalOpen={setIsFavoritesModalOpen} setIsMyRatingsModalOpen={setIsMyRatingsModalOpen} userFavorites={userFavorites} favoriteGamesList={favoriteGamesList} myRatingGamesList={myRatingGamesList} setReportForm={setReportForm} setIsReportModalOpen={setIsReportModalOpen} fontSize={fontSize} setFontSize={setFontSize} handleLogout={handleLogout}
+        isSettingsOpen={isSettingsOpen} setIsSettingsOpen={setIsSettingsOpen} currentUser={currentUser} setEditName={setEditName} setNewPasswordInput={setNewPasswordInput} setNewPasswordConfirmInput={setNewPasswordConfirmInput} setIsEditProfileOpen={setIsEditProfileOpen} setIsFavoritesModalOpen={setIsFavoritesModalOpen} setIsMyRatingsModalOpen={setIsMyRatingsModalOpen} userFavorites={userFavorites} favoriteGamesList={favoriteGamesList} myRatingGamesList={myRatingGamesList} setReportForm={setReportForm} setIsReportModalOpen={setIsReportModalOpen} 
+        fontSize={fontSize} setFontSize={setFontSize} 
+        theme={theme} setTheme={setTheme}
+        handleLogout={handleLogout}
         isNoticeDrawerOpen={isNoticeDrawerOpen} setIsNoticeDrawerOpen={setIsNoticeDrawerOpen} notices={visibleNoticesList} expandedNoticeId={expandedNoticeId} handleNoticeClick={handleNoticeClick}
         isCartOpen={isCartOpen} setIsCartOpen={setIsCartOpen} cart={cart} rentalDays={rentalDays} setRentalDays={setRentalDays} calculateEndDate={calculateEndDate} removeFromCart={removeFromCart} processCheckout={processCheckout}
         isFavoritesModalOpen={isFavoritesModalOpen} toggleFavorite={toggleFavorite}

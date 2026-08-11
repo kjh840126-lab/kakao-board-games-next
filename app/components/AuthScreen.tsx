@@ -31,7 +31,7 @@ export const AuthScreen = ({
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // ⚡ 1단계: Supabase 정석 비밀번호 재설정 OTP 발송 함수 사용
+  // ⚡ 1단계: Supabase signInWithOtp 로 8자리 OTP 발송 요청 (Magic link 템플릿 사용)
   const handleSendResetEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = resetEmail.trim().toLowerCase();
@@ -50,9 +50,10 @@ export const AuthScreen = ({
     setIsSendingCode(true);
 
     try {
-      // ⚡ signInWithOtp 대신 Supabase 정석 비밀번호 재설정 전용 API 사용!
-      // 이 함수를 쓰면 Supabase Auth 서버가 정식 비밀번호 재설정 토큰을 만듭니다.
-      const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail);
+      // ⚡ signInWithOtp 가 Magic link / OTP 템플릿을 사용하여 8자리 번호를 발송합니다.
+      const { error } = await supabase.auth.signInWithOtp({
+        email: cleanEmail,
+      });
 
       if (error) throw error;
 
@@ -65,7 +66,7 @@ export const AuthScreen = ({
     }
   };
 
-  // ⚡ 2단계: Supabase 정석 recovery 타입으로 8자리 OTP 검증
+  // ⚡ 2단계: Supabase email 타입으로 8자리 OTP 검증 및 비밀번호 변경
   const handleVerifyAndChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = resetEmail.trim().toLowerCase();
@@ -83,11 +84,11 @@ export const AuthScreen = ({
     setIsVerifying(true);
 
     try {
-      // ⚡ resetPasswordForEmail 로 발송된 토큰은 type 이 'recovery' 입니다!
+      // ⚡ signInWithOtp 로 발송된 8자리 번호는 type 이 'email' 입니다.
       const { data, error: verifyErr } = await supabase.auth.verifyOtp({
         email: cleanEmail,
         token: resetCode.trim(),
-        type: 'recovery', // 👈 정석 비밀번호 재설정 검증 타입!
+        type: 'email',
       });
 
       if (verifyErr) {

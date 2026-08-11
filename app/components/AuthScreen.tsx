@@ -54,6 +54,9 @@ export const AuthScreen = ({
       // Supabase에서 해당 이메일로 6자리 숫자 OTP 발송
       const { error } = await supabase.auth.signInWithOtp({
         email: cleanEmail,
+        options: {
+          shouldCreateUser: false, // ⚡ 신규 생성 차단 (기존 유저만 인증)
+        },
       });
 
       if (error) throw error;
@@ -85,14 +88,32 @@ export const AuthScreen = ({
     setIsVerifying(true);
 
     try {
-      // 1) 입력한 6자리 인증번호 검증
-      const { error: verifyErr } = await supabase.auth.verifyOtp({
+      // 1) 입력한 6자리 인증번호 검증 (email -> recovery 자동 예외 처리)
+      let verifySuccess = false;
+
+      // 1차 시도: type: 'email'
+      const { error: verifyErr1 } = await supabase.auth.verifyOtp({
         email: cleanEmail,
         token: resetCode.trim(),
         type: 'email',
       });
 
-      if (verifyErr) {
+      if (!verifyErr1) {
+        verifySuccess = true;
+      } else {
+        // 2차 시도: type: 'recovery'
+        const { error: verifyErr2 } = await supabase.auth.verifyOtp({
+          email: cleanEmail,
+          token: resetCode.trim(),
+          type: 'recovery',
+        });
+
+        if (!verifyErr2) {
+          verifySuccess = true;
+        }
+      }
+
+      if (!verifySuccess) {
         throw new Error('인증번호가 올바르지 않거나 만료되었습니다.');
       }
 

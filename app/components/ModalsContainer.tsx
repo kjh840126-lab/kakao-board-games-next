@@ -1,12 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Siren, Settings, Bell, X, ChevronDown, ChevronRight, Heart, Star, User, LogOut, 
-  Type, Calendar, Trash2, Image, Clock, ShoppingCart, CheckCircle2, Check, Sun, Moon 
+  Type, Calendar, Trash2, Image, Clock, ShoppingCart, CheckCircle2, Check, Sun, Moon, Loader2 
 } from 'lucide-react';
 import { Game, Notice, ReportData, BoardSite, UserData } from '../types';
-import { supabase } from '../supabaseClient';
+import { supabase, uploadGameImage } from '../supabaseClient';
 
 interface ModalsContainerProps {
   isAdminReportDrawerOpen: boolean;
@@ -113,12 +113,39 @@ export function ModalsContainer({
   isNoticeModalOpen, setIsNoticeModalOpen, editingNotice, setEditingNotice, saveNotice,
   isSiteModalOpen, setIsSiteModalOpen, editingSite, setEditingSite, saveSite
 }: ModalsContainerProps) {
+  // ⚡ 파일 업로드 중 로딩 상태
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
   const currentGenres = editingGame?.genres || [];
   const isMaxGenreReached = currentGenres.length >= 3;
 
   // ⚡ 미확인 / 미처리 건수 계산
   const unreadCount = (reports || []).filter((r: any) => !r.isRead && !r.is_read).length;
   const pendingCount = (reports || []).filter((r: any) => (r.isRead || r.is_read) && r.status !== 'COMPLETED').length;
+
+  // ⚡ 이미지 파일 직접 선택 시 Supabase Storage 업로드 핸들러
+  const handleGameImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingGame) return;
+
+    // 이미지 파일 크기 제한 (최대 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('이미지 파일 크기는 5MB 이하만 업로드 가능합니다.');
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+      const publicUrl = await uploadGameImage(file);
+      if (publicUrl) {
+        setEditingGame({ ...editingGame, imageUrl: publicUrl });
+      }
+    } catch (err: any) {
+      alert('이미지 업로드 중 오류가 발생했습니다: ' + (err.message || err));
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   // ⚡ [처리완료] 버튼 클릭 시 동작 (PK 칼럼명 report_id 대응 보정)
   const handleCompleteReport = async (report: any) => {
@@ -620,18 +647,21 @@ export function ModalsContainer({
               <button onClick={() => setIsGameModalOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button>
             </div>
             <form onSubmit={saveGame} className="space-y-3">
-              <div>
-                <label className="font-bold block mb-1 flex items-center gap-1"><Image size={13} /> 이미지 URL</label>
-                <div className="flex items-center gap-1.5">
+              {/* ⚡ 파일 업로드 + URL 겸용 이미지 등록 폼 */}
+              <div className="space-y-1.5">
+                <label className="font-bold block flex items-center gap-1"><Image size={13} /> 이미지 등록</label>
+                <div className="flex items-center gap-2">
                   <input
-                    type="url"
-                    placeholder="https://example.com/image.jpg"
-                    value={editingGame.imageUrl}
-                    onChange={(e) => setEditingGame({ ...editingGame, imageUrl: e.target.value })}
-                    className="flex-1 min-w-0 border border-slate-200 p-2.5 rounded-xl text-slate-900 focus:outline-none"
+                    type="file"
+                    accept="image/*"
+                    disabled={isUploadingImage}
+                    onChange={handleGameImageFileChange}
+                    className="flex-1 text-[11px] text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-bold file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer border border-slate-200 rounded-xl p-1 bg-slate-50 min-w-0"
                   />
                   <div className="w-[42px] h-[42px] rounded-xl border border-slate-200 bg-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0 relative shadow-2xs">
-                    {editingGame.imageUrl ? (
+                    {isUploadingImage ? (
+                      <Loader2 size={16} className="animate-spin text-slate-500" />
+                    ) : editingGame.imageUrl ? (
                       <img
                         src={editingGame.imageUrl}
                         alt="미리보기"
@@ -645,6 +675,13 @@ export function ModalsContainer({
                     )}
                   </div>
                 </div>
+                <input
+                  type="url"
+                  placeholder="또는 이미지 URL 직접 입력"
+                  value={editingGame.imageUrl}
+                  onChange={(e) => setEditingGame({ ...editingGame, imageUrl: e.target.value })}
+                  className="w-full border border-slate-200 p-2 rounded-xl text-slate-900 text-xs focus:outline-none"
+                />
               </div>
 
               <div className="flex gap-2">
@@ -701,7 +738,7 @@ export function ModalsContainer({
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-2"><button type="button" onClick={() => setIsGameModalOpen(false)} className="flex-1 bg-slate-100 py-2.5 rounded-xl font-bold text-slate-700 cursor-pointer">취소</button><button type="submit" className="flex-1 bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer">저장</button></div>
+              <div className="flex gap-2 pt-2"><button type="button" onClick={() => setIsGameModalOpen(false)} className="flex-1 bg-slate-100 py-2.5 rounded-xl font-bold text-slate-700 cursor-pointer">취소</button><button type="submit" disabled={isUploadingImage} className="flex-1 bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer disabled:opacity-50">저장</button></div>
             </form>
           </div>
         </div>

@@ -6,6 +6,7 @@ import { supabase } from '../supabaseClient';
 
 export const AuthScreen = ({
   LOGIN_LOGO_URL,
+  LOGIN_LOGO_TEXT_URL,
   authTab,
   setAuthTab,
   loginId,
@@ -260,11 +261,12 @@ export const AuthScreen = ({
                 <label htmlFor="signup-email-prefix" className="font-bold text-slate-900 text-xs block">
                   이메일
                 </label>
+                {/* ⚡ 이메일 입력창: 다른 input과 클래스를 맞춰 다크모드 회색 하이라이트 현상만 방지 */}
                 <input
                   id="signup-email-prefix"
                   name="email"
-                  type="email"
-                  autoComplete="email"
+                  type="text"
+                  autoComplete="off"
                   placeholder="회사 이메일 사용 금지"
                   value={signUpForm.emailPrefix || signUpForm.email || ''}
                   onChange={(e) => {
@@ -325,7 +327,6 @@ export const AuthScreen = ({
                     isPasswordMismatch ? 'border-red-500' : 'border-slate-200'
                   } bg-slate-50/50 text-slate-900 placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs`}
                 />
-                {/* ⚡ 비밀번호 불일치 알림 노출 */}
                 {isPasswordMismatch && (
                   <p className="text-[10px] text-red-500 font-medium mt-1">
                     비밀번호가 일치하지 않습니다.
@@ -350,10 +351,9 @@ export const AuthScreen = ({
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[0.5px]" onClick={handleCloseForgotPassword} />
 
           <div className="relative rounded-3xl w-full max-w-xs overflow-hidden shadow-2xl bg-white text-slate-900 text-xs">
-            {/* ⚡ 노란색 카카오 헤더 로고 교체 */}
-            <div className="bg-[#FEE500] py-4 px-5 flex justify-center items-center relative">
+            <div className="bg-[#FEE500] p-5 flex justify-center items-center relative">
               <img
-                src={LOGIN_LOGO_URL}
+                src={LOGIN_LOGO_TEXT_URL}
                 alt="Kakao Board Games"
                 className="w-44 h-auto object-contain"
                 onError={(e) => {
@@ -380,7 +380,8 @@ export const AuthScreen = ({
                   <div>
                     <label className="font-bold block mb-1 text-slate-800 text-[11px]">가입 이메일 주소</label>
                     <input
-                      type="email"
+                      type="text"
+                      autoComplete="off"
                       required
                       placeholder="이메일 입력"
                       value={resetEmail}
@@ -397,6 +398,7 @@ export const AuthScreen = ({
                     >
                       취소
                     </button>
+                    {/* ⚡ '재설정 메일 발송' 버튼: 카카오 노란색 배경 & 어두운 글자색 지정 */}
                     <button
                       type="submit"
                       disabled={isSendingCode}
@@ -465,7 +467,7 @@ export const AuthScreen = ({
                     <button
                       type="submit"
                       disabled={isVerifying}
-                      className="flex-1 bg-[#FEE500] text-slate-900 py-2.5 rounded-xl font-extrabold cursor-pointer text-xs shadow-xs disabled:opacity-50"
+                      className="flex-1 bg-[#FEE500] hover:bg-[#fada00] text-slate-900 py-2.5 rounded-xl font-extrabold cursor-pointer text-xs shadow-xs disabled:opacity-50"
                     >
                       {isVerifying ? '변경 중...' : '비밀번호 변경'}
                     </button>

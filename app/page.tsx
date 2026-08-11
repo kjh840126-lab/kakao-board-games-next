@@ -17,6 +17,7 @@ import { ShoppingCart, Star } from 'lucide-react';
 
 const ALLOWED_EMAIL_DOMAINS = ['kakaocorp.com', 'kakaoenterprise.com', 'kakaomobility.com', 'kakaopaycorp.com', 'kakaoent.com'];
 const LOGIN_LOGO_URL = '/logo.png';
+const LOGIN_LOGO_TEXT_URL = '/logo_text.png';
 const currentYear = new Date().getFullYear();
 
 const AVAILABLE_GENRES = ['전략게임', '파티게임', '협동게임', '가족게임', '테마/모험', '추리/마피아'];

@@ -30,6 +30,12 @@ export const AuthScreen = ({
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
+  // ⚡ 비밀번호 확인 일치 여부 체크
+  const isPasswordMismatch =
+    signUpForm.passwordConfirm &&
+    signUpForm.password &&
+    signUpForm.password !== signUpForm.passwordConfirm;
+
   // ⚡ 1단계: Supabase OTP 발송
   const handleSendResetEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,11 +170,9 @@ export const AuthScreen = ({
             /* 로그인 폼 */
             <form onSubmit={handleLogin} className="space-y-3">
               <div className="space-y-1">
-                {/* 2. 아이디 타이틀에서 (LDAP) 제거 */}
                 <label htmlFor="login-username" className="font-bold text-slate-900 text-xs block">
                   아이디
                 </label>
-                {/* 1. 마침표(.) 입력 차단 */}
                 <input
                   id="login-username"
                   name="username"
@@ -220,7 +224,6 @@ export const AuthScreen = ({
                 <label htmlFor="signup-username" className="font-bold text-slate-900 text-xs block">
                   아이디
                 </label>
-                {/* 1. 마침표(.) 입력 차단, 3. placeholder: "LDAP 사용 금지" */}
                 <input
                   id="signup-username"
                   name="username"
@@ -239,7 +242,6 @@ export const AuthScreen = ({
                 <label htmlFor="signup-name" className="font-bold text-slate-900 text-xs block">
                   이름
                 </label>
-                {/* 4. placeholder: "실명만 입력 가능" */}
                 <input
                   id="signup-name"
                   name="name"
@@ -258,7 +260,6 @@ export const AuthScreen = ({
                 <label htmlFor="signup-email-prefix" className="font-bold text-slate-900 text-xs block">
                   이메일
                 </label>
-                {/* 6. 도메인 셀렉트 박스 제거 및 단일 이메일 입력창 변경, 7. placeholder: "회사 이메일 사용 금지" */}
                 <input
                   id="signup-email-prefix"
                   name="email"
@@ -289,7 +290,6 @@ export const AuthScreen = ({
                 <label htmlFor="signup-password" className="font-bold text-slate-900 text-xs block">
                   비밀번호
                 </label>
-                {/* 5. placeholder: "LDAP 비밀번호는 사용 금지" */}
                 <input
                   id="signup-password"
                   name="new-password"
@@ -321,8 +321,16 @@ export const AuthScreen = ({
                       passwordConfirm: e.target.value,
                     })
                   }
-                  className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs"
+                  className={`w-full border ${
+                    isPasswordMismatch ? 'border-red-500' : 'border-slate-200'
+                  } bg-slate-50/50 text-slate-900 placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs`}
                 />
+                {/* ⚡ 비밀번호 불일치 알림 노출 */}
+                {isPasswordMismatch && (
+                  <p className="text-[10px] text-red-500 font-medium mt-1">
+                    비밀번호가 일치하지 않습니다.
+                  </p>
+                )}
               </div>
 
               <button
@@ -342,12 +350,20 @@ export const AuthScreen = ({
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[0.5px]" onClick={handleCloseForgotPassword} />
 
           <div className="relative rounded-3xl w-full max-w-xs overflow-hidden shadow-2xl bg-white text-slate-900 text-xs">
-            <div className="bg-[#FEE500] p-5 flex justify-center items-center relative">
-              <img src={LOGIN_LOGO_URL} alt="Kakao Board Games" className="h-20 object-contain" />
+            {/* ⚡ 노란색 카카오 헤더 로고 교체 */}
+            <div className="bg-[#FEE500] py-4 px-5 flex justify-center items-center relative">
+              <img
+                src={LOGIN_LOGO_URL}
+                alt="Kakao Board Games"
+                className="w-44 h-auto object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
               <button
                 type="button"
                 onClick={handleCloseForgotPassword}
-                className="absolute top-3 right-3 text-slate-700 hover:text-slate-900 p-1"
+                className="absolute top-3 right-3 text-slate-700 hover:text-slate-900 p-1 cursor-pointer"
               >
                 <X size={18} />
               </button>

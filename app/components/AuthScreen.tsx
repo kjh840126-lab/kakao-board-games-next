@@ -177,7 +177,7 @@ export const AuthScreen = ({
                   placeholder="아이디 입력"
                   value={loginId}
                   onChange={(e) => setLoginId(e.target.value.toLowerCase().replace(/\./g, ''))}
-                  className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-300 px-3.5 py-2 rounded-xl focus:outline-none focus:bg-white focus:border-slate-900 text-xs transition"
+                  className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 px-3.5 py-2 rounded-xl focus:outline-none focus:bg-white focus:border-slate-900 text-xs transition"
                 />
               </div>
 
@@ -202,7 +202,7 @@ export const AuthScreen = ({
                   placeholder="비밀번호 입력"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-300 px-3.5 py-2 rounded-xl focus:outline-none focus:bg-white focus:border-slate-900 text-xs transition"
+                  className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 px-3.5 py-2 rounded-xl focus:outline-none focus:bg-white focus:border-slate-900 text-xs transition"
                 />
               </div>
 
@@ -231,7 +231,7 @@ export const AuthScreen = ({
                   onChange={(e) =>
                     setSignUpForm({ ...signUpForm, userId: e.target.value.toLowerCase().replace(/\./g, '') })
                   }
-                  className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-300 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs"
+                  className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs"
                 />
               </div>
 
@@ -250,7 +250,7 @@ export const AuthScreen = ({
                   onChange={(e) =>
                     setSignUpForm({ ...signUpForm, name: e.target.value })
                   }
-                  className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-300 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs"
+                  className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs"
                 />
               </div>
 
@@ -274,7 +274,7 @@ export const AuthScreen = ({
                     });
                     if (setIsEmailVerified) setIsEmailVerified(false);
                   }}
-                  className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-300 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs"
+                  className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs"
                 />
                 <button
                   type="button"
@@ -300,7 +300,7 @@ export const AuthScreen = ({
                   onChange={(e) =>
                     setSignUpForm({ ...signUpForm, password: e.target.value })
                   }
-                  className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-300 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs"
+                  className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs"
                 />
               </div>
 
@@ -321,7 +321,7 @@ export const AuthScreen = ({
                       passwordConfirm: e.target.value,
                     })
                   }
-                  className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-300 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs"
+                  className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs"
                 />
               </div>
 
@@ -369,7 +369,7 @@ export const AuthScreen = ({
                       placeholder="이메일 입력"
                       value={resetEmail}
                       onChange={(e) => setResetEmail(e.target.value)}
-                      className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-slate-400 bg-slate-50/50"
+                      className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-slate-400 bg-slate-50/50 placeholder:text-slate-400"
                     />
                   </div>
 
@@ -410,7 +410,7 @@ export const AuthScreen = ({
                       placeholder="123456"
                       value={resetCode}
                       onChange={(e) => setResetCode(e.target.value)}
-                      className="w-full border border-slate-200 p-2 rounded-xl text-center font-mono font-extrabold text-xs tracking-widest bg-slate-50/50 focus:outline-none focus:border-slate-400"
+                      className="w-full border border-slate-200 p-2 rounded-xl text-center font-mono font-extrabold text-xs tracking-widest bg-slate-50/50 focus:outline-none focus:border-slate-400 placeholder:text-slate-400"
                     />
                   </div>
 
@@ -422,7 +422,7 @@ export const AuthScreen = ({
                       placeholder="새 비밀번호 입력"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full border border-slate-200 p-2 rounded-xl text-slate-900 text-xs bg-slate-50/50 focus:outline-none focus:border-slate-400"
+                      className="w-full border border-slate-200 p-2 rounded-xl text-slate-900 text-xs bg-slate-50/50 focus:outline-none focus:border-slate-400 placeholder:text-slate-400"
                     />
                   </div>
 
@@ -434,7 +434,7 @@ export const AuthScreen = ({
                       placeholder="새 비밀번호 재입력"
                       value={newPasswordConfirm}
                       onChange={(e) => setNewPasswordConfirm(e.target.value)}
-                      className="w-full border border-slate-200 p-2 rounded-xl text-slate-900 text-xs bg-slate-50/50 focus:outline-none focus:border-slate-400"
+                      className="w-full border border-slate-200 p-2 rounded-xl text-slate-900 text-xs bg-slate-50/50 focus:outline-none focus:border-slate-400 placeholder:text-slate-400"
                     />
                   </div>
 

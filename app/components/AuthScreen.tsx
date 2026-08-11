@@ -6,7 +6,6 @@ import { supabase } from '../supabaseClient';
 
 export const AuthScreen = ({
   LOGIN_LOGO_URL,
-  LOGIN_LOGO_TEXT_URL,
   authTab,
   setAuthTab,
   loginId,
@@ -353,7 +352,7 @@ export const AuthScreen = ({
           <div className="relative rounded-3xl w-full max-w-xs overflow-hidden shadow-2xl bg-white text-slate-900 text-xs">
             <div className="bg-[#FEE500] p-5 flex justify-center items-center relative">
               <img
-                src={LOGIN_LOGO_TEXT_URL}
+                src="/logo_text.png"
                 alt="Kakao Board Games"
                 className="w-44 h-auto object-contain"
                 onError={(e) => {
@@ -402,7 +401,7 @@ export const AuthScreen = ({
                     <button
                       type="submit"
                       disabled={isSendingCode}
-                      className="flex-1 bg-[#FEE500] hover:bg-[#fada00] text-slate-900 py-2.5 rounded-xl font-extrabold cursor-pointer transition text-xs shadow-xs disabled:opacity-50"
+                      className="flex-1 !bg-[#FEE500] hover:!bg-[#fada00] !text-slate-900 dark:!text-slate-900 py-2.5 rounded-xl font-extrabold cursor-pointer transition text-xs shadow-xs disabled:opacity-50"
                     >
                       {isSendingCode ? '발송 중...' : '재설정 메일 발송'}
                     </button>

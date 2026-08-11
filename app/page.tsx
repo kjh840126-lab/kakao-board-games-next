@@ -739,6 +739,8 @@ export default function MainPage() {
         handleSignUp={handleSignUp}
         setIsEmailVerified={setIsEmailVerified}
         ALLOWED_EMAIL_DOMAINS={ALLOWED_EMAIL_DOMAINS}
+        users={users} // ⚡ 추가: 비밀번호 찾기 이메일 검증용 유저 목록 전달
+        fetchInitialData={fetchInitialData} // ⚡ 추가: 비밀번호 변경 후 최신 데이터 동기화용
       />
     );
   }

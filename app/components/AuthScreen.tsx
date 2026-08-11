@@ -86,8 +86,8 @@ export const AuthScreen = ({
       return;
     }
 
-    if (resetCode.trim().length !== 6) {
-      alert('6자리 인증번호를 정확히 입력해 주세요.');
+    if (resetCode.trim().length !== 8) {
+      alert('8자리 인증번호를 정확히 입력해 주세요.');
       return;
     }
 
@@ -430,15 +430,15 @@ export const AuthScreen = ({
                   </div>
 
                   <p className="text-[10px] text-slate-500 text-center font-medium bg-slate-50 p-1.5 rounded-lg">
-                    <strong className="text-slate-800">{resetEmail}</strong>로 발송된 6자리 번호를 입력하세요.
+                    <strong className="text-slate-800">{resetEmail}</strong>로 발송된 8자리 번호를 입력하세요.
                   </p>
 
                   <div>
-                    <label className="font-bold block mb-0.5 text-slate-800 text-[10px]">인증번호 6자리</label>
+                    <label className="font-bold block mb-0.5 text-slate-800 text-[10px]">인증번호 8자리</label>
                     <input
                       type="text"
                       required
-                      maxLength={6}
+                      maxLength={8}
                       placeholder="123456"
                       value={resetCode}
                       onChange={(e) => setResetCode(e.target.value)}

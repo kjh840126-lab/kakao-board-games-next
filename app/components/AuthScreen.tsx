@@ -31,7 +31,7 @@ export const AuthScreen = ({
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // ⚡ 1단계: 6자리 난수 생성 -> reset_codes DB 저장 -> OTP 메일 발송
+  // ⚡ 1단계: Supabase 정석 비밀번호 재설정 OTP 발송 함수 사용
   const handleSendResetEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = resetEmail.trim().toLowerCase();
@@ -50,24 +50,13 @@ export const AuthScreen = ({
     setIsSendingCode(true);
 
     try {
-      // 1) 6자리 무작위 난수 생성 (예: 748291)
-      const generated6Digits = Math.floor(100000 + Math.random() * 900000).toString();
+      // ⚡ signInWithOtp 대신 Supabase 정석 비밀번호 재설정 전용 API 사용!
+      // 이 함수를 쓰면 Supabase Auth 서버가 정식 비밀번호 재설정 토큰을 만듭니다.
+      const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail);
 
-      // 2) reset_codes 테이블에 저장 (기존 건 덮어쓰기)
-      const { error: dbErr } = await supabase
-        .from('reset_codes')
-        .upsert({ email: cleanEmail, code: generated6Digits, created_at: new Date().toISOString() });
+      if (error) throw error;
 
-      if (dbErr) throw dbErr;
-
-      // 3) Supabase 메일 발송 (템플릿의 {{ .Token }} 자리에 들어감)
-      const { error: mailErr } = await supabase.auth.signInWithOtp({
-        email: cleanEmail,
-      });
-
-      if (mailErr) throw mailErr;
-
-      alert(`'${cleanEmail}' 주소로 6자리 인증번호가 발송되었습니다.`);
+      alert(`'${cleanEmail}' 주소로 인증번호가 발송되었습니다.`);
       setResetStep(2);
     } catch (err: any) {
       alert('인증번호 발송 실패: ' + (err.message || err));
@@ -76,7 +65,7 @@ export const AuthScreen = ({
     }
   };
 
-  // ⚡ 2단계: DB의 reset_codes 와 사용자 입력값 일치 여부 체크 -> 비밀번호 변경
+  // ⚡ 2단계: Supabase 정석 recovery 타입으로 8자리 OTP 검증
   const handleVerifyAndChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = resetEmail.trim().toLowerCase();
@@ -94,32 +83,24 @@ export const AuthScreen = ({
     setIsVerifying(true);
 
     try {
-      // 1) reset_codes 테이블에서 이메일에 해당하는 코드 조회
-      const { data: codeData, error: fetchErr } = await supabase
-        .from('reset_codes')
-        .select('*')
-        .eq('email', cleanEmail)
-        .single();
+      // ⚡ resetPasswordForEmail 로 발송된 토큰은 type 이 'recovery' 입니다!
+      const { data, error: verifyErr } = await supabase.auth.verifyOtp({
+        email: cleanEmail,
+        token: resetCode.trim(),
+        type: 'recovery', // 👈 정석 비밀번호 재설정 검증 타입!
+      });
 
-      if (fetchErr || !codeData) {
-        throw new Error('발송된 인증번호 기록을 찾을 수 없습니다.');
+      if (verifyErr) {
+        throw new Error('인증번호가 올바르지 않거나 만료되었습니다.');
       }
 
-      // 2) 일치 여부 검증
-      if (codeData.code !== resetCode.trim()) {
-        throw new Error('인증번호가 올바르지 않습니다. 다시 확인해 주세요.');
-      }
-
-      // 3) 비밀번호 업데이트
+      // ⚡ 검증 성공 시 커스텀 users 테이블 비밀번호 업데이트
       const { error: updateErr } = await supabase
         .from('users')
         .update({ password_hash: newPassword })
         .eq('email', cleanEmail);
 
       if (updateErr) throw updateErr;
-
-      // 4) 사용한 인증번호 삭제
-      await supabase.from('reset_codes').delete().eq('email', cleanEmail);
 
       alert('비밀번호가 성공적으로 변경되었습니다!\n새 비밀번호로 로그인해 주세요.');
 
@@ -368,7 +349,7 @@ export const AuthScreen = ({
         </div>
       </div>
 
-      {/* 🟡 비밀번호 재설정 모달 */}
+      {/* 🟡 카카오 스타일 비밀번호 재설정 모달 */}
       {isForgotPasswordOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[0.5px]" onClick={handleCloseForgotPassword} />
@@ -439,7 +420,7 @@ export const AuthScreen = ({
                       type="text"
                       required
                       maxLength={8}
-                      placeholder="123456"
+                      placeholder="8자리 번호 입력"
                       value={resetCode}
                       onChange={(e) => setResetCode(e.target.value)}
                       className="w-full border border-slate-200 p-2 rounded-xl text-center font-mono font-extrabold text-xs tracking-widest bg-slate-50/50 focus:outline-none focus:border-slate-400"

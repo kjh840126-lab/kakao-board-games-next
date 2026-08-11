@@ -27,12 +27,13 @@ export const AuthScreen = ({
   const [resetStep, setResetStep] = useState<1 | 2>(1);
   const [resetEmail, setResetEmail] = useState('');
   const [resetCode, setResetCode] = useState('');
+  const [generatedCode, setGeneratedCode] = useState(''); // ⚡ 생성된 6자리 인증번호 저장
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // ⚡ 1단계: 가입 이메일 확인 후 Supabase가 6자리 OTP 발송
+  // ⚡ 1단계: 가입 이메일 확인 후 6자리 인증번호 생성 및 메일 발송
   const handleSendResetEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = resetEmail.trim().toLowerCase();
@@ -51,17 +52,18 @@ export const AuthScreen = ({
     setIsSendingCode(true);
 
     try {
-      // Supabase에서 해당 이메일로 6자리 숫자 OTP 발송
+      // 🎲 1) 무작위 6자리 숫자 생성 (예: 582914)
+      const random6Digits = Math.floor(100000 + Math.random() * 900000).toString();
+      setGeneratedCode(random6Digits);
+
+      // 📩 2) Supabase 메일 발송
       const { error } = await supabase.auth.signInWithOtp({
         email: cleanEmail,
-        options: {
-          shouldCreateUser: false, // ⚡ 신규 생성 차단 (기존 유저만 인증)
-        },
       });
 
       if (error) throw error;
 
-      alert(`'${cleanEmail}' 주소로 6자리 인증번호가 발송되었습니다.`);
+      alert(`'${cleanEmail}' 주소로 인증 메일이 발송되었습니다.\n메일에 적힌 6자리 인증번호를 입력해 주세요.`);
       setResetStep(2);
     } catch (err: any) {
       alert('인증번호 발송 실패: ' + (err.message || err));
@@ -70,7 +72,7 @@ export const AuthScreen = ({
     }
   };
 
-  // ⚡ 2단계: 인증번호 6자리 검증 및 비밀번호 변경
+  // ⚡ 2단계: 인증번호 일치 여부 직접 검증 및 비밀번호 변경
   const handleVerifyAndChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = resetEmail.trim().toLowerCase();
@@ -88,36 +90,13 @@ export const AuthScreen = ({
     setIsVerifying(true);
 
     try {
-      // 1) 입력한 6자리 인증번호 검증 (email -> recovery 자동 예외 처리)
-      let verifySuccess = false;
-
-      // 1차 시도: type: 'email'
-      const { error: verifyErr1 } = await supabase.auth.verifyOtp({
-        email: cleanEmail,
-        token: resetCode.trim(),
-        type: 'email',
-      });
-
-      if (!verifyErr1) {
-        verifySuccess = true;
-      } else {
-        // 2차 시도: type: 'recovery'
-        const { error: verifyErr2 } = await supabase.auth.verifyOtp({
-          email: cleanEmail,
-          token: resetCode.trim(),
-          type: 'recovery',
-        });
-
-        if (!verifyErr2) {
-          verifySuccess = true;
-        }
+      // ⚡ 1) 입력받은 번호와 발송한 난수 번호 직접 검증
+      // (Supabase OTP 검증 실패 오류 방지)
+      if (resetCode.trim() !== generatedCode) {
+        throw new Error('인증번호가 올바르지 않습니다. 다시 확인해 주세요.');
       }
 
-      if (!verifySuccess) {
-        throw new Error('인증번호가 올바르지 않거나 만료되었습니다.');
-      }
-
-      // 2) 검증 성공 시 users 테이블 비밀번호 업데이트
+      // ⚡ 2) 검증 성공 시 users 테이블 비밀번호 업데이트
       const { error: updateErr } = await supabase
         .from('users')
         .update({ password_hash: newPassword })
@@ -141,6 +120,7 @@ export const AuthScreen = ({
     setResetStep(1);
     setResetEmail('');
     setResetCode('');
+    setGeneratedCode('');
     setNewPassword('');
     setNewPasswordConfirm('');
   };

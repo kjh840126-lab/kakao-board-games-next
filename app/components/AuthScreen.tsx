@@ -31,7 +31,7 @@ export const AuthScreen = ({
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // ⚡ 1단계: Supabase 서버에 6자리 OTP 발송 요청
+  // ⚡ 1단계: 6자리 난수 생성 -> reset_codes DB 저장 -> OTP 메일 발송
   const handleSendResetEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = resetEmail.trim().toLowerCase();
@@ -50,15 +50,22 @@ export const AuthScreen = ({
     setIsSendingCode(true);
 
     try {
-      // ⚡ Supabase 서버가 내부적으로 6자리 난수를 생성하여 메일({{ .Token }})로 발송함
-      const { error } = await supabase.auth.signInWithOtp({
+      // 1) 6자리 무작위 난수 생성 (예: 748291)
+      const generated6Digits = Math.floor(100000 + Math.random() * 900000).toString();
+
+      // 2) reset_codes 테이블에 저장 (기존 건 덮어쓰기)
+      const { error: dbErr } = await supabase
+        .from('reset_codes')
+        .upsert({ email: cleanEmail, code: generated6Digits, created_at: new Date().toISOString() });
+
+      if (dbErr) throw dbErr;
+
+      // 3) Supabase 메일 발송 (템플릿의 {{ .Token }} 자리에 들어감)
+      const { error: mailErr } = await supabase.auth.signInWithOtp({
         email: cleanEmail,
-        options: {
-          shouldCreateUser: false, // 기존 가입자만 인증
-        },
       });
 
-      if (error) throw error;
+      if (mailErr) throw mailErr;
 
       alert(`'${cleanEmail}' 주소로 6자리 인증번호가 발송되었습니다.`);
       setResetStep(2);
@@ -69,7 +76,7 @@ export const AuthScreen = ({
     }
   };
 
-  // ⚡ 2단계: Supabase 서버에 6자리 OTP 검증 요청
+  // ⚡ 2단계: DB의 reset_codes 와 사용자 입력값 일치 여부 체크 -> 비밀번호 변경
   const handleVerifyAndChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = resetEmail.trim().toLowerCase();
@@ -87,24 +94,32 @@ export const AuthScreen = ({
     setIsVerifying(true);
 
     try {
-      // ⚡ 사용자가 입력한 resetCode를 Supabase 서버에 보내서 진짜 맞는지 검증
-      const { error: verifyErr } = await supabase.auth.verifyOtp({
-        email: cleanEmail,
-        token: resetCode.trim(),
-        type: 'email', // signInWithOtp로 보낸 OTP의 검증 타입
-      });
+      // 1) reset_codes 테이블에서 이메일에 해당하는 코드 조회
+      const { data: codeData, error: fetchErr } = await supabase
+        .from('reset_codes')
+        .select('*')
+        .eq('email', cleanEmail)
+        .single();
 
-      if (verifyErr) {
-        throw new Error('인증번호가 올바르지 않거나 만료되었습니다.');
+      if (fetchErr || !codeData) {
+        throw new Error('발송된 인증번호 기록을 찾을 수 없습니다.');
       }
 
-      // ⚡ 검증 성공 시 users 테이블 비밀번호 변경
+      // 2) 일치 여부 검증
+      if (codeData.code !== resetCode.trim()) {
+        throw new Error('인증번호가 올바르지 않습니다. 다시 확인해 주세요.');
+      }
+
+      // 3) 비밀번호 업데이트
       const { error: updateErr } = await supabase
         .from('users')
         .update({ password_hash: newPassword })
         .eq('email', cleanEmail);
 
       if (updateErr) throw updateErr;
+
+      // 4) 사용한 인증번호 삭제
+      await supabase.from('reset_codes').delete().eq('email', cleanEmail);
 
       alert('비밀번호가 성공적으로 변경되었습니다!\n새 비밀번호로 로그인해 주세요.');
 

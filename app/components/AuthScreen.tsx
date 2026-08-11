@@ -18,7 +18,6 @@ export const AuthScreen = ({
   handleCheckEmail,
   handleSignUp,
   setIsEmailVerified,
-  ALLOWED_EMAIL_DOMAINS,
   users = [],
   fetchInitialData,
 }: any) => {
@@ -75,7 +74,6 @@ export const AuthScreen = ({
       return;
     }
 
-    // ⚡ 6자리 자릿수 체크
     if (resetCode.trim().length !== 6) {
       alert('6자리 인증번호를 정확히 입력해 주세요.');
       return;
@@ -163,19 +161,22 @@ export const AuthScreen = ({
 
         <div className="p-4">
           {authTab === 'login' ? (
+            /* 로그인 폼 */
             <form onSubmit={handleLogin} className="space-y-3">
               <div className="space-y-1">
+                {/* 2. 아이디 타이틀에서 (LDAP) 제거 */}
                 <label htmlFor="login-username" className="font-bold text-slate-900 text-xs block">
-                  아이디 (LDAP)
+                  아이디
                 </label>
+                {/* 1. 마침표(.) 입력 차단 */}
                 <input
                   id="login-username"
                   name="username"
                   type="text"
                   autoComplete="username"
-                  placeholder="예: user.kakao"
+                  placeholder="아이디 입력"
                   value={loginId}
-                  onChange={(e) => setLoginId(e.target.value.toLowerCase())}
+                  onChange={(e) => setLoginId(e.target.value.toLowerCase().replace(/\./g, ''))}
                   className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-300 px-3.5 py-2 rounded-xl focus:outline-none focus:bg-white focus:border-slate-900 text-xs transition"
                 />
               </div>
@@ -213,20 +214,22 @@ export const AuthScreen = ({
               </button>
             </form>
           ) : (
+            /* 회원가입 폼 */
             <form onSubmit={handleSignUp} className="space-y-2">
               <div className="space-y-0.5">
                 <label htmlFor="signup-username" className="font-bold text-slate-900 text-xs block">
                   아이디
                 </label>
+                {/* 1. 마침표(.) 입력 차단, 3. placeholder: "LDAP 사용 금지" */}
                 <input
                   id="signup-username"
                   name="username"
                   type="text"
                   autoComplete="username"
-                  placeholder="예: user.kakao"
-                  value={signUpForm.userId}
+                  placeholder="LDAP 사용 금지"
+                  value={signUpForm.userId || ''}
                   onChange={(e) =>
-                    setSignUpForm({ ...signUpForm, userId: e.target.value.toLowerCase() })
+                    setSignUpForm({ ...signUpForm, userId: e.target.value.toLowerCase().replace(/\./g, '') })
                   }
                   className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-300 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs"
                 />
@@ -236,13 +239,14 @@ export const AuthScreen = ({
                 <label htmlFor="signup-name" className="font-bold text-slate-900 text-xs block">
                   이름
                 </label>
+                {/* 4. placeholder: "실명만 입력 가능" */}
                 <input
                   id="signup-name"
                   name="name"
                   type="text"
                   autoComplete="name"
-                  placeholder="홍길동"
-                  value={signUpForm.name}
+                  placeholder="실명만 입력 가능"
+                  value={signUpForm.name || ''}
                   onChange={(e) =>
                     setSignUpForm({ ...signUpForm, name: e.target.value })
                   }
@@ -254,42 +258,24 @@ export const AuthScreen = ({
                 <label htmlFor="signup-email-prefix" className="font-bold text-slate-900 text-xs block">
                   이메일
                 </label>
-                <div className="flex gap-1 items-center">
-                  <input
-                    id="signup-email-prefix"
-                    name="email"
-                    type="text"
-                    autoComplete="email"
-                    placeholder="이메일 아이디"
-                    value={signUpForm.emailPrefix}
-                    onChange={(e) => {
-                      setSignUpForm({
-                        ...signUpForm,
-                        emailPrefix: e.target.value.toLowerCase(),
-                      });
-                      setIsEmailVerified(false);
-                    }}
-                    className="flex-1 min-w-0 border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-300 px-2.5 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs"
-                  />
-                  <span className="text-slate-400 font-bold">@</span>
-                  <select
-                    value={signUpForm.emailDomain}
-                    onChange={(e) => {
-                      setSignUpForm({
-                        ...signUpForm,
-                        emailDomain: e.target.value,
-                      });
-                      setIsEmailVerified(false);
-                    }}
-                    className="flex-1 min-w-0 border border-slate-200 bg-slate-50/50 text-slate-900 px-1 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs"
-                  >
-                    {ALLOWED_EMAIL_DOMAINS.map((domain: string) => (
-                      <option key={domain} value={domain}>
-                        {domain}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {/* 6. 도메인 셀렉트 박스 제거 및 단일 이메일 입력창 변경, 7. placeholder: "회사 이메일 사용 금지" */}
+                <input
+                  id="signup-email-prefix"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="회사 이메일 사용 금지"
+                  value={signUpForm.emailPrefix || signUpForm.email || ''}
+                  onChange={(e) => {
+                    setSignUpForm({
+                      ...signUpForm,
+                      emailPrefix: e.target.value.toLowerCase(),
+                      email: e.target.value.toLowerCase(),
+                    });
+                    if (setIsEmailVerified) setIsEmailVerified(false);
+                  }}
+                  className="w-full border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-300 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white focus:border-slate-900 text-xs"
+                />
                 <button
                   type="button"
                   onClick={handleCheckEmail}
@@ -303,13 +289,14 @@ export const AuthScreen = ({
                 <label htmlFor="signup-password" className="font-bold text-slate-900 text-xs block">
                   비밀번호
                 </label>
+                {/* 5. placeholder: "LDAP 비밀번호는 사용 금지" */}
                 <input
                   id="signup-password"
                   name="new-password"
                   type="password"
                   autoComplete="new-password"
-                  placeholder="비밀번호 입력"
-                  value={signUpForm.password}
+                  placeholder="LDAP 비밀번호는 사용 금지"
+                  value={signUpForm.password || ''}
                   onChange={(e) =>
                     setSignUpForm({ ...signUpForm, password: e.target.value })
                   }
@@ -327,7 +314,7 @@ export const AuthScreen = ({
                   type="password"
                   autoComplete="new-password"
                   placeholder="비밀번호 재입력"
-                  value={signUpForm.passwordConfirm}
+                  value={signUpForm.passwordConfirm || ''}
                   onChange={(e) =>
                     setSignUpForm({
                       ...signUpForm,
@@ -379,7 +366,7 @@ export const AuthScreen = ({
                     <input
                       type="email"
                       required
-                      placeholder="user@kakaocorp.com"
+                      placeholder="이메일 입력"
                       value={resetEmail}
                       onChange={(e) => setResetEmail(e.target.value)}
                       className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900 text-xs focus:outline-none focus:border-slate-400 bg-slate-50/50"

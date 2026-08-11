@@ -33,7 +33,6 @@ interface ModalsContainerProps {
   setIsReportModalOpen: (open: boolean) => void;
   fontSize: 'normal' | 'large';
   setFontSize: (size: 'normal' | 'large') => void;
-  // ⚡ 테마 Props 추가 (선택적 사용 지원)
   theme?: 'light' | 'dark';
   setTheme?: (theme: 'light' | 'dark') => void;
   handleLogout: () => void;
@@ -113,22 +112,18 @@ export function ModalsContainer({
   isNoticeModalOpen, setIsNoticeModalOpen, editingNotice, setEditingNotice, saveNotice,
   isSiteModalOpen, setIsSiteModalOpen, editingSite, setEditingSite, saveSite
 }: ModalsContainerProps) {
-  // ⚡ 파일 업로드 중 로딩 상태
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const currentGenres = editingGame?.genres || [];
   const isMaxGenreReached = currentGenres.length >= 3;
 
-  // ⚡ 미확인 / 미처리 건수 계산
   const unreadCount = (reports || []).filter((r: any) => !r.isRead && !r.is_read).length;
   const pendingCount = (reports || []).filter((r: any) => (r.isRead || r.is_read) && r.status !== 'COMPLETED').length;
 
-  // ⚡ 이미지 파일 직접 선택 시 Supabase Storage 업로드 핸들러
   const handleGameImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !editingGame) return;
 
-    // 이미지 파일 크기 제한 (최대 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert('이미지 파일 크기는 5MB 이하만 업로드 가능합니다.');
       return;
@@ -147,7 +142,6 @@ export function ModalsContainer({
     }
   };
 
-  // ⚡ [처리완료] 버튼 클릭 시 동작 (PK 칼럼명 report_id 대응 보정)
   const handleCompleteReport = async (report: any) => {
     try {
       const reportId = report.report_id || report.reportId || report.id;
@@ -185,7 +179,6 @@ export function ModalsContainer({
     }
   };
 
-  // ⚡ 공통 배경 오버레이 클래스
   const overlayClass = "absolute inset-0 bg-slate-900/60 backdrop-blur-[0.5px] transition-opacity duration-150 transform-gpu isolate";
 
   return (
@@ -194,8 +187,6 @@ export function ModalsContainer({
       <div className={`fixed inset-0 z-50 transition-all duration-200 ${isAdminReportDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className={overlayClass} onClick={() => setIsAdminReportDrawerOpen(false)} />
         <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs transition-transform duration-200 ease-out transform-gpu ${isAdminReportDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-          
-          {/* ⚡ 접수함 최상단 타이틀 영역: 인라인 스타일로 배경색(#38bdf8)과 폰트/아이콘 색상(#0f172a)을 라이트 모드와 100% 동일하게 강제 고정 */}
           <div 
             style={{ backgroundColor: '#38bdf8', color: '#0f172a' }} 
             className="p-4 flex justify-between items-center font-bold text-base"
@@ -247,7 +238,6 @@ export function ModalsContainer({
                         <CheckCircle2 size={13} /> 처리완료
                       </button>
                     ) : (
-                      /* ⚡ 다크모드 '처리완료 됨' 라벨 가독성 보정 */
                       <span className="text-xs text-emerald-600 dark:text-emerald-300 font-bold flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-200/80 dark:border-emerald-700">
                         <Check size={13} /> 처리완료 됨
                       </span>
@@ -273,7 +263,6 @@ export function ModalsContainer({
                       {isUnread ? (
                         <span className="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md flex-shrink-0">미확인</span>
                       ) : isCompleted ? (
-                        /* ⚡ 다크모드 '완료' 목록 뱃지 가독성 보정 */
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0 ${
                           isSelected 
                             ? 'bg-sky-700 text-white' 
@@ -647,24 +636,27 @@ export function ModalsContainer({
               <button onClick={() => setIsGameModalOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button>
             </div>
             <form onSubmit={saveGame} className="space-y-3">
-              {/* ⚡ 파일 업로드 이미지 등록 폼 */}
+              {/* ⚡ 파일 업로드 이미지 등록 폼 (미리보기가 URL 입력 행 오른쪽에 배치됨) */}
               <div className="space-y-1.5">
                 <label className="font-bold block flex items-center gap-1"><Image size={13} /> 이미지 등록</label>
+                
+                {/* 1행: 파일 선택 */}
                 <input
-                    type="file"
-                    accept="image/*"
-                    disabled={isUploadingImage}
-                    onChange={handleGameImageFileChange}
-                    className="flex-1 text-[11px] text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-bold file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer border border-slate-200 rounded-xl p-1 bg-slate-50 min-w-0"
-                />  
-                </div>
+                  type="file"
+                  accept="image/*"
+                  disabled={isUploadingImage}
+                  onChange={handleGameImageFileChange}
+                  className="w-full text-[11px] text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-bold file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer border border-slate-200 rounded-xl p-1 bg-slate-50 min-w-0"
+                />
+
+                {/* 2행: URL 입력 + 썸네일 미리보기 */}
                 <div className="flex items-center gap-2">
                   <input
                     type="url"
                     placeholder="또는 이미지 URL 직접 입력"
                     value={editingGame.imageUrl}
                     onChange={(e) => setEditingGame({ ...editingGame, imageUrl: e.target.value })}
-                    className="w-full border border-slate-200 p-2 rounded-xl text-slate-900 text-xs focus:outline-none"
+                    className="flex-1 border border-slate-200 p-2.5 rounded-xl text-slate-900 text-xs focus:outline-none min-w-0"
                   />
                   <div className="w-[42px] h-[42px] rounded-xl border border-slate-200 bg-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0 relative shadow-2xs">
                     {isUploadingImage ? (

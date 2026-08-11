@@ -19,21 +19,19 @@ export const AuthScreen = ({
   handleSignUp,
   setIsEmailVerified,
   ALLOWED_EMAIL_DOMAINS,
-  users = [], // 가입 유저 확인용
+  users = [],
   fetchInitialData,
 }: any) => {
-  // ⚡ 비밀번호 찾기 모달 관련 상태
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
   const [resetStep, setResetStep] = useState<1 | 2>(1);
   const [resetEmail, setResetEmail] = useState('');
   const [resetCode, setResetCode] = useState('');
-  const [generatedCode, setGeneratedCode] = useState(''); // ⚡ 생성된 6자리 인증번호 저장
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // ⚡ 1단계: 가입 이메일 확인 후 6자리 인증번호 생성 및 메일 발송
+  // ⚡ 1단계: Supabase 서버에 6자리 OTP 발송 요청
   const handleSendResetEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = resetEmail.trim().toLowerCase();
@@ -52,18 +50,17 @@ export const AuthScreen = ({
     setIsSendingCode(true);
 
     try {
-      // 🎲 1) 무작위 6자리 숫자 생성 (예: 582914)
-      const random6Digits = Math.floor(100000 + Math.random() * 900000).toString();
-      setGeneratedCode(random6Digits);
-
-      // 📩 2) Supabase 메일 발송
+      // ⚡ Supabase 서버가 내부적으로 6자리 난수를 생성하여 메일({{ .Token }})로 발송함
       const { error } = await supabase.auth.signInWithOtp({
         email: cleanEmail,
+        options: {
+          shouldCreateUser: false, // 기존 가입자만 인증
+        },
       });
 
       if (error) throw error;
 
-      alert(`'${cleanEmail}' 주소로 인증 메일이 발송되었습니다.\n메일에 적힌 6자리 인증번호를 입력해 주세요.`);
+      alert(`'${cleanEmail}' 주소로 6자리 인증번호가 발송되었습니다.`);
       setResetStep(2);
     } catch (err: any) {
       alert('인증번호 발송 실패: ' + (err.message || err));
@@ -72,7 +69,7 @@ export const AuthScreen = ({
     }
   };
 
-  // ⚡ 2단계: 인증번호 일치 여부 직접 검증 및 비밀번호 변경
+  // ⚡ 2단계: Supabase 서버에 6자리 OTP 검증 요청
   const handleVerifyAndChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = resetEmail.trim().toLowerCase();
@@ -90,13 +87,18 @@ export const AuthScreen = ({
     setIsVerifying(true);
 
     try {
-      // ⚡ 1) 입력받은 번호와 발송한 난수 번호 직접 검증
-      // (Supabase OTP 검증 실패 오류 방지)
-      if (resetCode.trim() !== generatedCode) {
-        throw new Error('인증번호가 올바르지 않습니다. 다시 확인해 주세요.');
+      // ⚡ 사용자가 입력한 resetCode를 Supabase 서버에 보내서 진짜 맞는지 검증
+      const { error: verifyErr } = await supabase.auth.verifyOtp({
+        email: cleanEmail,
+        token: resetCode.trim(),
+        type: 'email', // signInWithOtp로 보낸 OTP의 검증 타입
+      });
+
+      if (verifyErr) {
+        throw new Error('인증번호가 올바르지 않거나 만료되었습니다.');
       }
 
-      // ⚡ 2) 검증 성공 시 users 테이블 비밀번호 업데이트
+      // ⚡ 검증 성공 시 users 테이블 비밀번호 변경
       const { error: updateErr } = await supabase
         .from('users')
         .update({ password_hash: newPassword })
@@ -120,7 +122,6 @@ export const AuthScreen = ({
     setResetStep(1);
     setResetEmail('');
     setResetCode('');
-    setGeneratedCode('');
     setNewPassword('');
     setNewPasswordConfirm('');
   };
@@ -128,7 +129,6 @@ export const AuthScreen = ({
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-slate-100 p-4">
       <div className="w-full max-w-xs bg-white rounded-3xl shadow-lg overflow-hidden border border-slate-100">
-        {/* 상단 로고 영역 */}
         <div className="bg-[#FEE500] py-3 px-4 flex flex-col items-center justify-center">
           <img
             src={LOGIN_LOGO_URL}
@@ -140,7 +140,6 @@ export const AuthScreen = ({
           />
         </div>
 
-        {/* 탭 네비게이션 */}
         <div className="flex border-b border-slate-200 bg-slate-50">
           <button
             type="button"
@@ -166,10 +165,8 @@ export const AuthScreen = ({
           </button>
         </div>
 
-        {/* 폼 영역 */}
         <div className="p-4">
           {authTab === 'login' ? (
-            /* 로그인 폼 */
             <form onSubmit={handleLogin} className="space-y-3">
               <div className="space-y-1">
                 <label htmlFor="login-username" className="font-bold text-slate-900 text-xs block">
@@ -220,7 +217,6 @@ export const AuthScreen = ({
               </button>
             </form>
           ) : (
-            /* 회원가입 폼 */
             <form onSubmit={handleSignUp} className="space-y-2">
               <div className="space-y-0.5">
                 <label htmlFor="signup-username" className="font-bold text-slate-900 text-xs block">
@@ -357,13 +353,12 @@ export const AuthScreen = ({
         </div>
       </div>
 
-      {/* 🟡 카카오 스타일 비밀번호 재설정 모달 */}
+      {/* 🟡 비밀번호 재설정 모달 */}
       {isForgotPasswordOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[0.5px]" onClick={handleCloseForgotPassword} />
 
           <div className="relative rounded-3xl w-full max-w-xs overflow-hidden shadow-2xl bg-white text-slate-900 text-xs">
-            {/* 노란색 카카오 헤더 */}
             <div className="bg-[#FEE500] p-5 flex justify-center items-center relative">
               <img src={LOGIN_LOGO_URL} alt="Kakao Board Games" className="h-20 object-contain" />
               <button
@@ -377,7 +372,6 @@ export const AuthScreen = ({
 
             <div className="p-5 pt-4">
               {resetStep === 1 ? (
-                /* STEP 1: 가입 이메일 입력 */
                 <form onSubmit={handleSendResetEmail} className="space-y-3.5">
                   <div className="flex items-center justify-center gap-1.5 text-slate-900 font-extrabold text-sm mb-1">
                     <Mail size={16} />
@@ -414,7 +408,6 @@ export const AuthScreen = ({
                   </div>
                 </form>
               ) : (
-                /* STEP 2: 인증번호 6자리 & 새 비밀번호 입력 */
                 <form onSubmit={handleVerifyAndChangePassword} className="space-y-2.5">
                   <div className="flex items-center justify-center gap-1.5 text-slate-900 font-extrabold text-sm mb-0.5">
                     <Lock size={16} />

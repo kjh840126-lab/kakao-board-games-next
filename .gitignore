@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 보드게임 이미지 로컬 원본 폴더 제외
+game_images/
+game_images/*

@@ -647,16 +647,24 @@ export function ModalsContainer({
               <button onClick={() => setIsGameModalOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button>
             </div>
             <form onSubmit={saveGame} className="space-y-3">
-              {/* ⚡ 파일 업로드 + URL 겸용 이미지 등록 폼 */}
+              {/* ⚡ 파일 업로드 이미지 등록 폼 */}
               <div className="space-y-1.5">
                 <label className="font-bold block flex items-center gap-1"><Image size={13} /> 이미지 등록</label>
-                <div className="flex items-center gap-2">
-                  <input
+                <input
                     type="file"
                     accept="image/*"
                     disabled={isUploadingImage}
                     onChange={handleGameImageFileChange}
                     className="flex-1 text-[11px] text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-bold file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer border border-slate-200 rounded-xl p-1 bg-slate-50 min-w-0"
+                />  
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="url"
+                    placeholder="또는 이미지 URL 직접 입력"
+                    value={editingGame.imageUrl}
+                    onChange={(e) => setEditingGame({ ...editingGame, imageUrl: e.target.value })}
+                    className="w-full border border-slate-200 p-2 rounded-xl text-slate-900 text-xs focus:outline-none"
                   />
                   <div className="w-[42px] h-[42px] rounded-xl border border-slate-200 bg-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0 relative shadow-2xs">
                     {isUploadingImage ? (
@@ -675,13 +683,6 @@ export function ModalsContainer({
                     )}
                   </div>
                 </div>
-                <input
-                  type="url"
-                  placeholder="또는 이미지 URL 직접 입력"
-                  value={editingGame.imageUrl}
-                  onChange={(e) => setEditingGame({ ...editingGame, imageUrl: e.target.value })}
-                  className="w-full border border-slate-200 p-2 rounded-xl text-slate-900 text-xs focus:outline-none"
-                />
               </div>
 
               <div className="flex gap-2">

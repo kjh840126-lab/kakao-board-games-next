@@ -31,7 +31,7 @@ export const AuthScreen = ({
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // ⚡ 1단계: Supabase signInWithOtp 로 8자리 OTP 발송 요청 (Magic link 템플릿 사용)
+  // ⚡ 1단계: Supabase OTP 발송
   const handleSendResetEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = resetEmail.trim().toLowerCase();
@@ -50,14 +50,13 @@ export const AuthScreen = ({
     setIsSendingCode(true);
 
     try {
-      // ⚡ signInWithOtp 가 Magic link / OTP 템플릿을 사용하여 8자리 번호를 발송합니다.
       const { error } = await supabase.auth.signInWithOtp({
         email: cleanEmail,
       });
 
       if (error) throw error;
 
-      alert(`'${cleanEmail}' 주소로 인증번호가 발송되었습니다.`);
+      alert(`'${cleanEmail}' 주소로 6자리 인증번호가 발송되었습니다.`);
       setResetStep(2);
     } catch (err: any) {
       alert('인증번호 발송 실패: ' + (err.message || err));
@@ -66,7 +65,7 @@ export const AuthScreen = ({
     }
   };
 
-  // ⚡ 2단계: Supabase email 타입으로 8자리 OTP 검증 및 비밀번호 변경
+  // ⚡ 2단계: 6자리 OTP 검증 및 비밀번호 변경
   const handleVerifyAndChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = resetEmail.trim().toLowerCase();
@@ -76,16 +75,16 @@ export const AuthScreen = ({
       return;
     }
 
-    if (resetCode.trim().length !== 8) {
-      alert('8자리 인증번호를 정확히 입력해 주세요.');
+    // ⚡ 6자리 자릿수 체크
+    if (resetCode.trim().length !== 6) {
+      alert('6자리 인증번호를 정확히 입력해 주세요.');
       return;
     }
 
     setIsVerifying(true);
 
     try {
-      // ⚡ signInWithOtp 로 발송된 8자리 번호는 type 이 'email' 입니다.
-      const { data, error: verifyErr } = await supabase.auth.verifyOtp({
+      const { error: verifyErr } = await supabase.auth.verifyOtp({
         email: cleanEmail,
         token: resetCode.trim(),
         type: 'email',
@@ -95,7 +94,7 @@ export const AuthScreen = ({
         throw new Error('인증번호가 올바르지 않거나 만료되었습니다.');
       }
 
-      // ⚡ 검증 성공 시 커스텀 users 테이블 비밀번호 업데이트
+      // 비밀번호 업데이트
       const { error: updateErr } = await supabase
         .from('users')
         .update({ password_hash: newPassword })
@@ -350,7 +349,7 @@ export const AuthScreen = ({
         </div>
       </div>
 
-      {/* 🟡 카카오 스타일 비밀번호 재설정 모달 */}
+      {/* 🟡 비밀번호 재설정 모달 */}
       {isForgotPasswordOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[0.5px]" onClick={handleCloseForgotPassword} />
@@ -412,16 +411,16 @@ export const AuthScreen = ({
                   </div>
 
                   <p className="text-[10px] text-slate-500 text-center font-medium bg-slate-50 p-1.5 rounded-lg">
-                    <strong className="text-slate-800">{resetEmail}</strong>로 발송된 8자리 번호를 입력하세요.
+                    <strong className="text-slate-800">{resetEmail}</strong>로 발송된 6자리 번호를 입력하세요.
                   </p>
 
                   <div>
-                    <label className="font-bold block mb-0.5 text-slate-800 text-[10px]">인증번호 8자리</label>
+                    <label className="font-bold block mb-0.5 text-slate-800 text-[10px]">인증번호 6자리</label>
                     <input
                       type="text"
                       required
-                      maxLength={8}
-                      placeholder="8자리 번호 입력"
+                      maxLength={6}
+                      placeholder="123456"
                       value={resetCode}
                       onChange={(e) => setResetCode(e.target.value)}
                       className="w-full border border-slate-200 p-2 rounded-xl text-center font-mono font-extrabold text-xs tracking-widest bg-slate-50/50 focus:outline-none focus:border-slate-400"

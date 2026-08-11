@@ -401,7 +401,7 @@ export const AuthScreen = ({
                     <button
                       type="submit"
                       disabled={isSendingCode}
-                      className="flex-1 bg-[#FEE500] hover:bg-[#fada00] text-slate-900 py-2.5 rounded-xl font-extrabold cursor-pointer transition text-xs shadow-xs disabled:opacity-50 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white"
+                      className="flex-1 border border-slate-700 bg-[#FEE500] hover:bg-[#fada00] text-slate-900 py-2.5 rounded-xl font-extrabold cursor-pointer transition text-xs shadow-xs disabled:opacity-50 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white"
                     >
                       {isSendingCode ? '발송 중...' : '재설정 메일 발송'}
                     </button>

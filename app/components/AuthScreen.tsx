@@ -351,14 +351,7 @@ export const AuthScreen = ({
 
           <div className="relative rounded-3xl w-full max-w-xs overflow-hidden shadow-2xl bg-white text-slate-900 text-xs">
             <div className="bg-[#FEE500] p-5 flex justify-center items-center relative">
-              <img
-                src="/logo_text.png"
-                alt="Kakao Board Games"
-                className="w-44 h-auto object-contain"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
+              
               <button
                 type="button"
                 onClick={handleCloseForgotPassword}

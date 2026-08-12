@@ -139,7 +139,6 @@ export default function MainPage() {
   const [loginId, setLoginId] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
-  // ⚡ [수정] signUpForm 상태에 email 속성 추가
   const [signUpForm, setSignUpForm] = useState({
     userId: '',
     name: '',
@@ -611,7 +610,7 @@ export default function MainPage() {
     if (existing) { 
       alert('이미 사용 중인 이메일입니다.'); 
       setIsEmailVerified(false); 
-      return false; // ❌ 중복 시 false 반환 (AuthScreen 버튼 완료 전환 차단)
+      return false; // ❌ 중복 시 false 반환
     } else { 
       alert('사용 가능한 이메일입니다.'); 
       setIsEmailVerified(true); 
@@ -619,7 +618,7 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ [수정] 회원가입 제출 로직 (입력받은 이메일 주소 그대로 사용)
+  // ⚡ [수정] 회원가입 제출 로직 (Supabase Authentication 계정 등록 추가)
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     const userId = signUpForm.userId.trim().toLowerCase();
@@ -631,7 +630,25 @@ export default function MainPage() {
     if (signUpForm.password !== signUpForm.passwordConfirm) { alert('비밀번호가 일치하지 않습니다.'); return; }
 
     try {
-      const { error } = await supabase.from('users').insert([{ 
+      // ⚡ 1. Supabase Authentication (인증) 계정 가입 (비밀번호 찾기 등에 필수)
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email,
+        password: signUpForm.password,
+        options: {
+          data: {
+            name: name,
+            user_id: userId,
+          },
+        },
+      });
+
+      if (authError) {
+        // 이미 가입된 Auth 계정인 경우 등의 에러 핸들링
+        throw authError;
+      }
+
+      // ⚡ 2. 커스텀 users DB 테이블 저장
+      const { error: dbError } = await supabase.from('users').insert([{ 
         user_id: userId, 
         name: name, 
         email: email, 
@@ -641,14 +658,15 @@ export default function MainPage() {
         last_login_at: today 
       }]);
 
-      if (error) throw error;
+      if (dbError) throw dbError;
+
       alert('회원가입 완료! 로그인해 주세요.'); 
       fetchInitialData(); 
       setAuthTab('login'); 
       setLoginId(userId); 
       setLoginPassword('');
     } catch (err: any) { 
-      alert('회원가입 실패: ' + err.message); 
+      alert('회원가입 실패: ' + (err.message || err)); 
     }
   };
 

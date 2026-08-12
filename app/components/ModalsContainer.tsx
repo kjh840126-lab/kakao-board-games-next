@@ -113,8 +113,8 @@ export function ModalsContainer({
   isSiteModalOpen, setIsSiteModalOpen, editingSite, setEditingSite, saveSite
 }: ModalsContainerProps) {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingNoticeImage, setIsUploadingNoticeImage] = useState(false);
 
-  // ⚡ [TypeScript 에러 수정] 타입 추론 명시(string) 추가[cite: 3]
   const rawGenres = editingGame?.genres;
   const currentGenres: string[] = React.useMemo(() => {
     if (!rawGenres) return [];
@@ -161,6 +161,29 @@ export function ModalsContainer({
       alert('이미지 업로드 중 오류가 발생했습니다: ' + (err.message || err));
     } finally {
       setIsUploadingImage(false);
+    }
+  };
+
+  // ⚡ 공지사항 이미지 파일 업로드 핸들러
+  const handleNoticeImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingNotice) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('이미지 파일 크기는 5MB 이하만 업로드 가능합니다.');
+      return;
+    }
+
+    try {
+      setIsUploadingNoticeImage(true);
+      const publicUrl = await uploadGameImage(file);
+      if (publicUrl) {
+        setEditingNotice({ ...editingNotice, imageUrl: publicUrl });
+      }
+    } catch (err: any) {
+      alert('이미지 업로드 중 오류가 발생했습니다: ' + (err.message || err));
+    } finally {
+      setIsUploadingNoticeImage(false);
     }
   };
 
@@ -452,7 +475,7 @@ export function ModalsContainer({
         </div>
       </div>
 
-      {/* 3. 공지사항 목록 */}
+      {/* 3. 공지사항 목록 드로어 (공지 이미지 노출 지원) */}
       <div className={`fixed inset-0 z-50 transition-all duration-200 ${isNoticeDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className={overlayClass} onClick={() => setIsNoticeDrawerOpen(false)} />
         <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs transition-transform duration-200 ease-out transform-gpu ${isNoticeDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
@@ -470,7 +493,17 @@ export function ModalsContainer({
                     <div className="flex-1 min-w-0"><h3 className="font-extrabold leading-snug break-all text-slate-900 text-xs">{notice.title}</h3><span className="text-slate-400 font-mono mt-1 block text-[10px]">{notice.createdAt}</span></div>
                     <ChevronDown size={18} className={`text-slate-400 transition-transform ${isExpanded ? 'rotate-180 text-amber-500' : ''}`} />
                   </div>
-                  {isExpanded && <div className="px-3.5 pb-4 pt-2 border-t border-slate-200 font-medium leading-relaxed break-all text-slate-600 text-xs"><p className="whitespace-pre-wrap">{notice.content}</p></div>}
+                  {isExpanded && (
+                    <div className="px-3.5 pb-4 pt-2 border-t border-slate-200 font-medium leading-relaxed break-all text-slate-600 text-xs space-y-3">
+                      {/* ⚡ 등록된 공지 이미지가 있다면 표시 */}
+                      {notice.imageUrl && (
+                        <div className="w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+                          <img src={notice.imageUrl} alt={notice.title} className="w-full h-auto object-cover max-h-60" />
+                        </div>
+                      )}
+                      <p className="whitespace-pre-wrap">{notice.content}</p>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -658,11 +691,8 @@ export function ModalsContainer({
               <button onClick={() => setIsGameModalOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button>
             </div>
             <form onSubmit={saveGame} className="space-y-3">
-              {/* ⚡ 파일 업로드 이미지 등록 폼 */}
               <div className="space-y-1.5">
                 <label className="font-bold block flex items-center gap-1"><Image size={13} /> 이미지 등록</label>
-                
-                {/* 1행: 파일 선택 */}
                 <input
                   type="file"
                   accept="image/*"
@@ -671,7 +701,6 @@ export function ModalsContainer({
                   className="w-full text-[11px] text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-bold file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer border border-slate-200 rounded-xl p-1 bg-slate-50 min-w-0"
                 />
 
-                {/* 2행: URL 입력 + 썸네일 미리보기 */}
                 <div className="flex items-center gap-2">
                   <input
                     type="url"
@@ -704,7 +733,6 @@ export function ModalsContainer({
                 <div className="w-[65%]"><label className="font-bold block mb-1">게임명</label><input type="text" required value={editingGame.title} onChange={(e) => setEditingGame({ ...editingGame, title: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
               </div>
 
-              {/* ⚡ [수정 포인트] 숫자를 백스페이스로 다 지웠을 때 0이 남아있지 않고 빈 칸이 되도록 예외 처리[cite: 3] */}
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="font-bold block mb-1">출시년도</label>
@@ -842,7 +870,7 @@ export function ModalsContainer({
         </div>
       )}
 
-      {/* 11. 공지 작성 모달 */}
+      {/* 11. 공지 작성 모달 (이미지 업로드 UI 추가) */}
       {isNoticeModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className={overlayClass} onClick={() => setIsNoticeModalOpen(false)} />
@@ -850,6 +878,41 @@ export function ModalsContainer({
             <div className="flex justify-between items-center pb-2 border-b border-slate-200/20"><h3 className="font-extrabold text-base">{editingNotice.id ? '공지사항 수정' : '공지사항 작성'}</h3><button onClick={() => setIsNoticeModalOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button></div>
             <form onSubmit={saveNotice} className="space-y-3">
               <div><label className="font-bold block mb-1">공지 제목</label><input type="text" required value={editingNotice.title} onChange={(e) => setEditingNotice({ ...editingNotice, title: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
+              
+              {/* ⚡ 공지사항 이미지 업로드 입력 폼 */}
+              <div className="space-y-1.5">
+                <label className="font-bold block flex items-center gap-1"><Image size={13} /> 이미지 첨부 (선택)</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={isUploadingNoticeImage}
+                  onChange={handleNoticeImageFileChange}
+                  className="w-full text-[11px] text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-bold file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer border border-slate-200 rounded-xl p-1 bg-slate-50 min-w-0"
+                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="url"
+                    placeholder="또는 이미지 URL 직접 입력"
+                    value={editingNotice.imageUrl || ''}
+                    onChange={(e) => setEditingNotice({ ...editingNotice, imageUrl: e.target.value })}
+                    className="flex-1 border border-slate-200 p-2.5 rounded-xl text-slate-900 text-xs focus:outline-none min-w-0"
+                  />
+                  <div className="w-[42px] h-[42px] rounded-xl border border-slate-200 bg-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0 relative shadow-2xs">
+                    {isUploadingNoticeImage ? (
+                      <Loader2 size={16} className="animate-spin text-slate-500" />
+                    ) : editingNotice.imageUrl ? (
+                      <img
+                        src={editingNotice.imageUrl}
+                        alt="미리보기"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Image size={16} className="text-slate-300" />
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div><label className="font-bold block mb-1">공지 내용</label><textarea required rows={4} value={editingNotice.content} onChange={(e) => setEditingNotice({ ...editingNotice, content: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900 resize-none"></textarea></div>
               
               <div>
@@ -864,7 +927,7 @@ export function ModalsContainer({
                 </select>
               </div>
 
-              <div className="flex gap-2 pt-2"><button type="button" onClick={() => setIsNoticeModalOpen(false)} className="flex-1 bg-slate-100 py-2.5 rounded-xl font-bold text-slate-700 cursor-pointer">취소</button><button type="submit" className="flex-1 bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer">저장</button></div>
+              <div className="flex gap-2 pt-2"><button type="button" onClick={() => setIsNoticeModalOpen(false)} className="flex-1 bg-slate-100 py-2.5 rounded-xl font-bold text-slate-700 cursor-pointer">취소</button><button type="submit" disabled={isUploadingNoticeImage} className="flex-1 bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer disabled:opacity-50">저장</button></div>
             </form>
           </div>
         </div>

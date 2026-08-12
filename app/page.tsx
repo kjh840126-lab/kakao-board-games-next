@@ -688,15 +688,54 @@ export default function MainPage() {
     }
   };
 
+  // ⚡ [수정] 프로필/비밀번호/이메일 수정 처리 핸들러 (Supabase Auth 연동 포함)
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
-    if (changePassword && changePassword !== changePasswordConfirm) { alert('비밀번호가 일치하지 않습니다.'); return; }
+
+    if (changePassword && changePassword !== changePasswordConfirm) {
+      alert('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    if (changePassword && changePassword.length < 6) {
+      alert('새 비밀번호는 최소 6자리 이상이어야 합니다.');
+      return;
+    }
+
     const updates: any = { name: editName.trim() };
     if (changePassword) updates.password_hash = changePassword;
-    const { error } = await supabase.from('users').update(updates).eq('user_id', currentUser.userId);
-    if (error) alert('수정 실패: ' + error.message);
-    else { alert('수정되었습니다.'); setIsEditProfileOpen(false); setNewPasswordInput(''); setNewPasswordConfirmInput(''); fetchInitialData(); }
+
+    try {
+      // ⚡ 1. Supabase Authentication 계정 정보 동기화
+      const authUpdates: any = {
+        data: { name: editName.trim() },
+      };
+      if (changePassword) {
+        authUpdates.password = changePassword;
+      }
+
+      const { error: authError } = await supabase.auth.updateUser(authUpdates);
+      if (authError) {
+        console.warn('Supabase Auth 업데이트 경고:', authError.message);
+      }
+
+      // ⚡ 2. 커스텀 users DB 테이블 정보 업데이트
+      const { error: dbError } = await supabase
+        .from('users')
+        .update(updates)
+        .eq('user_id', currentUser.userId);
+
+      if (dbError) throw dbError;
+
+      alert('회원정보가 성공적으로 수정되었습니다.');
+      setIsEditProfileOpen(false);
+      setNewPasswordInput('');
+      setNewPasswordConfirmInput('');
+      fetchInitialData();
+    } catch (err: any) {
+      alert('수정 실패: ' + (err.message || err));
+    }
   };
 
   const handleLogout = () => {

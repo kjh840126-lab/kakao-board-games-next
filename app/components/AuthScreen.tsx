@@ -406,11 +406,11 @@ export const AuthScreen = ({
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[0.5px]" onClick={handleCloseForgotPassword} />
 
           <div className="relative rounded-3xl w-full max-w-xs overflow-hidden shadow-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs border dark:border-slate-800">
-            <div className="bg-[#FEE500] py-4 px-5 flex justify-center items-center relative">
+            <div className="bg-[#FEE500] py-4 px-5 flex justify-start items-center relative">
               <img
                 src={"/logo_chun.png"}
                 alt="Kakao Board Games"
-                className="w-44 h-auto object-contain"
+                className="w-22 h-auto object-contain"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
                 }}

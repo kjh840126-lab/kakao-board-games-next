@@ -258,7 +258,7 @@ export const AuthScreen = ({
               {/* 더미 패스워드 필드 (브라우저 자동완성 팝업 차단용) */}
               <input type="password" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
 
-              {/* 아이디 영역 */}
+              {/* ⚡ 아이디 영역: .toLowerCase() 추가로 대문자 입력 시 소문자로 자동 변경 */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-userid" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   아이디
@@ -271,7 +271,7 @@ export const AuthScreen = ({
                   placeholder="LDAP 사용 금지"
                   value={signUpForm.userId || ''}
                   onChange={(e) =>
-                    setSignUpForm({ ...signUpForm, userId: e.target.value })
+                    setSignUpForm({ ...signUpForm, userId: e.target.value.toLowerCase() })
                   }
                   className={`w-full border ${
                     isUsernameHasKorean ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'
@@ -284,7 +284,7 @@ export const AuthScreen = ({
                 )}
               </div>
 
-              {/* ⚡ 이름 영역 (readOnly 속성으로 브라우저 자간 결합 차단 + 한글 외 입력 시 경고) */}
+              {/* 이름 영역 */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-realname" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이름
@@ -312,7 +312,7 @@ export const AuthScreen = ({
                 )}
               </div>
 
-              {/* 이메일 영역 */}
+              {/* ⚡ 이메일 영역: .toLowerCase() 처리 확인 및 보정 */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-email-prefix" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이메일
@@ -325,10 +325,11 @@ export const AuthScreen = ({
                   placeholder="회사 이메일 사용 금지"
                   value={signUpForm.emailPrefix || signUpForm.email || ''}
                   onChange={(e) => {
+                    const lowerEmail = e.target.value.toLowerCase();
                     setSignUpForm({
                       ...signUpForm,
-                      emailPrefix: e.target.value.toLowerCase(),
-                      email: e.target.value.toLowerCase(),
+                      emailPrefix: lowerEmail,
+                      email: lowerEmail,
                     });
                     if (setIsEmailVerified) setIsEmailVerified(false);
                   }}

@@ -395,23 +395,11 @@ export const AuthScreen = ({
                     >
                       취소
                     </button>
-                    {/* ⚡ [강제 CSS 보정] 다크모드 조건부 인라인 스타일로 로그인 버튼의 배경/테두리/폰트 스타일 강제 바인딩 */}
+                    {/* ⚡ [강제 반영] 다크모드에서 로그인 버튼과 동일한 배경색, 외곽선, 텍스트 스타일 적용 */}
                     <button
                       type="submit"
                       disabled={isSendingCode}
-                      style={
-                        typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
-                          ? {
-                              backgroundColor: 'rgba(30, 41, 59, 0.6)',
-                              borderColor: 'rgba(51, 65, 85, 0.8)',
-                              borderWidth: '1px',
-                              borderStyle: 'solid',
-                              color: '#ffffff',
-                              fontWeight: 700,
-                            }
-                          : {}
-                      }
-                      className="flex-1 bg-[#FEE500] hover:bg-[#fada00] text-slate-900 font-extrabold py-2.5 rounded-xl border border-transparent cursor-pointer transition text-xs shadow-xs disabled:opacity-50"
+                      className="flex-1 bg-[#FEE500] dark:bg-slate-800 hover:bg-[#fada00] dark:hover:bg-slate-700 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 cursor-pointer transition text-xs shadow-xs disabled:opacity-50"
                     >
                       {isSendingCode ? '발송 중...' : '재설정 메일 발송'}
                     </button>
@@ -473,22 +461,11 @@ export const AuthScreen = ({
                     >
                       이전
                     </button>
+                    {/* ⚡ 2단계 비밀번호 변경 버튼도 동일하게 다크모드 전용 스타일 지정 */}
                     <button
                       type="submit"
                       disabled={isVerifying}
-                      style={
-                        typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
-                          ? {
-                              backgroundColor: 'rgba(30, 41, 59, 0.6)',
-                              borderColor: 'rgba(51, 65, 85, 0.8)',
-                              borderWidth: '1px',
-                              borderStyle: 'solid',
-                              color: '#ffffff',
-                              fontWeight: 700,
-                            }
-                          : {}
-                      }
-                      className="flex-1 bg-[#FEE500] hover:bg-[#fada00] text-slate-900 font-extrabold py-2.5 rounded-xl border border-transparent cursor-pointer text-xs shadow-xs disabled:opacity-50"
+                      className="flex-1 bg-[#FEE500] dark:bg-slate-800 hover:bg-[#fada00] dark:hover:bg-slate-700 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 cursor-pointer text-xs shadow-xs disabled:opacity-50"
                     >
                       {isVerifying ? '변경 중...' : '비밀번호 변경'}
                     </button>

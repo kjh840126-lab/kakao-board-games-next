@@ -618,7 +618,7 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 회원가입 제출 로직 (비밀번호 6자리 이상 검사 + Supabase Auth 계정 생성)
+  // ⚡ 회원가입 제출 로직 (아이디 사전 중복 검사 + 비밀번호 6자리 검사 + Supabase Auth 계정 생성)
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     const userId = signUpForm.userId.trim().toLowerCase();
@@ -627,6 +627,14 @@ export default function MainPage() {
     const password = signUpForm.password;
 
     if (!userId || !name) { alert('아이디와 이름을 확인하세요.'); return; }
+
+    // ⚡ 아이디 이미 존재 여부 사전 검사 (DB pkey 중복 에러 방지)
+    const isUserIdExists = users.some((u) => u.userId?.toLowerCase() === userId);
+    if (isUserIdExists) {
+      alert('이미 등록된 아이디입니다. 다른 아이디를 입력해 주세요.');
+      return;
+    }
+
     if (!isEmailVerified) { alert('이메일 중복 확인을 해주세요.'); return; }
     
     // ⚡ 비밀번호 6자리 최소 길이 사전 검사 (Supabase Rate Limit 방지)

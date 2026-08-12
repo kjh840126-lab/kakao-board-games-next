@@ -30,7 +30,7 @@ export const AuthScreen = ({
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // ⚡ 아이디 한글 포함 여부 체크 (제출 시 경고용)
+  // ⚡ 아이디 한글 포함 여부 체크 (제출 시 검사용)
   const isUsernameHasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.userId || '');
 
   // ⚡ 비밀번호 확인 일치 여부 체크
@@ -45,21 +45,31 @@ export const AuthScreen = ({
     newPassword &&
     newPassword !== newPasswordConfirm;
 
-  // ⚡ 회원가입 제출 전 검증 래퍼 함수
+  // ⚡ 회원가입 제출 시 유효성 검사 프로세스
   const onSubmitSignUp = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // 1. 아이디 한글 체크
     if (isUsernameHasKorean) {
       alert('아이디에는 한글을 사용할 수 없습니다.');
       return;
     }
 
+    // 2. 이름 한글 외 문자(영문/숫자/특수문자/공백 등) 포함 체크 -> alert 노출
+    const nameValue = signUpForm.name || '';
+    const isNameHasNonKorean = /[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(nameValue);
+    if (isNameHasNonKorean) {
+      alert('이름에는 한글만 입력 가능합니다. (영문, 숫자, 특수문자, 공백 사용 불가)');
+      return;
+    }
+
+    // 3. 비밀번호 일치 체크
     if (isPasswordMismatch) {
       alert('비밀번호가 일치하지 않습니다.');
       return;
     }
 
-    // 검증 통과 시 상위 handleSignUp 호출
+    // 모든 검증 통과 시 상위 handleSignUp 호출
     handleSignUp(e);
   };
 
@@ -271,7 +281,7 @@ export const AuthScreen = ({
                 )}
               </div>
 
-              {/* ⚡ 이름 영역: 한글 외 문자(영어, 숫자, 특수문자, 공백 등) 들어오면 입력 즉시 완전히 차단 */}
+              {/* 이름 영역 (자유롭게 입력 가능, 제출 시 alert 검사) */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-name" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이름
@@ -283,10 +293,9 @@ export const AuthScreen = ({
                   autoComplete="off"
                   placeholder="실명만 입력 가능"
                   value={signUpForm.name || ''}
-                  onChange={(e) => {
-                    const koreanOnly = e.target.value.replace(/[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '');
-                    setSignUpForm({ ...signUpForm, name: koreanOnly });
-                  }}
+                  onChange={(e) =>
+                    setSignUpForm({ ...signUpForm, name: e.target.value })
+                  }
                   className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 text-xs"
                 />
               </div>
@@ -508,7 +517,7 @@ export const AuthScreen = ({
                     <button
                       type="submit"
                       disabled={isVerifying}
-                      className="flex-1 dark:!border-slate-600 bg-[#FEE500] hover:bg-[#fada00] dark:!bg-slate-700 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 transition active:scale-[0.99] cursor-pointer text-xs shadow-xs disabled:opacity-50"
+                      className="flex-1 dark:!border-slate-600 bg-[#FEE500] hover:bg-[#fada00] dark:!bg-slate-700 dark:hover:!bg-slate-700 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 transition active:scale-[0.99] cursor-pointer text-xs shadow-xs disabled:opacity-50"
                     >
                       {isVerifying ? '변경 중...' : '비밀번호 변경'}
                     </button>

@@ -139,9 +139,11 @@ export default function MainPage() {
   const [loginId, setLoginId] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
+  // ⚡ [수정] signUpForm 상태에 email 속성 추가
   const [signUpForm, setSignUpForm] = useState({
     userId: '',
     name: '',
+    email: '',
     emailPrefix: '',
     emailDomain: 'kakaocorp.com',
     password: '',
@@ -165,7 +167,6 @@ export default function MainPage() {
   const [isEditingMode, setIsEditingMode] = useState(false);
   const [isGameModalOpen, setIsGameModalOpen] = useState(false);
   const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
-  // ⚡ [수정] editingNotice 상태에 imageUrl 추가
   const [editingNotice, setEditingNotice] = useState<{ id?: number; title: string; content: string; imageUrl?: string; isVisible?: string }>({ title: '', content: '', imageUrl: '', isVisible: 'Y' });
   const [isSiteModalOpen, setIsSiteModalOpen] = useState(false);
   const [editingSite, setEditingSite] = useState<BoardSite>({ siteId: 0, name: '', url: '', bannerUrl: '', description: '', isVisible: 'Y' });
@@ -336,13 +337,12 @@ export default function MainPage() {
         setGames(shuffled);
       }
 
-      // ⚡ [수정] DB의 image_url을 imageUrl로 확실하게 매핑하여 노출
       if (noticeData) {
         setNoticeList(noticeData.map(n => ({ 
           noticeId: n.notice_id, 
           title: n.title, 
           content: n.content, 
-          imageUrl: n.image_url || n.imageUrl || '', // 👈 추가된 부분
+          imageUrl: n.image_url || n.imageUrl || '',
           isVisible: n.is_visible || 'Y', 
           createdAt: n.created_at?.split('T')[0] || today 
         })));
@@ -596,28 +596,60 @@ export default function MainPage() {
     setCurrentUser(user); localStorage.setItem('kakao_boardgame_user', JSON.stringify(user));
   };
 
-  const handleCheckEmail = async () => {
-    const email = `${signUpForm.emailPrefix.trim()}@${signUpForm.emailDomain}`;
-    if (!signUpForm.emailPrefix.trim()) { alert('이메일 아이디를 입력해 주세요.'); return; }
-    const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (existing) { alert('이미 등록된 이메일 주소입니다.'); setIsEmailVerified(false); } 
-    else { alert('사용 가능한 이메일입니다.'); setIsEmailVerified(true); }
+  // ⚡ [수정] 이메일 중복 확인 검사 로직 (반환값 명시 및 성공/실패 완벽 구분)
+  const handleCheckEmail = async (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    const targetEmail = (signUpForm.email || signUpForm.emailPrefix || '').trim().toLowerCase();
+
+    if (!targetEmail) { 
+      alert('이메일을 입력해 주세요.'); 
+      setIsEmailVerified(false);
+      return false; // ❌ 실패 시 false 반환
+    }
+
+    const existing = users.find(u => u.email?.toLowerCase() === targetEmail);
+    if (existing) { 
+      alert('이미 사용 중인 이메일입니다.'); 
+      setIsEmailVerified(false); 
+      return false; // ❌ 중복 시 false 반환 (AuthScreen 버튼 완료 전환 차단)
+    } else { 
+      alert('사용 가능한 이메일입니다.'); 
+      setIsEmailVerified(true); 
+      return true; // ⭕ 성공 시 true 반환
+    }
   };
 
+  // ⚡ [수정] 회원가입 제출 로직 (입력받은 이메일 주소 그대로 사용)
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     const userId = signUpForm.userId.trim().toLowerCase();
     const name = signUpForm.name.trim();
-    const email = `${signUpForm.emailPrefix.trim()}@${signUpForm.emailDomain}`;
+    const email = (signUpForm.email || signUpForm.emailPrefix || '').trim().toLowerCase();
+
     if (!userId || !name) { alert('아이디와 이름을 확인하세요.'); return; }
     if (!isEmailVerified) { alert('이메일 중복 확인을 해주세요.'); return; }
     if (signUpForm.password !== signUpForm.passwordConfirm) { alert('비밀번호가 일치하지 않습니다.'); return; }
 
     try {
-      const { error } = await supabase.from('users').insert([{ user_id: userId, name: name, email: email, password_hash: signUpForm.password, role: '일반회원', created_at: new Date().toISOString(), last_login_at: today }]);
+      const { error } = await supabase.from('users').insert([{ 
+        user_id: userId, 
+        name: name, 
+        email: email, 
+        password_hash: signUpForm.password, 
+        role: '일반회원', 
+        created_at: new Date().toISOString(), 
+        last_login_at: today 
+      }]);
+
       if (error) throw error;
-      alert('회원가입 완료! 로그인해 주세요.'); fetchInitialData(); setAuthTab('login'); setLoginId(userId); setLoginPassword('');
-    } catch (err: any) { alert('회원가입 실패: ' + err.message); }
+      alert('회원가입 완료! 로그인해 주세요.'); 
+      fetchInitialData(); 
+      setAuthTab('login'); 
+      setLoginId(userId); 
+      setLoginPassword('');
+    } catch (err: any) { 
+      alert('회원가입 실패: ' + err.message); 
+    }
   };
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -727,13 +759,12 @@ export default function MainPage() {
     else { if (currentGenres.length >= 3) { alert('장르는 최대 3개까지 선택할 수 있습니다.'); return; } setEditingGame({ ...editingGame, genres: [...currentGenres, genre] }); }
   };
 
-  // ⚡ [수정] DB로 image_url 저장 전달 구문 보완
   const saveNotice = async (e: React.FormEvent) => {
     e.preventDefault();
     const noticeDataToSave = {
       title: editingNotice.title,
       content: editingNotice.content,
-      image_url: editingNotice.imageUrl || '', // 👈 추가된 부분
+      image_url: editingNotice.imageUrl || '',
       is_visible: editingNotice.isVisible || 'Y',
     };
 
@@ -787,6 +818,7 @@ export default function MainPage() {
         setSignUpForm={setSignUpForm}
         handleCheckEmail={handleCheckEmail}
         handleSignUp={handleSignUp}
+        isEmailVerified={isEmailVerified}
         setIsEmailVerified={setIsEmailVerified}
         ALLOWED_EMAIL_DOMAINS={ALLOWED_EMAIL_DOMAINS}
         users={users}

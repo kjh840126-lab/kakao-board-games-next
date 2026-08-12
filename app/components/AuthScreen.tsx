@@ -31,11 +31,7 @@ export const AuthScreen = ({
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // ⚡ 로컬 상태로 이메일 중복 확인 완료 여부 관리
-  const [localIsEmailVerified, setLocalIsEmailVerified] = useState(false);
-  const isVerified = isEmailVerified || localIsEmailVerified;
-
-  // ⚡ 이메일 중복 확인 클릭 핸들러 (확실한 성공값 true를 받았을 때만 완료 처리)
+  // ⚡ 상위 handleCheckEmail의 반환값이 true일 때만 완료 처리
   const onCheckEmailWrapper = async (e: React.MouseEvent) => {
     e.preventDefault();
     const targetEmail = signUpForm.email || signUpForm.emailPrefix;
@@ -45,27 +41,12 @@ export const AuthScreen = ({
       return;
     }
 
-    try {
-      if (handleCheckEmail) {
-        // 상위 handleCheckEmail 실행
-        const result = await handleCheckEmail(e);
-
-        // ⚡ 핵심 보정: 상위 함수가 명시적으로 true를 반환했거나 
-        // (상위 함수에 return이 없는 경우) res가 undefined가 아니며 예외가 없을 때만 성공 처리
-        // 만약 상위에서 중복/실패로 false를 리턴하거나 유효성 검사 실패 시 절대 완료 처리 안함
-        if (result === false) {
-          setLocalIsEmailVerified(false);
-          if (setIsEmailVerified) setIsEmailVerified(false);
-          return;
-        }
+    if (handleCheckEmail) {
+      const res = await handleCheckEmail(e);
+      // ⭕ 상위 함수가 명확히 true(검사 성공)를 리턴했을 때만 완료 처리
+      if (res === true && setIsEmailVerified) {
+        setIsEmailVerified(true);
       }
-
-      // 상위 함수에서 중복 체크 성공 통과 시만 상태 반영
-      setLocalIsEmailVerified(true);
-      if (setIsEmailVerified) setIsEmailVerified(true);
-    } catch (err) {
-      setLocalIsEmailVerified(false);
-      if (setIsEmailVerified) setIsEmailVerified(false);
     }
   };
 
@@ -360,7 +341,6 @@ export const AuthScreen = ({
                       email: lowerEmail,
                       emailPrefix: lowerEmail,
                     });
-                    setLocalIsEmailVerified(false);
                     if (setIsEmailVerified) setIsEmailVerified(false);
                   }}
                   className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 dark:focus:border-slate-700 text-xs"
@@ -368,14 +348,14 @@ export const AuthScreen = ({
                 <button
                   type="button"
                   onClick={onCheckEmailWrapper}
-                  disabled={isVerified}
+                  disabled={isEmailVerified}
                   className={`w-full mt-1 border text-xs font-bold py-1.5 rounded-lg transition ${
-                    isVerified
+                    isEmailVerified
                       ? 'bg-slate-200 dark:bg-slate-800/40 border-slate-300 dark:border-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
                       : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer'
                   }`}
                 >
-                  {isVerified ? '이메일 중복 확인 완료' : '이메일 중복 확인'}
+                  {isEmailVerified ? '이메일 중복 확인 완료' : '이메일 중복 확인'}
                 </button>
               </div>
 

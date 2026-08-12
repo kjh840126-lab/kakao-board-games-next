@@ -334,7 +334,7 @@ export const AuthScreen = ({
                 />
                 {isNameHasNonKorean && (
                   <p className="text-[10px] text-red-500 font-medium mt-1">
-                    이름은 한글만 입력 가능합니다.
+                    이름은 한글만 입력 가능합니다. (영문, 숫자, 특수문자, 공백 사용 불가)
                   </p>
                 )}
               </div>

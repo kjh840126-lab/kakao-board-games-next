@@ -252,7 +252,7 @@ export const AuthScreen = ({
           ) : (
             /* 회원가입 폼 */
             <form onSubmit={onSubmitSignUp} className="space-y-2">
-              {/* ⚡ 아이디 영역: name="userid" 로 명시 */}
+              {/* 아이디 영역 */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-userid" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   아이디
@@ -278,16 +278,18 @@ export const AuthScreen = ({
                 )}
               </div>
 
-              {/* ⚡ 이름 영역: name="username", autoComplete="username" 으로 명시하여 한글 키보드/실명 활성화 */}
+              {/* ⚡ 이름 영역: 비밀번호 자동완성 팝업 간섭 완전 차단 */}
               <div className="space-y-0.5">
-                <label htmlFor="signup-username" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
+                <label htmlFor="signup-name" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이름
                 </label>
                 <input
-                  id="signup-username"
-                  name="username"
+                  id="signup-name"
+                  name="off_name"
                   type="text"
-                  autoComplete="username"
+                  autoComplete="none"
+                  data-1p-ignore="true"
+                  data-lpignore="true"
                   placeholder="실명만 입력 가능"
                   value={signUpForm.name || ''}
                   onChange={(e) =>

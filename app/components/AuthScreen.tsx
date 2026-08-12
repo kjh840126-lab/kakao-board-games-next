@@ -408,7 +408,7 @@ export const AuthScreen = ({
           <div className="relative rounded-3xl w-full max-w-xs overflow-hidden shadow-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs border dark:border-slate-800">
             <div className="bg-[#FEE500] py-4 px-5 flex justify-center items-center relative">
               <img
-                src={/public/logo_chun.png}
+                src={"/logo_chun.png"}
                 alt="Kakao Board Games"
                 className="w-44 h-auto object-contain"
                 onError={(e) => {

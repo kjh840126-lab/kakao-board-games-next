@@ -35,7 +35,7 @@ export const AuthScreen = ({
   const [localIsEmailVerified, setLocalIsEmailVerified] = useState(false);
   const isVerified = isEmailVerified || localIsEmailVerified;
 
-  // ⚡ 이메일 중복 확인 클릭 핸들러 (실제 검사 성공 시에만 완료 상태 전환)
+  // ⚡ 이메일 중복 확인 클릭 핸들러 (확실한 성공값 true를 받았을 때만 완료 처리)
   const onCheckEmailWrapper = async (e: React.MouseEvent) => {
     e.preventDefault();
     const targetEmail = signUpForm.email || signUpForm.emailPrefix;
@@ -47,15 +47,23 @@ export const AuthScreen = ({
 
     try {
       if (handleCheckEmail) {
-        const res = await handleCheckEmail(e);
-        // 상위 함수에서 실패로 false를 리턴한 경우 버튼 상태를 바꾸지 않음
-        if (res === false) return;
+        // 상위 handleCheckEmail 실행
+        const result = await handleCheckEmail(e);
+
+        // ⚡ 핵심 보정: 상위 함수가 명시적으로 true를 반환했거나 
+        // (상위 함수에 return이 없는 경우) res가 undefined가 아니며 예외가 없을 때만 성공 처리
+        // 만약 상위에서 중복/실패로 false를 리턴하거나 유효성 검사 실패 시 절대 완료 처리 안함
+        if (result === false) {
+          setLocalIsEmailVerified(false);
+          if (setIsEmailVerified) setIsEmailVerified(false);
+          return;
+        }
       }
-      // 성공한 경우에만 완료 상태로 전환
+
+      // 상위 함수에서 중복 체크 성공 통과 시만 상태 반영
       setLocalIsEmailVerified(true);
       if (setIsEmailVerified) setIsEmailVerified(true);
     } catch (err) {
-      // 에러(중복 이메일 등) 발생 시 미검증 상태 유지
       setLocalIsEmailVerified(false);
       if (setIsEmailVerified) setIsEmailVerified(false);
     }
@@ -227,12 +235,12 @@ export const AuthScreen = ({
             /* 로그인 폼 */
             <form onSubmit={handleLogin} className="space-y-3">
               <div className="space-y-1">
-                <label htmlFor="login-userid" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
+                <label htmlFor="login-username" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   아이디
                 </label>
                 <input
-                  id="login-userid"
-                  name="userid"
+                  id="login-username"
+                  name="username"
                   type="text"
                   autoComplete="off"
                   placeholder="아이디 입력"
@@ -281,12 +289,12 @@ export const AuthScreen = ({
 
               {/* 아이디 영역 */}
               <div className="space-y-0.5">
-                <label htmlFor="signup-userid" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
+                <label htmlFor="signup-username" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   아이디
                 </label>
                 <input
-                  id="signup-userid"
-                  name="user_id_field"
+                  id="signup-username"
+                  name="username"
                   type="text"
                   autoComplete="off"
                   placeholder="LDAP 사용 금지"
@@ -307,12 +315,12 @@ export const AuthScreen = ({
 
               {/* 이름 영역 */}
               <div className="space-y-0.5">
-                <label htmlFor="signup-realname" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
+                <label htmlFor="signup-user-fullname" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이름
                 </label>
                 <input
-                  id="signup-realname"
-                  name="real_user_name_input"
+                  id="signup-user-fullname"
+                  name="user-fullname"
                   type="text"
                   readOnly
                   onFocus={(e) => e.target.removeAttribute('readOnly')}
@@ -335,11 +343,11 @@ export const AuthScreen = ({
 
               {/* 이메일 영역 */}
               <div className="space-y-0.5">
-                <label htmlFor="signup-email" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
+                <label htmlFor="signup-email-prefix" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이메일
                 </label>
                 <input
-                  id="signup-email"
+                  id="signup-email-prefix"
                   name="email"
                   type="email"
                   autoComplete="off"

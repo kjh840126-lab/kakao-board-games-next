@@ -474,7 +474,7 @@ export function ModalsContainer({
         </div>
       </div>
 
-      {/* 3. 공지사항 목록 드로어 */}
+      {/* 3. 공지사항 목록 드로어 (공지사항 상단 이미지 최대한 크게 노출) */}
       <div className={`fixed inset-0 z-50 transition-all duration-200 ${isNoticeDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className={overlayClass} onClick={() => setIsNoticeDrawerOpen(false)} />
         <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs transition-transform duration-200 ease-out transform-gpu ${isNoticeDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
@@ -486,7 +486,6 @@ export function ModalsContainer({
             <h4 className="font-bold text-slate-400 text-xs">전체 공지 목록 ({notices.length})</h4>
             {notices.map((notice: Notice) => {
               const isExpanded = expandedNoticeId === notice.noticeId;
-              // ⚡ [수정 포인트] TS2339 에러 회피를 위해 안전하게 타임 캐스팅 처리
               const noticeImgUrl = (notice as any).imageUrl || (notice as any).image_url;
 
               return (
@@ -497,12 +496,17 @@ export function ModalsContainer({
                   </div>
                   {isExpanded && (
                     <div className="px-3.5 pb-4 pt-2 border-t border-slate-200 font-medium leading-relaxed break-all text-slate-600 text-xs space-y-3">
+                      {/* ⚡ [수정 포인트] 등록된 공지 이미지를 텍스트 상단에 제한 없이 최대한 크게 꽉 차게 노출 */}
                       {noticeImgUrl && (
-                        <div className="w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
-                          <img src={noticeImgUrl} alt={notice.title} className="w-full h-auto object-cover max-h-60" />
+                        <div className="w-full rounded-xl overflow-hidden border border-slate-200/80 bg-slate-100 shadow-2xs">
+                          <img 
+                            src={noticeImgUrl} 
+                            alt={notice.title} 
+                            className="w-full h-auto object-contain max-h-[70vh] block" 
+                          />
                         </div>
                       )}
-                      <p className="whitespace-pre-wrap">{notice.content}</p>
+                      <p className="whitespace-pre-wrap leading-normal text-slate-800 font-semibold">{notice.content}</p>
                     </div>
                   )}
                 </div>
@@ -880,7 +884,6 @@ export function ModalsContainer({
             <form onSubmit={saveNotice} className="space-y-3">
               <div><label className="font-bold block mb-1">공지 제목</label><input type="text" required value={editingNotice.title} onChange={(e) => setEditingNotice({ ...editingNotice, title: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
               
-              {/* 이미지 파일 및 URL 입력 구문 */}
               <div className="space-y-1.5">
                 <label className="font-bold block flex items-center gap-1"><Image size={13} /> 이미지 첨부 (선택)</label>
                 <input

@@ -395,16 +395,11 @@ export const AuthScreen = ({
                     >
                       취소
                     </button>
-                    {/* ⚡ [강제 스타일 보정] 다크 모드일 때 인라인 스타일로 로그인 버튼과 100% 동일한 CSS 부여 */}
+                    {/* ⚡ [완벽 보정] 다크모드 시 취소 버튼 및 로그인 버튼과 동일한 불투명 slate-800 배경으로 확실하게 고정 */}
                     <button
                       type="submit"
                       disabled={isSendingCode}
-                      style={{
-                        backgroundColor: typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? '#1e293b' : undefined,
-                        borderColor: typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? '#334155' : undefined,
-                        color: typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? '#ffffff' : undefined,
-                      }}
-                      className="flex-1 bg-[#FEE500] hover:bg-[#fada00] text-slate-900 font-extrabold py-2.5 rounded-xl border border-transparent transition active:scale-[0.99] cursor-pointer text-xs shadow-xs disabled:opacity-50"
+                      className="flex-1 bg-[#FEE500] hover:bg-[#fada00] dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 transition active:scale-[0.99] cursor-pointer text-xs shadow-xs disabled:opacity-50"
                     >
                       {isSendingCode ? '발송 중...' : '재설정 메일 발송'}
                     </button>
@@ -469,12 +464,7 @@ export const AuthScreen = ({
                     <button
                       type="submit"
                       disabled={isVerifying}
-                      style={{
-                        backgroundColor: typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? '#1e293b' : undefined,
-                        borderColor: typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? '#334155' : undefined,
-                        color: typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? '#ffffff' : undefined,
-                      }}
-                      className="flex-1 bg-[#FEE500] hover:bg-[#fada00] text-slate-900 font-extrabold py-2.5 rounded-xl border border-transparent transition active:scale-[0.99] cursor-pointer text-xs shadow-xs disabled:opacity-50"
+                      className="flex-1 bg-[#FEE500] hover:bg-[#fada00] dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 transition active:scale-[0.99] cursor-pointer text-xs shadow-xs disabled:opacity-50"
                     >
                       {isVerifying ? '변경 중...' : '비밀번호 변경'}
                     </button>

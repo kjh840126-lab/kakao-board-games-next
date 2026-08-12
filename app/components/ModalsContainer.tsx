@@ -22,6 +22,8 @@ interface ModalsContainerProps {
   setIsSettingsOpen: (open: boolean) => void;
   currentUser: UserData | null;
   setEditName: (name: string) => void;
+  editEmail?: string;
+  setEditEmail?: (email: string) => void;
   setNewPasswordInput: (pwd: string) => void;
   setNewPasswordConfirmInput: (pwd: string) => void;
   setIsEditProfileOpen: (open: boolean) => void;
@@ -100,7 +102,7 @@ interface ModalsContainerProps {
 
 export function ModalsContainer({
   isAdminReportDrawerOpen, setIsAdminReportDrawerOpen, selectedReport, reports, setReports, unreadReportsCount, handleMarkReportAsRead, handleMarkAllReportsAsRead,
-  isSettingsOpen, setIsSettingsOpen, currentUser, setEditName, setNewPasswordInput, setNewPasswordConfirmInput, setIsEditProfileOpen, setIsFavoritesModalOpen, setIsMyRatingsModalOpen, userFavorites, myRatingGamesList, setReportForm, setIsReportModalOpen, fontSize, setFontSize, theme = 'light', setTheme, handleLogout,
+  isSettingsOpen, setIsSettingsOpen, currentUser, setEditName, editEmail, setEditEmail, setNewPasswordInput, setNewPasswordConfirmInput, setIsEditProfileOpen, setIsFavoritesModalOpen, setIsMyRatingsModalOpen, userFavorites, myRatingGamesList, setReportForm, setIsReportModalOpen, fontSize, setFontSize, theme = 'light', setTheme, handleLogout,
   isNoticeDrawerOpen, setIsNoticeDrawerOpen, notices, expandedNoticeId, handleNoticeClick,
   isCartOpen, setIsCartOpen, cart, rentalDays, setRentalDays, calculateEndDate, removeFromCart, processCheckout,
   isFavoritesModalOpen, favoriteGamesList, toggleFavorite,
@@ -114,6 +116,12 @@ export function ModalsContainer({
 }: ModalsContainerProps) {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingNoticeImage, setIsUploadingNoticeImage] = useState(false);
+
+  // ⚡ 비밀번호 변경 입력값 불일치 여부 감지
+  const isProfilePasswordMismatch =
+    Boolean(changePassword) &&
+    Boolean(changePasswordConfirm) &&
+    changePassword !== changePasswordConfirm;
 
   const rawGenres = editingGame?.genres;
   const currentGenres: string[] = React.useMemo(() => {
@@ -343,7 +351,16 @@ export function ModalsContainer({
             <div className="space-y-1">
               <h4 className="font-bold text-slate-400 text-[11px] px-1 mb-1">계정 설정</h4>
               <button 
-                onClick={() => { if (currentUser) { setEditName(currentUser.name); setNewPasswordInput(''); setNewPasswordConfirmInput(''); setIsEditProfileOpen(true); setIsSettingsOpen(false); } }} 
+                onClick={() => { 
+                  if (currentUser) { 
+                    setEditName(currentUser.name); 
+                    if (setEditEmail) setEditEmail(currentUser.email || '');
+                    setNewPasswordInput(''); 
+                    setNewPasswordConfirmInput(''); 
+                    setIsEditProfileOpen(true); 
+                    setIsSettingsOpen(false); 
+                  } 
+                }} 
                 className="w-full py-2.5 px-2.5 rounded-xl text-left flex justify-between items-center cursor-pointer hover:bg-slate-100 text-slate-800 font-normal transition"
               >
                 <div className="flex items-center gap-2.5">
@@ -505,7 +522,6 @@ export function ModalsContainer({
                           />
                         </div>
                       )}
-                      {/* ⚡ [수정 포인트] font-semibold 제거하여 공지 내용 볼드체 해제 */}
                       <p className="whitespace-pre-wrap leading-normal text-slate-800 font-normal">{notice.content}</p>
                     </div>
                   )}
@@ -669,14 +685,58 @@ export function ModalsContainer({
               <button onClick={() => setIsEditProfileOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button>
             </div>
             <form onSubmit={handleSaveProfile} className="space-y-3.5">
-              <div><label className="font-bold block mb-1 text-slate-400">아이디 (LDAP)</label><input type="text" disabled value={currentUser.userId} className="w-full border border-slate-200 p-2.5 rounded-xl font-mono bg-slate-100 text-slate-500" /></div>
-              <div><label className="font-bold block mb-1 text-slate-400">이메일</label><input type="text" disabled value={currentUser.email} className="w-full border border-slate-200 p-2.5 rounded-xl bg-slate-100 text-slate-500" /></div>
-              <div><label className="font-bold block mb-1">이름</label><input type="text" required value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
+              {/* ⚡ 1. 아이디 항목에서 (LDAP) 텍스트 제거 */}
+              <div>
+                <label className="font-bold block mb-1 text-slate-400">아이디</label>
+                <input type="text" disabled value={currentUser.userId} className="w-full border border-slate-200 p-2.5 rounded-xl font-mono bg-slate-100 text-slate-500" />
+              </div>
+
+              {/* ⚡ 2. 이메일 항목 수정 가능하도록 활성화 */}
+              <div>
+                <label className="font-bold block mb-1">이메일</label>
+                <input 
+                  type="email" 
+                  required 
+                  value={editEmail !== undefined ? editEmail : (currentUser.email || '')} 
+                  onChange={(e) => setEditEmail && setEditEmail(e.target.value)} 
+                  className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900 focus:outline-none focus:border-slate-400" 
+                />
+              </div>
+
+              {/* 이름 항목 */}
+              <div>
+                <label className="font-bold block mb-1">이름</label>
+                <input type="text" required value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900 focus:outline-none focus:border-slate-400" />
+              </div>
+
+              {/* 비밀번호 변경 영역 */}
               <div className="pt-2 border-t border-slate-200/20 space-y-2">
                 <label className="font-bold block text-slate-400">비밀번호 변경 (선택)</label>
-                <input type="password" placeholder="새 비밀번호 입력" value={changePassword} onChange={(e) => setNewPasswordInput(e.target.value)} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" />
-                <input type="password" placeholder="새 비밀번호 재입력" value={changePasswordConfirm} onChange={(e) => setNewPasswordConfirmInput(e.target.value)} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" />
+                <input 
+                  type="password" 
+                  placeholder="새 비밀번호 입력" 
+                  value={changePassword} 
+                  onChange={(e) => setNewPasswordInput(e.target.value)} 
+                  className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900 focus:outline-none focus:border-slate-400" 
+                />
+                <input 
+                  type="password" 
+                  placeholder="새 비밀번호 재입력" 
+                  value={changePasswordConfirm} 
+                  onChange={(e) => setNewPasswordConfirmInput(e.target.value)} 
+                  className={`w-full border ${
+                    isProfilePasswordMismatch ? 'border-red-500' : 'border-slate-200'
+                  } p-2.5 rounded-xl text-slate-900 focus:outline-none focus:border-slate-400`} 
+                />
+                
+                {/* ⚡ 3. 비밀번호 재입력 불일치 시 안내문구 노출 */}
+                {isProfilePasswordMismatch && (
+                  <p className="text-[10px] text-red-500 font-medium mt-1">
+                    비밀번호가 일치하지 않습니다.
+                  </p>
+                )}
               </div>
+
               <div className="flex gap-2 pt-2">
                 <button type="button" onClick={() => setIsEditProfileOpen(false)} className="flex-1 bg-slate-100 text-slate-700 py-2.5 rounded-xl font-bold cursor-pointer">취소</button>
                 <button type="submit" className="flex-1 bg-slate-900 text-white py-2.5 rounded-xl font-bold cursor-pointer">저장하기</button>

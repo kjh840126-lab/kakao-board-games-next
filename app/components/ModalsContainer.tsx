@@ -164,7 +164,6 @@ export function ModalsContainer({
     }
   };
 
-  // ⚡ 공지사항 전용 업로드 함수(uploadNoticeImage) 호출
   const handleNoticeImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !editingNotice) return;
@@ -506,7 +505,8 @@ export function ModalsContainer({
                           />
                         </div>
                       )}
-                      <p className="whitespace-pre-wrap leading-normal text-slate-800 font-semibold">{notice.content}</p>
+                      {/* ⚡ [수정 포인트] font-semibold 제거하여 공지 내용 볼드체 해제 */}
+                      <p className="whitespace-pre-wrap leading-normal text-slate-800 font-normal">{notice.content}</p>
                     </div>
                   )}
                 </div>

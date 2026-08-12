@@ -31,13 +31,25 @@ export const AuthScreen = ({
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // ⚡ 이메일 중복 확인 실행 래퍼 함수 (성공 시 버튼 상태 변경)
+  // ⚡ 이메일 중복 확인 실행 핸들러 (실행 후 상위 검사 함수 호출 및 상태 강제 반영)
   const onCheckEmailWrapper = async (e: React.MouseEvent) => {
-    if (handleCheckEmail) {
-      const isSuccess = await handleCheckEmail(e);
-      // 상위 함수에서 리턴이 없거나 성공인 경우 setIsEmailVerified(true) 호출
-      if (isSuccess !== false && setIsEmailVerified) {
+    e.preventDefault();
+    if (!signUpForm.emailPrefix && !signUpForm.email) {
+      alert('이메일을 입력해 주세요.');
+      return;
+    }
+
+    try {
+      if (handleCheckEmail) {
+        await handleCheckEmail(e);
+      }
+      // 중복 확인 처리 후 에러 없이 통과하면 완료 상태로 변경
+      if (setIsEmailVerified) {
         setIsEmailVerified(true);
+      }
+    } catch (err) {
+      if (setIsEmailVerified) {
+        setIsEmailVerified(false);
       }
     }
   };
@@ -347,7 +359,7 @@ export const AuthScreen = ({
                   }}
                   className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 dark:focus:border-slate-700 text-xs"
                 />
-                {/* ⚡ 클릭 시 이메일 검사 실행 후 성공하면 버튼 완료 처리 */}
+                {/* ⚡ 이메일 중복 확인 버튼 */}
                 <button
                   type="button"
                   onClick={onCheckEmailWrapper}

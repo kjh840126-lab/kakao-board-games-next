@@ -30,12 +30,15 @@ export const AuthScreen = ({
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
+  // ⚡ 맥북/PC 한글 IME 조합 중 상태 관리 (조합 중에 리렌더링으로 입력이 깨지는 현상 방지)
+  const [isComposing, setIsComposing] = useState(false);
+
   // ⚡ 1. 회원가입 유효성 검사 (안내 문구 노출 및 제출 차단용)
   // 아이디 한글 포함 여부 체크
   const isUsernameHasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.userId || '');
 
-  // ⚡ 이름 한글 외 문자 포함 여부 체크 (맥북 한글 조합 중 자음/모음 ㄱ-ㅎ, ㅏ-ㅣ 보정)
-  const isNameHasNonKorean = signUpForm.name
+  // ⚡ 조합 중이 아닐 때만 한글 외 문자 포함 여부 체크 (맥북 입력 씹힘 원인 원천 차단)
+  const isNameHasNonKorean = !isComposing && signUpForm.name
     ? /[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.name)
     : false;
 
@@ -60,7 +63,9 @@ export const AuthScreen = ({
       return;
     }
 
-    if (isNameHasNonKorean) {
+    // 제출 시점에 최종 검사
+    const hasNonKoreanFinal = signUpForm.name ? /[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.name) : false;
+    if (hasNonKoreanFinal) {
       alert('이름은 한글만 입력 가능합니다.');
       return;
     }
@@ -283,7 +288,7 @@ export const AuthScreen = ({
                 )}
               </div>
 
-              {/* 이름 영역 (PC/맥북 한글 조합 입력 이벤트 보정 반영) */}
+              {/* 이름 영역 (PC/맥북 한글 IME 조합 중 입력 끊김 완벽 보정) */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-name" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이름
@@ -295,10 +300,12 @@ export const AuthScreen = ({
                   autoComplete="off"
                   placeholder="실명만 입력 가능"
                   value={signUpForm?.name ?? ''}
+                  onCompositionStart={() => setIsComposing(true)}
+                  onCompositionEnd={(e: any) => {
+                    setIsComposing(false);
+                    setSignUpForm({ ...signUpForm, name: e.target.value });
+                  }}
                   onChange={(e) =>
-                    setSignUpForm({ ...signUpForm, name: e.target.value })
-                  }
-                  onCompositionEnd={(e: any) =>
                     setSignUpForm({ ...signUpForm, name: e.target.value })
                   }
                   className={`w-full border ${
@@ -530,7 +537,7 @@ export const AuthScreen = ({
                     <button
                       type="submit"
                       disabled={isVerifying}
-                      className="flex-1 dark:!border-slate-600 bg-[#FEE500] hover:bg-[#fada00] dark:!bg-slate-700 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 transition active:scale-[0.99] cursor-pointer text-xs shadow-xs disabled:opacity-50"
+                      className="flex-1 dark:!border-slate-600 bg-[#FEE500] hover:bg-[#fada00] dark:!bg-slate-700 dark:hover:!bg-slate-700 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 transition active:scale-[0.99] cursor-pointer text-xs shadow-xs disabled:opacity-50"
                     >
                       {isVerifying ? '변경 중...' : '비밀번호 변경'}
                     </button>

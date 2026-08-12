@@ -117,11 +117,41 @@ export function ModalsContainer({
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingNoticeImage, setIsUploadingNoticeImage] = useState(false);
 
+  // ⚡ 이름 한글 외 문자(영문, 숫자, 특수문자, 공백) 포함 여부 실시간 검사
+  const isNameHasNonKorean = editName
+    ? /[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(editName)
+    : false;
+
+  // ⚡ 새 비밀번호 6자리 미만 실시간 검사
+  const isPasswordTooShort = changePassword && changePassword.length < 6;
+
   // ⚡ 비밀번호 변경 입력값 불일치 여부 감지
   const isProfilePasswordMismatch =
     Boolean(changePassword) &&
     Boolean(changePasswordConfirm) &&
     changePassword !== changePasswordConfirm;
+
+  // ⚡ 내 정보 수정 제출 핸들러 (클라이언트 유효성 검사 차단)
+  const onSubmitProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (isNameHasNonKorean) {
+      alert('이름은 한글만 입력 가능합니다. (영문, 숫자, 특수문자, 공백 사용 불가)');
+      return;
+    }
+
+    if (isPasswordTooShort) {
+      alert('새 비밀번호는 최소 6자리 이상이어야 합니다.');
+      return;
+    }
+
+    if (isProfilePasswordMismatch) {
+      alert('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    handleSaveProfile(e);
+  };
 
   const rawGenres = editingGame?.genres;
   const currentGenres: string[] = React.useMemo(() => {
@@ -684,8 +714,8 @@ export function ModalsContainer({
               <h3 className="font-extrabold text-base flex items-center gap-2"><User size={18} /> 내 정보 / 비밀번호 변경</h3>
               <button onClick={() => setIsEditProfileOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button>
             </div>
-            <form onSubmit={handleSaveProfile} className="space-y-3.5">
-              {/* ⚡ 1. 아이디 항목 다크모드 visual 보정 (disabled 스타일 명확화) */}
+            <form onSubmit={onSubmitProfile} className="space-y-3.5">
+              {/* 1. 아이디 항목 (수정 불가) */}
               <div>
                 <label className="font-bold block mb-1 text-slate-400">아이디</label>
                 <input 
@@ -696,50 +726,77 @@ export function ModalsContainer({
                 />
               </div>
 
-              {/* ⚡ 2. 이메일 항목 수정 가능하도록 활성화 */}
+              {/* ⚡ 2. 이메일 항목 비활성화 (수정 불가) */}
               <div>
-                <label className="font-bold block mb-1">이메일</label>
+                <label className="font-bold block mb-1 text-slate-400">이메일</label>
                 <input 
                   type="email" 
-                  required 
-                  value={editEmail !== undefined ? editEmail : (currentUser.email || '')} 
-                  onChange={(e) => setEditEmail && setEditEmail(e.target.value)} 
-                  className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900 focus:outline-none focus:border-slate-400" 
+                  disabled 
+                  readOnly
+                  value={currentUser.email || ''} 
+                  className="w-full border border-slate-200 dark:border-slate-700/60 p-2.5 rounded-xl bg-slate-100 dark:!bg-slate-800/80 text-slate-500 dark:!text-slate-400 cursor-not-allowed select-none opacity-80" 
                 />
               </div>
 
-              {/* 이름 항목 */}
+              {/* ⚡ 3. 이름 항목 (한글 외 문자 실시간 경고 노출) */}
               <div>
                 <label className="font-bold block mb-1">이름</label>
-                <input type="text" required value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900 focus:outline-none focus:border-slate-400" />
-              </div>
-
-              {/* 비밀번호 변경 영역 */}
-              <div className="pt-2 border-t border-slate-200/20 space-y-2">
-                <label className="font-bold block text-slate-400">비밀번호 변경 (선택)</label>
                 <input 
-                  type="password" 
-                  placeholder="새 비밀번호 입력" 
-                  value={changePassword} 
-                  onChange={(e) => setNewPasswordInput(e.target.value)} 
-                  className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900 focus:outline-none focus:border-slate-400" 
-                />
-                <input 
-                  type="password" 
-                  placeholder="새 비밀번호 재입력" 
-                  value={changePasswordConfirm} 
-                  onChange={(e) => setNewPasswordConfirmInput(e.target.value)} 
+                  type="text" 
+                  required 
+                  placeholder="실명만 입력 가능"
+                  value={editName} 
+                  onChange={(e) => setEditName(e.target.value)} 
                   className={`w-full border ${
-                    isProfilePasswordMismatch ? 'border-red-500' : 'border-slate-200'
+                    isNameHasNonKorean ? 'border-red-500' : 'border-slate-200'
                   } p-2.5 rounded-xl text-slate-900 focus:outline-none focus:border-slate-400`} 
                 />
-                
-                {/* ⚡ 3. 비밀번호 재입력 불일치 시 안내문구 노출 */}
-                {isProfilePasswordMismatch && (
+                {isNameHasNonKorean && (
                   <p className="text-[10px] text-red-500 font-medium mt-1">
-                    비밀번호가 일치하지 않습니다.
+                    이름은 한글만 입력 가능합니다. (영문, 숫자, 특수문자, 공백 사용 불가)
                   </p>
                 )}
+              </div>
+
+              {/* ⚡ 4. 비밀번호 변경 영역 (6자 이상 & 불일치 실시간 경고 노출) */}
+              <div className="pt-2 border-t border-slate-200/20 space-y-2">
+                <label className="font-bold block text-slate-400">비밀번호 변경 (선택)</label>
+                
+                {/* 새 비밀번호 */}
+                <div>
+                  <input 
+                    type="password" 
+                    placeholder="새 비밀번호 입력 (최소 6자리)" 
+                    value={changePassword} 
+                    onChange={(e) => setNewPasswordInput(e.target.value)} 
+                    className={`w-full border ${
+                      isPasswordTooShort ? 'border-red-500' : 'border-slate-200'
+                    } p-2.5 rounded-xl text-slate-900 focus:outline-none focus:border-slate-400`} 
+                  />
+                  {isPasswordTooShort && (
+                    <p className="text-[10px] text-red-500 font-medium mt-1">
+                      비밀번호는 최소 6자리 이상이어야 합니다.
+                    </p>
+                  )}
+                </div>
+
+                {/* 새 비밀번호 확인 */}
+                <div>
+                  <input 
+                    type="password" 
+                    placeholder="새 비밀번호 재입력" 
+                    value={changePasswordConfirm} 
+                    onChange={(e) => setNewPasswordConfirmInput(e.target.value)} 
+                    className={`w-full border ${
+                      isProfilePasswordMismatch ? 'border-red-500' : 'border-slate-200'
+                    } p-2.5 rounded-xl text-slate-900 focus:outline-none focus:border-slate-400`} 
+                  />
+                  {isProfilePasswordMismatch && (
+                    <p className="text-[10px] text-red-500 font-medium mt-1">
+                      비밀번호가 일치하지 않습니다.
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div className="flex gap-2 pt-2">

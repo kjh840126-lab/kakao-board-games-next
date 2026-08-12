@@ -360,7 +360,7 @@ export function ModalsContainer({
               <h4 className="font-bold text-slate-400 text-[11px] px-1 mb-1">나의 활동</h4>
               <button 
                 onClick={() => { setIsFavoritesModalOpen(true); setIsSettingsOpen(false); }} 
-                className="w-full py-2.5 px-2.5 rounded-xl text-left flex justify-between items-center cursor-pointer hover:bg-slate-100 text-slate-800 font-bold transition"
+                className="w-full py-2.5 px-2.5 rounded-xl text-left flex justify-between items-center cursor-pointer hover:bg-slate-100 text-slate-800 font-normal transition"
               >
                 <div className="flex items-center gap-2.5">
                   <Heart size={16} className="text-rose-500 fill-rose-500" />
@@ -376,7 +376,7 @@ export function ModalsContainer({
 
               <button 
                 onClick={() => { setIsMyRatingsModalOpen(true); setIsSettingsOpen(false); }} 
-                className="w-full py-2.5 px-2.5 rounded-xl text-left flex justify-between items-center cursor-pointer hover:bg-slate-100 text-slate-800 font-bold transition"
+                className="w-full py-2.5 px-2.5 rounded-xl text-left flex justify-between items-center cursor-pointer hover:bg-slate-100 text-slate-800 font-normal transition"
               >
                 <div className="flex items-center gap-2.5">
                   <Star size={16} className="text-amber-500 fill-amber-400" />
@@ -397,7 +397,7 @@ export function ModalsContainer({
               <h4 className="font-bold text-slate-400 text-[11px] px-1 mb-1">고객 지원</h4>
               <button 
                 onClick={() => { setReportForm({ title: '', content: '', category: '' }); setIsReportModalOpen(true); setIsSettingsOpen(false); }} 
-                className="w-full py-2.5 px-2.5 rounded-xl text-left flex justify-between items-center cursor-pointer hover:bg-slate-100 text-slate-800 font-bold transition"
+                className="w-full py-2.5 px-2.5 rounded-xl text-left flex justify-between items-center cursor-pointer hover:bg-slate-100 text-slate-800 font-normal transition"
               >
                 <div className="flex items-center gap-2.5">
                   <Siren size={16} className="text-slate-500" />
@@ -420,13 +420,13 @@ export function ModalsContainer({
                 <div className="flex p-0.5 rounded-lg bg-slate-100 text-[11px]">
                   <button 
                     onClick={() => setTheme && setTheme('light')} 
-                    className={`px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${theme === 'light' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-400'}`}
+                    className={`px-2.5 py-1 rounded-md font-normal transition cursor-pointer ${theme === 'light' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-400'}`}
                   >
                     라이트
                   </button>
                   <button 
                     onClick={() => setTheme && setTheme('dark')} 
-                    className={`px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${theme === 'dark' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-400'}`}
+                    className={`px-2.5 py-1 rounded-md font-normal transition cursor-pointer ${theme === 'dark' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-400'}`}
                   >
                     다크
                   </button>
@@ -441,13 +441,13 @@ export function ModalsContainer({
                 <div className="flex p-0.5 rounded-lg bg-slate-100 text-[11px]">
                   <button 
                     onClick={() => setFontSize('normal')} 
-                    className={`px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${fontSize === 'normal' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-400'}`}
+                    className={`px-2.5 py-1 rounded-md font-normal transition cursor-pointer ${fontSize === 'normal' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-400'}`}
                   >
                     보통
                   </button>
                   <button 
                     onClick={() => setFontSize('large')} 
-                    className={`px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${fontSize === 'large' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-400'}`}
+                    className={`px-2.5 py-1 rounded-md font-normal transition cursor-pointer ${fontSize === 'large' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-400'}`}
                   >
                     크게
                   </button>
@@ -460,7 +460,7 @@ export function ModalsContainer({
             <div className="pt-1">
               <button 
                 onClick={handleLogout} 
-                className="w-full py-2.5 px-2.5 rounded-xl text-left flex items-center gap-2.5 cursor-pointer text-rose-600 font-bold hover:bg-rose-50 transition"
+                className="w-full py-2.5 px-2.5 rounded-xl text-left flex items-center gap-2.5 cursor-pointer text-rose-600 font-normal hover:bg-rose-50 transition"
               >
                 <LogOut size={16} />
                 <span>로그아웃</span>

@@ -413,7 +413,7 @@ export function ModalsContainer({
               <h4 className="font-bold text-slate-400 text-[11px] px-1 mb-1">화면 설정</h4>
               
               <div className="flex justify-between items-center py-1 px-2.5">
-                <div className="flex items-center gap-2.5 text-slate-800 font-bold">
+                <div className="flex items-center gap-2.5 text-slate-800 font-normal">
                   {theme === 'dark' ? <Moon size={16} className="text-amber-500" /> : <Sun size={16} className="text-amber-500" />}
                   <span>화면 테마</span>
                 </div>
@@ -434,7 +434,7 @@ export function ModalsContainer({
               </div>
 
               <div className="flex justify-between items-center py-1 px-2.5">
-                <div className="flex items-center gap-2.5 text-slate-800 font-bold">
+                <div className="flex items-center gap-2.5 text-slate-800 font-normal">
                   <Type size={16} className="text-slate-500" />
                   <span>글자 크기</span>
                 </div>

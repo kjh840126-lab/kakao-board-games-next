@@ -114,7 +114,7 @@ export function ModalsContainer({
 }: ModalsContainerProps) {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  // ⚡ [TypeScript 에러 수정] 타입 추론 명시(string) 추가
+  // ⚡ [TypeScript 에러 수정] 타입 추론 명시(string) 추가[cite: 3]
   const rawGenres = editingGame?.genres;
   const currentGenres: string[] = React.useMemo(() => {
     if (!rawGenres) return [];
@@ -703,15 +703,98 @@ export function ModalsContainer({
                 <div className="w-[35%]"><label className="font-bold block mb-1">보드게임 ID</label><input type="text" required disabled={isEditingMode} value={editingGame.gameId} onChange={(e) => setEditingGame({ ...editingGame, gameId: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl font-bold text-slate-900 disabled:bg-slate-100" /></div>
                 <div className="w-[65%]"><label className="font-bold block mb-1">게임명</label><input type="text" required value={editingGame.title} onChange={(e) => setEditingGame({ ...editingGame, title: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
               </div>
+
+              {/* ⚡ [수정 포인트] 숫자를 백스페이스로 다 지웠을 때 0이 남아있지 않고 빈 칸이 되도록 예외 처리[cite: 3] */}
               <div className="grid grid-cols-3 gap-2">
-                <div><label className="font-bold block mb-1">출시년도</label><input type="number" required value={editingGame.releaseYear} onChange={(e) => setEditingGame({ ...editingGame, releaseYear: Number(e.target.value) })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
-                <div><label className="font-bold block mb-1">플레이타임</label><input type="number" required value={editingGame.playTime} onChange={(e) => setEditingGame({ ...editingGame, playTime: Number(e.target.value) })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
-                <div><label className="font-bold block mb-1">난이도</label><input type="number" step="0.01" min="1.0" max="5.0" required value={editingGame.difficulty} onChange={(e) => setEditingGame({ ...editingGame, difficulty: Number(e.target.value) })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
+                <div>
+                  <label className="font-bold block mb-1">출시년도</label>
+                  <input 
+                    type="number" 
+                    required 
+                    value={editingGame.releaseYear === 0 ? '' : editingGame.releaseYear} 
+                    onChange={(e) => setEditingGame({ 
+                      ...editingGame, 
+                      releaseYear: e.target.value === '' ? 0 : Number(e.target.value) 
+                    })} 
+                    className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" 
+                  />
+                </div>
+                <div>
+                  <label className="font-bold block mb-1">플레이타임</label>
+                  <input 
+                    type="number" 
+                    required 
+                    value={editingGame.playTime === 0 ? '' : editingGame.playTime} 
+                    onChange={(e) => setEditingGame({ 
+                      ...editingGame, 
+                      playTime: e.target.value === '' ? 0 : Number(e.target.value) 
+                    })} 
+                    className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" 
+                  />
+                </div>
+                <div>
+                  <label className="font-bold block mb-1">난이도</label>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    min="1.0" 
+                    max="5.0" 
+                    required 
+                    value={editingGame.difficulty === 0 ? '' : editingGame.difficulty} 
+                    onChange={(e) => setEditingGame({ 
+                      ...editingGame, 
+                      difficulty: e.target.value === '' ? 0 : Number(e.target.value) 
+                    })} 
+                    className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" 
+                  />
+                </div>
               </div>
+
               <div className="grid grid-cols-4 gap-1.5">
-                <div><label className="font-bold block mb-1 text-[11px]">최소인원</label><input type="number" min="1" required value={editingGame.minPlayers} onChange={(e) => setEditingGame({ ...editingGame, minPlayers: Number(e.target.value) })} className="w-full border border-slate-200 p-2 rounded-xl text-slate-900" /></div>
-                <div><label className="font-bold block mb-1 text-[11px]">최대인원</label><input type="number" min="1" required value={editingGame.maxPlayers} onChange={(e) => setEditingGame({ ...editingGame, maxPlayers: Number(e.target.value) })} className="w-full border border-slate-200 p-2 rounded-xl text-slate-900" /></div>
-                <div><label className="font-bold block mb-1 text-[11px]">BGG평점</label><input type="number" step="0.1" min="0" max="10" required value={editingGame.bggRating} onChange={(e) => setEditingGame({ ...editingGame, bggRating: Number(e.target.value) })} className="w-full border border-slate-200 p-2 rounded-xl text-slate-900" /></div>
+                <div>
+                  <label className="font-bold block mb-1 text-[11px]">최소인원</label>
+                  <input 
+                    type="number" 
+                    min="1" 
+                    required 
+                    value={editingGame.minPlayers === 0 ? '' : editingGame.minPlayers} 
+                    onChange={(e) => setEditingGame({ 
+                      ...editingGame, 
+                      minPlayers: e.target.value === '' ? 0 : Number(e.target.value) 
+                    })} 
+                    className="w-full border border-slate-200 p-2 rounded-xl text-slate-900" 
+                  />
+                </div>
+                <div>
+                  <label className="font-bold block mb-1 text-[11px]">최대인원</label>
+                  <input 
+                    type="number" 
+                    min="1" 
+                    required 
+                    value={editingGame.maxPlayers === 0 ? '' : editingGame.maxPlayers} 
+                    onChange={(e) => setEditingGame({ 
+                      ...editingGame, 
+                      maxPlayers: e.target.value === '' ? 0 : Number(e.target.value) 
+                    })} 
+                    className="w-full border border-slate-200 p-2 rounded-xl text-slate-900" 
+                  />
+                </div>
+                <div>
+                  <label className="font-bold block mb-1 text-[11px]">BGG평점</label>
+                  <input 
+                    type="number" 
+                    step="0.1" 
+                    min="0" 
+                    max="10" 
+                    required 
+                    value={editingGame.bggRating === 0 ? '' : editingGame.bggRating} 
+                    onChange={(e) => setEditingGame({ 
+                      ...editingGame, 
+                      bggRating: e.target.value === '' ? 0 : Number(e.target.value) 
+                    })} 
+                    className="w-full border border-slate-200 p-2 rounded-xl text-slate-900" 
+                  />
+                </div>
                 <div>
                   <label className="font-bold block mb-1 text-[11px]">노출여부</label>
                   <select value={editingGame.isVisible} onChange={(e) => setEditingGame({ ...editingGame, isVisible: e.target.value as 'Y' | 'N' })} className="w-full border border-slate-200 p-2 rounded-xl bg-slate-50 text-slate-900 font-semibold cursor-pointer">

@@ -31,7 +31,13 @@ export const AuthScreen = ({
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // ⚡ 이메일 중복 확인 실행 핸들러 (실행 후 상위 검사 함수 호출 및 상태 강제 반영)
+  // ⚡ 확실한 동작을 위해 내부 로컬 상태로 이메일 중복 확인 완료 여부 관리
+  const [localIsEmailVerified, setLocalIsEmailVerified] = useState(false);
+
+  // 상위 prop 또는 로컬 상태 중 하나라도 true이면 중복확인 완료 처리
+  const isVerified = isEmailVerified || localIsEmailVerified;
+
+  // ⚡ 이메일 중복 확인 클릭 핸들러
   const onCheckEmailWrapper = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!signUpForm.emailPrefix && !signUpForm.email) {
@@ -43,11 +49,13 @@ export const AuthScreen = ({
       if (handleCheckEmail) {
         await handleCheckEmail(e);
       }
-      // 중복 확인 처리 후 에러 없이 통과하면 완료 상태로 변경
+      // 클릭 시 성공하면 로컬 상태와 상위 상태를 모두 true로 즉시 변경
+      setLocalIsEmailVerified(true);
       if (setIsEmailVerified) {
         setIsEmailVerified(true);
       }
     } catch (err) {
+      setLocalIsEmailVerified(false);
       if (setIsEmailVerified) {
         setIsEmailVerified(false);
       }
@@ -355,6 +363,8 @@ export const AuthScreen = ({
                       emailPrefix: lowerEmail,
                       email: lowerEmail,
                     });
+                    // 이메일을 수정하면 중복 검사 상태 다시 해제
+                    setLocalIsEmailVerified(false);
                     if (setIsEmailVerified) setIsEmailVerified(false);
                   }}
                   className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 dark:focus:border-slate-700 text-xs"
@@ -363,14 +373,14 @@ export const AuthScreen = ({
                 <button
                   type="button"
                   onClick={onCheckEmailWrapper}
-                  disabled={isEmailVerified}
+                  disabled={isVerified}
                   className={`w-full mt-1 border text-xs font-bold py-1.5 rounded-lg transition ${
-                    isEmailVerified
+                    isVerified
                       ? 'bg-slate-200 dark:bg-slate-800/40 border-slate-300 dark:border-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
                       : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer'
                   }`}
                 >
-                  {isEmailVerified ? '이메일 중복 확인 완료' : '이메일 중복 확인'}
+                  {isVerified ? '이메일 중복 확인 완료' : '이메일 중복 확인'}
                 </button>
               </div>
 

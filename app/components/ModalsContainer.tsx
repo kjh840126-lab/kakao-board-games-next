@@ -114,7 +114,28 @@ export function ModalsContainer({
 }: ModalsContainerProps) {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  const currentGenres = editingGame?.genres || [];
+  // ⚡ [수정 포인트] DB에서 가져온 genres가 문자열(JSON)이든 배열이든 특수기호(\, ", [, ])를 완전히 제거하고 깨끗한 배열로 변환합니다.
+  const rawGenres = editingGame?.genres;
+  const currentGenres: string[] = React.useMemo(() => {
+    if (!rawGenres) return [];
+    
+    if (Array.isArray(rawGenres)) {
+      return rawGenres
+        .map((g) => String(g).replace(/[\\"[\]]/g, '').trim())
+        .filter(Boolean);
+    }
+    
+    if (typeof rawGenres === 'string') {
+      return rawGenres
+        .replace(/[\\"[\]]/g, '')
+        .split(',')
+        .map((g) => g.trim())
+        .filter(Boolean);
+    }
+    
+    return [];
+  }, [rawGenres]);
+
   const isMaxGenreReached = currentGenres.length >= 3;
 
   const unreadCount = (reports || []).filter((r: any) => !r.isRead && !r.is_read).length;
@@ -636,7 +657,7 @@ export function ModalsContainer({
               <button onClick={() => setIsGameModalOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button>
             </div>
             <form onSubmit={saveGame} className="space-y-3">
-              {/* ⚡ 파일 업로드 이미지 등록 폼 (미리보기가 URL 입력 행 오른쪽에 배치됨) */}
+              {/* ⚡ 파일 업로드 이미지 등록 폼 */}
               <div className="space-y-1.5">
                 <label className="font-bold block flex items-center gap-1"><Image size={13} /> 이미지 등록</label>
                 

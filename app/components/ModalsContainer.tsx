@@ -705,7 +705,7 @@ export function ModalsContainer({
         </div>
       )}
 
-      {/* 9. 프로필 수정 모달 (⚡ 다크모드 비활성화 항목 시독성 보정 & 이름 모바일 입력창 키보드 즉시 실행) */}
+      {/* 9. 프로필 수정 모달 (⚡ 다크모드 비활성화 항목 대비 완정 보정) */}
       {isEditProfileOpen && currentUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className={overlayClass} onClick={() => setIsEditProfileOpen(false)} />
@@ -715,18 +715,18 @@ export function ModalsContainer({
               <button onClick={() => setIsEditProfileOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button>
             </div>
             <form onSubmit={onSubmitProfile} className="space-y-3.5">
-              {/* ⚡ 1. 아이디 항목 (다크모드 비활성화 명확화) */}
+              {/* ⚡ 1. 아이디 항목 (비활성화 명확화: dark:bg-slate-950/70, border-slate-700) */}
               <div>
                 <label className="font-bold block mb-1 text-slate-400 dark:text-slate-500">아이디</label>
                 <input 
                   type="text" 
                   disabled 
                   value={currentUser.userId} 
-                  className="w-full border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl font-mono bg-slate-100 dark:!bg-slate-800/90 text-slate-500 dark:!text-slate-400 cursor-not-allowed select-none opacity-90" 
+                  className="w-full border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl font-mono bg-slate-100 dark:!bg-slate-950/70 text-slate-500 dark:!text-slate-500 cursor-not-allowed select-none" 
                 />
               </div>
 
-              {/* ⚡ 2. 이메일 항목 (다크모드 비활성화 명확화) */}
+              {/* ⚡ 2. 이메일 항목 (비활성화 명확화: dark:bg-slate-950/70, border-slate-700) */}
               <div>
                 <label className="font-bold block mb-1 text-slate-400 dark:text-slate-500">이메일</label>
                 <input 
@@ -734,11 +734,11 @@ export function ModalsContainer({
                   disabled 
                   readOnly
                   value={currentUser.email || ''} 
-                  className="w-full border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl bg-slate-100 dark:!bg-slate-800/90 text-slate-500 dark:!text-slate-400 cursor-not-allowed select-none opacity-90" 
+                  className="w-full border border-slate-200 dark:border-slate-700 p-2.5 rounded-xl bg-slate-100 dark:!bg-slate-950/70 text-slate-500 dark:!text-slate-500 cursor-not-allowed select-none" 
                 />
               </div>
 
-              {/* ⚡ 3. 이름 항목 (readOnly 제거로 모바일 첫 터치 시 키보드 바로 동작) */}
+              {/* ⚡ 3. 이름 항목 (입력 가능: dark:bg-slate-800/80) */}
               <div>
                 <label className="font-bold block mb-1 text-slate-800 dark:text-slate-200">이름</label>
                 <input 
@@ -749,8 +749,8 @@ export function ModalsContainer({
                   value={editName} 
                   onChange={(e) => setEditName(e.target.value)} 
                   className={`w-full border ${
-                    isNameHasNonKorean ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'
-                  } p-2.5 rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-800/60 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700`} 
+                    isNameHasNonKorean ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
+                  } p-2.5 rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-800/80 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500`} 
                 />
                 {isNameHasNonKorean && (
                   <p className="text-[10px] text-red-500 font-medium mt-1">
@@ -759,7 +759,7 @@ export function ModalsContainer({
                 )}
               </div>
 
-              {/* ⚡ 4. 비밀번호 변경 영역 (최소 6자리 및 불일치 경고) */}
+              {/* ⚡ 4. 비밀번호 변경 영역 (입력 가능: dark:bg-slate-800/80) */}
               <div className="pt-2 border-t border-slate-200/20 dark:border-slate-800 space-y-2">
                 <label className="font-bold block text-slate-400 dark:text-slate-500">비밀번호 변경 (선택)</label>
                 
@@ -771,8 +771,8 @@ export function ModalsContainer({
                     value={changePassword} 
                     onChange={(e) => setNewPasswordInput(e.target.value)} 
                     className={`w-full border ${
-                      isPasswordTooShort ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'
-                    } p-2.5 rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-800/60 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700`} 
+                      isPasswordTooShort ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
+                    } p-2.5 rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-800/80 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500`} 
                   />
                   {isPasswordTooShort && (
                     <p className="text-[10px] text-red-500 font-medium mt-1">
@@ -789,8 +789,8 @@ export function ModalsContainer({
                     value={changePasswordConfirm} 
                     onChange={(e) => setNewPasswordConfirmInput(e.target.value)} 
                     className={`w-full border ${
-                      isProfilePasswordMismatch ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'
-                    } p-2.5 rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-800/60 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700`} 
+                      isProfilePasswordMismatch ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'
+                    } p-2.5 rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-800/80 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500`} 
                   />
                   {isProfilePasswordMismatch && (
                     <p className="text-[10px] text-red-500 font-medium mt-1">

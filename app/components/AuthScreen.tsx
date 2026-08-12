@@ -17,6 +17,7 @@ export const AuthScreen = ({
   setSignUpForm,
   handleCheckEmail,
   handleSignUp,
+  isEmailVerified = false,
   setIsEmailVerified,
   users = [],
   fetchInitialData,
@@ -258,7 +259,7 @@ export const AuthScreen = ({
               {/* 더미 패스워드 필드 (브라우저 자동완성 팝업 차단용) */}
               <input type="password" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
 
-              {/* ⚡ 아이디 영역: .toLowerCase() 추가로 대문자 입력 시 소문자로 자동 변경 */}
+              {/* 아이디 영역 */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-userid" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   아이디
@@ -312,7 +313,7 @@ export const AuthScreen = ({
                 )}
               </div>
 
-              {/* ⚡ 이메일 영역: .toLowerCase() 처리 확인 및 보정 */}
+              {/* 이메일 영역 */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-email-prefix" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이메일
@@ -335,12 +336,18 @@ export const AuthScreen = ({
                   }}
                   className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 dark:focus:border-slate-700 text-xs"
                 />
+                {/* ⚡ 이메일 중복 확인 버튼: 검증 완료 시 비활성화 및 문구 변경 */}
                 <button
                   type="button"
                   onClick={handleCheckEmail}
-                  className="w-full mt-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold py-1.5 rounded-lg text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
+                  disabled={isEmailVerified}
+                  className={`w-full mt-1 border text-xs font-bold py-1.5 rounded-lg transition ${
+                    isEmailVerified
+                      ? 'bg-slate-200 dark:bg-slate-800/40 border-slate-300 dark:border-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
+                      : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer'
+                  }`}
                 >
-                  이메일 중복 확인
+                  {isEmailVerified ? '이메일 중복 확인 완료' : '이메일 중복 확인'}
                 </button>
               </div>
 

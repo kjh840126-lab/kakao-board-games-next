@@ -164,7 +164,6 @@ export function ModalsContainer({
     }
   };
 
-  // ⚡ 공지사항 이미지 파일 업로드 핸들러
   const handleNoticeImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !editingNotice) return;
@@ -475,7 +474,7 @@ export function ModalsContainer({
         </div>
       </div>
 
-      {/* 3. 공지사항 목록 드로어 (공지 이미지 노출 지원) */}
+      {/* 3. 공지사항 목록 드로어 */}
       <div className={`fixed inset-0 z-50 transition-all duration-200 ${isNoticeDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className={overlayClass} onClick={() => setIsNoticeDrawerOpen(false)} />
         <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs transition-transform duration-200 ease-out transform-gpu ${isNoticeDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
@@ -487,6 +486,9 @@ export function ModalsContainer({
             <h4 className="font-bold text-slate-400 text-xs">전체 공지 목록 ({notices.length})</h4>
             {notices.map((notice: Notice) => {
               const isExpanded = expandedNoticeId === notice.noticeId;
+              // ⚡ [수정 포인트] TS2339 에러 회피를 위해 안전하게 타임 캐스팅 처리
+              const noticeImgUrl = (notice as any).imageUrl || (notice as any).image_url;
+
               return (
                 <div key={notice.noticeId} className={`rounded-2xl border overflow-hidden ${isExpanded ? 'border-amber-400 bg-amber-50/60' : 'border-slate-200 bg-white'}`}>
                   <div onClick={() => handleNoticeClick(notice)} className="p-3.5 cursor-pointer flex justify-between items-start gap-2">
@@ -495,10 +497,9 @@ export function ModalsContainer({
                   </div>
                   {isExpanded && (
                     <div className="px-3.5 pb-4 pt-2 border-t border-slate-200 font-medium leading-relaxed break-all text-slate-600 text-xs space-y-3">
-                      {/* ⚡ 등록된 공지 이미지가 있다면 표시 */}
-                      {notice.imageUrl && (
+                      {noticeImgUrl && (
                         <div className="w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
-                          <img src={notice.imageUrl} alt={notice.title} className="w-full h-auto object-cover max-h-60" />
+                          <img src={noticeImgUrl} alt={notice.title} className="w-full h-auto object-cover max-h-60" />
                         </div>
                       )}
                       <p className="whitespace-pre-wrap">{notice.content}</p>
@@ -870,7 +871,7 @@ export function ModalsContainer({
         </div>
       )}
 
-      {/* 11. 공지 작성 모달 (이미지 업로드 UI 추가) */}
+      {/* 11. 공지 작성 모달 */}
       {isNoticeModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className={overlayClass} onClick={() => setIsNoticeModalOpen(false)} />
@@ -879,7 +880,7 @@ export function ModalsContainer({
             <form onSubmit={saveNotice} className="space-y-3">
               <div><label className="font-bold block mb-1">공지 제목</label><input type="text" required value={editingNotice.title} onChange={(e) => setEditingNotice({ ...editingNotice, title: e.target.value })} className="w-full border border-slate-200 p-2.5 rounded-xl text-slate-900" /></div>
               
-              {/* ⚡ 공지사항 이미지 업로드 입력 폼 */}
+              {/* 이미지 파일 및 URL 입력 구문 */}
               <div className="space-y-1.5">
                 <label className="font-bold block flex items-center gap-1"><Image size={13} /> 이미지 첨부 (선택)</label>
                 <input

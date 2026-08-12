@@ -476,7 +476,7 @@ export const AuthScreen = ({
                     <button
                       type="submit"
                       disabled={isVerifying}
-                      className="flex-1 bg-[#FEE500] hover:bg-[#fada00] dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 transition active:scale-[0.99] cursor-pointer text-xs shadow-xs disabled:opacity-50"
+                      className="flex-1 dark:!border-slate-600 bg-[#FEE500] hover:bg-[#fada00] dark:!bg-slate-700 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 transition active:scale-[0.99] cursor-pointer text-xs shadow-xs disabled:opacity-50"
                     >
                       {isVerifying ? '변경 중...' : '비밀번호 변경'}
                     </button>

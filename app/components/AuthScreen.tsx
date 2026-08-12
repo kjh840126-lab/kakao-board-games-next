@@ -260,7 +260,6 @@ export const AuthScreen = ({
                 <label htmlFor="signup-email-prefix" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이메일
                 </label>
-                {/* ⚡ [핵심 수정 1] 회원가입 이메일 박스 다크모드 배경 스타일 수정 (`dark:bg-slate-800/60 dark:text-white dark:border-slate-800`) */}
                 <input
                   id="signup-email-prefix"
                   name="email"
@@ -326,7 +325,6 @@ export const AuthScreen = ({
                     isPasswordMismatch ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'
                   } bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 text-xs`}
                 />
-                {/* ⚡ 비밀번호 불일치 알림 노출 */}
                 {isPasswordMismatch && (
                   <p className="text-[10px] text-red-500 font-medium mt-1">
                     비밀번호가 일치하지 않습니다.
@@ -351,7 +349,6 @@ export const AuthScreen = ({
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[0.5px]" onClick={handleCloseForgotPassword} />
 
           <div className="relative rounded-3xl w-full max-w-xs overflow-hidden shadow-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs border dark:border-slate-800">
-            {/* ⚡ 노란색 카카오 헤더 로고 교체 */}
             <div className="bg-[#FEE500] py-4 px-5 flex justify-center items-center relative">
               <img
                 src={LOGIN_LOGO_URL}
@@ -380,7 +377,6 @@ export const AuthScreen = ({
 
                   <div>
                     <label className="font-bold block mb-1 text-slate-800 dark:text-slate-200 text-[11px]">가입 이메일 주소</label>
-                    {/* ⚡ [핵심 수정 2] 비밀번호 찾기 모달 이메일 박스 다크모드 배경 스타일 수정 (`dark:bg-slate-800/60 dark:text-white dark:border-slate-800`) */}
                     <input
                       type="email"
                       required
@@ -399,10 +395,11 @@ export const AuthScreen = ({
                     >
                       취소
                     </button>
+                    {/* ⚡ [강제 반영] 다크모드에서 로그인 버튼과 동일한 배경색, 외곽선, 텍스트 스타일 적용 */}
                     <button
                       type="submit"
                       disabled={isSendingCode}
-                      className="flex-1 bg-[#FEE500] hover:bg-[#fada00] text-slate-900 py-2.5 rounded-xl font-extrabold cursor-pointer transition text-xs shadow-xs disabled:opacity-50"
+                      className="flex-1 bg-[#FEE500] dark:bg-slate-800 hover:bg-[#fada00] dark:hover:bg-slate-700 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 cursor-pointer transition text-xs shadow-xs disabled:opacity-50"
                     >
                       {isSendingCode ? '발송 중...' : '재설정 메일 발송'}
                     </button>
@@ -464,10 +461,11 @@ export const AuthScreen = ({
                     >
                       이전
                     </button>
+                    {/* ⚡ 2단계 비밀번호 변경 버튼도 동일하게 다크모드 전용 스타일 지정 */}
                     <button
                       type="submit"
                       disabled={isVerifying}
-                      className="flex-1 bg-[#FEE500] text-slate-900 py-2.5 rounded-xl font-extrabold cursor-pointer text-xs shadow-xs disabled:opacity-50"
+                      className="flex-1 bg-[#FEE500] dark:bg-slate-800 hover:bg-[#fada00] dark:hover:bg-slate-700 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 cursor-pointer text-xs shadow-xs disabled:opacity-50"
                     >
                       {isVerifying ? '변경 중...' : '비밀번호 변경'}
                     </button>

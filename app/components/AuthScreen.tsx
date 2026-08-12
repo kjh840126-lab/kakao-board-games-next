@@ -410,7 +410,7 @@ export const AuthScreen = ({
               <img
                 src={"/logo_chun.png"}
                 alt="Kakao Board Games"
-                className="w-16 h-auto object-contain"
+                className="w-10 h-auto object-contain"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
                 }}

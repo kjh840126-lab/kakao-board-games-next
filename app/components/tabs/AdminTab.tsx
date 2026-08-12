@@ -152,7 +152,6 @@ export const AdminTab = memo(({
                     </div>
 
                     <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-                      {/* ⚡ 클릭 시 노출/숨김 상태 토글 */}
                       <button 
                         onClick={() => toggleGameVisibility(game)} 
                         className="p-1 cursor-pointer" 
@@ -303,7 +302,6 @@ export const AdminTab = memo(({
                       <h3 className="font-bold text-xs text-slate-900 leading-tight flex-1">{s.name}</h3>
                       
                       <div className="flex items-center gap-1 flex-shrink-0">
-                        {/* ⚡ 클릭 시 노출/숨김 상태 토글 */}
                         <button 
                           onClick={() => toggleSiteVisibility(s)} 
                           className="p-1 cursor-pointer" 
@@ -471,7 +469,7 @@ export const AdminTab = memo(({
         <div className="space-y-4 w-full min-h-[200px] relative">
           <div className="flex justify-between items-center h-10 pb-2 border-b border-slate-200/80">
             <h2 className="font-bold text-sm flex items-center gap-2 text-slate-900"><span className="w-2 h-4 bg-sky-400 border border-sky-500 rounded-sm inline-block"></span> 공지사항 관리</h2>
-            <button onClick={() => { setEditingNotice({ id: undefined, title: '', content: '', isVisible: 'Y' }); setIsNoticeModalOpen(true); }} className="bg-slate-900 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-sm hover:bg-slate-800">
+            <button onClick={() => { setEditingNotice({ id: undefined, title: '', content: '', imageUrl: '', isVisible: 'Y' }); setIsNoticeModalOpen(true); }} className="bg-slate-900 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-sm hover:bg-slate-800">
               <Plus size={14} /> 공지 작성
             </button>
           </div>
@@ -495,7 +493,6 @@ export const AdminTab = memo(({
                     <div className="flex justify-between items-start gap-2">
                       <h3 className="font-bold text-sm text-slate-900 flex-1 leading-snug">{n.title}</h3>
                       <div className="flex items-center gap-1 flex-shrink-0 pt-0.5">
-                        {/* ⚡ 클릭 시 노출/숨김 상태 토글 */}
                         <button
                           onClick={() => toggleNoticeVisibility(n)}
                           className="p-1 cursor-pointer"
@@ -508,7 +505,17 @@ export const AdminTab = memo(({
                           )}
                         </button>
                         <button 
-                          onClick={() => { setEditingNotice({ id: n.noticeId, title: n.title, content: n.content, isVisible: (n as any).isVisible || 'Y' }); setIsNoticeModalOpen(true); }} 
+                          onClick={() => { 
+                            // ⚡ [핵심 수정] imageUrl 매핑 추가
+                            setEditingNotice({ 
+                              id: n.noticeId, 
+                              title: n.title, 
+                              content: n.content, 
+                              imageUrl: (n as any).imageUrl || (n as any).image_url || '',
+                              isVisible: (n as any).isVisible || 'Y' 
+                            }); 
+                            setIsNoticeModalOpen(true); 
+                          }} 
                           className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
                           title="공지 수정"
                         >

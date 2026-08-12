@@ -42,7 +42,7 @@ export const AuthScreen = ({
     newPassword &&
     newPassword !== newPasswordConfirm;
 
-  // ⚡ 1단계: Supabase OTP 발송
+  // ⚡ 1단계: Supabase 비밀번호 재설정 전용 이메일/OTP 발송
   const handleSendResetEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = resetEmail.trim().toLowerCase();
@@ -61,9 +61,8 @@ export const AuthScreen = ({
     setIsSendingCode(true);
 
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: cleanEmail,
-      });
+      // ⚡ [수정] Gmail 등 외부 도메인에서도 가입용 메일 대신 비밀번호 재설정 이메일이 정확히 발송되도록 API 변경
+      const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail);
 
       if (error) throw error;
 
@@ -448,7 +447,6 @@ export const AuthScreen = ({
 
                   <div>
                     <label className="font-bold block mb-0.5 text-slate-800 dark:text-slate-200 text-[10px]">새 비밀번호 확인</label>
-                    {/* ⚡ 비밀번호 확인 테두리 상태 수정을 적절히 반영 */}
                     <input
                       type="password"
                       required
@@ -459,7 +457,7 @@ export const AuthScreen = ({
                         isResetPasswordMismatch ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'
                       } p-2 rounded-xl text-slate-900 dark:text-white text-xs bg-slate-50/50 dark:bg-slate-800/60 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 placeholder:text-slate-400`}
                     />
-                    {/* ⚡ 비밀번호 불일치 노출 메시지 추가 */}
+                    {/* ⚡ 비밀번호 불일치 노출 메시지 */}
                     {isResetPasswordMismatch && (
                       <p className="text-[10px] text-red-500 font-medium mt-1">
                         비밀번호가 일치하지 않습니다.

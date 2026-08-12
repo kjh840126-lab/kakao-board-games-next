@@ -30,18 +30,8 @@ export const AuthScreen = ({
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // ⚡ PC/맥북 한글 조합(IME) 중 리렌더링으로 글자가 깨지는 현상 방지용 상태
-  const [isNameComposing, setIsNameComposing] = useState(false);
-
-  // ⚡ 1. 아이디 한글 포함 여부 체크
+  // ⚡ 아이디 한글 포함 여부 체크
   const isUsernameHasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.userId || '');
-
-  // ⚡ 2. 이름 한글 외 문자(영문, 숫자, 특수문자, 공백 등) 실시간 체크
-  // 타이핑(한글 조립) 중이 아닐 때 값이 존재하고, 한글 외 문자가 들어온 경우에만 true
-  const isNameHasNonKorean =
-    !isNameComposing &&
-    signUpForm.name &&
-    /[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.name);
 
   // ⚡ 비밀번호 확인 일치 여부 체크
   const isPasswordMismatch =
@@ -67,8 +57,8 @@ export const AuthScreen = ({
 
     // 2. 이름 한글 체크
     const nameValue = signUpForm.name || '';
-    const hasNonKorean = /[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(nameValue);
-    if (hasNonKorean) {
+    const isNameHasNonKorean = /[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(nameValue);
+    if (isNameHasNonKorean) {
       alert('이름에는 한글만 입력 가능합니다. (영문, 숫자, 특수문자, 공백 사용 불가)');
       return;
     }
@@ -288,7 +278,7 @@ export const AuthScreen = ({
                 )}
               </div>
 
-              {/* ⚡ 이름 영역 (실시간 한글 외 문자 감지 및 안내 문구/테두리 빨간색 노출) */}
+              {/* ⚡ 이름 영역 (안내문구 추가) */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-realname" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이름
@@ -302,24 +292,14 @@ export const AuthScreen = ({
                   autoComplete="off"
                   placeholder="실명만 입력 가능"
                   value={signUpForm.name || ''}
-                  onCompositionStart={() => setIsNameComposing(true)}
-                  onCompositionEnd={(e: any) => {
-                    setIsNameComposing(false);
-                    setSignUpForm({ ...signUpForm, name: e.target.value });
-                  }}
                   onChange={(e) =>
                     setSignUpForm({ ...signUpForm, name: e.target.value })
                   }
-                  className={`w-full border ${
-                    isNameHasNonKorean ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'
-                  } bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 text-xs`}
+                  className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 text-xs"
                 />
-                {/* ⚡ 한글 외 문자 입력 시 빨간색 경고 문구 노출 */}
-                {isNameHasNonKorean && (
-                  <p className="text-[10px] text-red-500 font-medium mt-1">
-                    이름은 한글만 입력 가능합니다.
-                  </p>
-                )}
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-0.5">
+                  이름은 한글만 입력 가능합니다.
+                </p>
               </div>
 
               {/* 이메일 영역 */}

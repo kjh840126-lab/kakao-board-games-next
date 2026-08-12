@@ -164,6 +164,7 @@ export function ModalsContainer({
     }
   };
 
+  // ⚡ 공지사항 이미지 파일 업로드 저장 처리
   const handleNoticeImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !editingNotice) return;
@@ -180,7 +181,7 @@ export function ModalsContainer({
         setEditingNotice({ ...editingNotice, imageUrl: publicUrl });
       }
     } catch (err: any) {
-      alert('이미지 업로드 중 오류가 발생했습니다: ' + (err.message || err));
+      alert('공지 이미지 업로드 중 오류가 발생했습니다: ' + (err.message || err));
     } finally {
       setIsUploadingNoticeImage(false);
     }
@@ -474,7 +475,7 @@ export function ModalsContainer({
         </div>
       </div>
 
-      {/* 3. 공지사항 목록 드로어 (공지사항 상단 이미지 최대한 크게 노출) */}
+      {/* 3. 공지사항 목록 드로어 (공지 이미지 텍스트 상단에 최대한 크게 노출) */}
       <div className={`fixed inset-0 z-50 transition-all duration-200 ${isNoticeDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className={overlayClass} onClick={() => setIsNoticeDrawerOpen(false)} />
         <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white text-slate-900 text-xs transition-transform duration-200 ease-out transform-gpu ${isNoticeDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
@@ -496,7 +497,7 @@ export function ModalsContainer({
                   </div>
                   {isExpanded && (
                     <div className="px-3.5 pb-4 pt-2 border-t border-slate-200 font-medium leading-relaxed break-all text-slate-600 text-xs space-y-3">
-                      {/* ⚡ [수정 포인트] 등록된 공지 이미지를 텍스트 상단에 제한 없이 최대한 크게 꽉 차게 노출 */}
+                      {/* ⚡ 등록된 공지 이미지를 텍스트 상단에 크고 시원하게 노출 */}
                       {noticeImgUrl && (
                         <div className="w-full rounded-xl overflow-hidden border border-slate-200/80 bg-slate-100 shadow-2xs">
                           <img 

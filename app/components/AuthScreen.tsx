@@ -61,7 +61,6 @@ export const AuthScreen = ({
     setIsSendingCode(true);
 
     try {
-      // ⚡ [수정] Gmail 등 외부 도메인에서도 가입용 메일 대신 비밀번호 재설정 이메일이 정확히 발송되도록 API 변경
       const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail);
 
       if (error) throw error;
@@ -185,7 +184,7 @@ export const AuthScreen = ({
                   autoComplete="username"
                   placeholder="아이디 입력"
                   value={loginId}
-                  onChange={(e) => setLoginId(e.target.value.toLowerCase().replace(/\./g, ''))}
+                  onChange={(e) => setLoginId(e.target.value.toLowerCase().replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '').replace(/\./g, ''))}
                   className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3.5 py-2 rounded-xl focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 dark:focus:border-slate-700 text-xs transition"
                 />
               </div>
@@ -229,6 +228,7 @@ export const AuthScreen = ({
                 <label htmlFor="signup-username" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   아이디
                 </label>
+                {/* ⚡ 아이디: 한글 입력 자동 제거 */}
                 <input
                   id="signup-username"
                   name="username"
@@ -236,9 +236,13 @@ export const AuthScreen = ({
                   autoComplete="username"
                   placeholder="LDAP 사용 금지"
                   value={signUpForm.userId || ''}
-                  onChange={(e) =>
-                    setSignUpForm({ ...signUpForm, userId: e.target.value.toLowerCase().replace(/\./g, '') })
-                  }
+                  onChange={(e) => {
+                    const cleanValue = e.target.value
+                      .toLowerCase()
+                      .replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '')
+                      .replace(/\./g, '');
+                    setSignUpForm({ ...signUpForm, userId: cleanValue });
+                  }}
                   className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 text-xs"
                 />
               </div>
@@ -247,16 +251,18 @@ export const AuthScreen = ({
                 <label htmlFor="signup-name" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이름
                 </label>
+                {/* ⚡ 이름: 한글(가-힣)만 허용 */}
                 <input
                   id="signup-name"
                   name="name"
                   type="text"
-                  autoComplete="name"
-                  placeholder="실명만 입력 가능"
-                  value={signUpForm.name || ''}
-                  onChange={(e) =>
-                    setSignUpForm({ ...signUpForm, name: e.target.value })
-                  }
+                  autoComplete="off"
+                  placeholder="한글 실명만 입력 가능"
+                  value={signUpForm?.name ?? ''}
+                  onChange={(e) => {
+                    const koreanOnly = e.target.value.replace(/[^가-힣]/g, '');
+                    setSignUpForm({ ...signUpForm, name: koreanOnly });
+                  }}
                   className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 text-xs"
                 />
               </div>
@@ -457,7 +463,6 @@ export const AuthScreen = ({
                         isResetPasswordMismatch ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'
                       } p-2 rounded-xl text-slate-900 dark:text-white text-xs bg-slate-50/50 dark:bg-slate-800/60 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 placeholder:text-slate-400`}
                     />
-                    {/* ⚡ 비밀번호 불일치 노출 메시지 */}
                     {isResetPasswordMismatch && (
                       <p className="text-[10px] text-red-500 font-medium mt-1">
                         비밀번호가 일치하지 않습니다.

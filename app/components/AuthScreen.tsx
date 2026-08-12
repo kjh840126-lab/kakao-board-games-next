@@ -33,6 +33,11 @@ export const AuthScreen = ({
   // ⚡ 아이디 한글 포함 여부 체크
   const isUsernameHasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.userId || '');
 
+  // ⚡ 이름 한글 외 문자 포함 여부 체크 (빈값이 아닐 때 검사)
+  const isNameHasNonKorean = signUpForm.name
+    ? /[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.name)
+    : false;
+
   // ⚡ 비밀번호 확인 일치 여부 체크
   const isPasswordMismatch =
     signUpForm.passwordConfirm &&
@@ -56,8 +61,6 @@ export const AuthScreen = ({
     }
 
     // 2. 이름 한글 체크
-    const nameValue = signUpForm.name || '';
-    const isNameHasNonKorean = /[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(nameValue);
     if (isNameHasNonKorean) {
       alert('이름에는 한글만 입력 가능합니다. (영문, 숫자, 특수문자, 공백 사용 불가)');
       return;
@@ -251,10 +254,7 @@ export const AuthScreen = ({
             </form>
           ) : (
             /* 회원가입 폼 */
-            <form onSubmit={onSubmitSignUp} className="space-y-2" autoComplete="new-password">
-              {/* 더미 패스워드 필드 (브라우저 자동완성 갈고리를 여기에 걸리게 하여 실제 필드 차단) */}
-              <input type="password" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
-
+            <form onSubmit={onSubmitSignUp} className="space-y-2">
               {/* 아이디 영역 */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-userid" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
@@ -281,7 +281,7 @@ export const AuthScreen = ({
                 )}
               </div>
 
-              {/* ⚡ 이름 영역: readOnly 해제로 브라우저 비밀번호 팝업 완전 무력화 */}
+              {/* ⚡ 이름 영역 (한글 외 입력 시 경고 노출) */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-realname" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이름
@@ -298,8 +298,15 @@ export const AuthScreen = ({
                   onChange={(e) =>
                     setSignUpForm({ ...signUpForm, name: e.target.value })
                   }
-                  className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 text-xs"
+                  className={`w-full border ${
+                    isNameHasNonKorean ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'
+                  } bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 text-xs`}
                 />
+                {isNameHasNonKorean && (
+                  <p className="text-[10px] text-red-500 font-medium mt-1">
+                    이름은 한글만 입력 가능합니다.
+                  </p>
+                )}
               </div>
 
               {/* 이메일 영역 */}

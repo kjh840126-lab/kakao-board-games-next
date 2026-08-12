@@ -34,7 +34,7 @@ export const AuthScreen = ({
   // 아이디 한글 포함 여부 체크
   const isUsernameHasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.userId || '');
 
-  // ⚡ [수정] 맥북 한글 IME 입력 중 조합 자음/모음(ㄱ-ㅎ, ㅏ-ㅣ) 보정을 위해 정규식 범위 확장
+  // ⚡ 이름 한글 외 문자 포함 여부 체크 (맥북 한글 조합 중 자음/모음 ㄱ-ㅎ, ㅏ-ㅣ 보정)
   const isNameHasNonKorean = signUpForm.name
     ? /[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.name)
     : false;
@@ -283,7 +283,7 @@ export const AuthScreen = ({
                 )}
               </div>
 
-              {/* 이름 영역 */}
+              {/* 이름 영역 (PC/맥북 한글 조합 입력 이벤트 보정 반영) */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-name" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이름
@@ -292,10 +292,13 @@ export const AuthScreen = ({
                   id="signup-name"
                   name="name"
                   type="text"
-                  autoComplete="name"
+                  autoComplete="off"
                   placeholder="실명만 입력 가능"
                   value={signUpForm?.name ?? ''}
                   onChange={(e) =>
+                    setSignUpForm({ ...signUpForm, name: e.target.value })
+                  }
+                  onCompositionEnd={(e: any) =>
                     setSignUpForm({ ...signUpForm, name: e.target.value })
                   }
                   className={`w-full border ${
@@ -408,7 +411,7 @@ export const AuthScreen = ({
           <div className="relative rounded-3xl w-full max-w-xs overflow-hidden shadow-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs border dark:border-slate-800">
             <div className="bg-[#FEE500] py-4 px-5 flex justify-start items-center relative">
               <img
-                src={"/logo_chun.png"}
+                src="/logo_chun.png"
                 alt="Kakao Board Games"
                 className="w-10 h-auto object-contain"
                 onError={(e) => {

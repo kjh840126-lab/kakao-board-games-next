@@ -685,10 +685,15 @@ export function ModalsContainer({
               <button onClick={() => setIsEditProfileOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button>
             </div>
             <form onSubmit={handleSaveProfile} className="space-y-3.5">
-              {/* ⚡ 1. 아이디 항목에서 (LDAP) 텍스트 제거 */}
+              {/* ⚡ 1. 아이디 항목 다크모드 visual 보정 (disabled 스타일 명확화) */}
               <div>
                 <label className="font-bold block mb-1 text-slate-400">아이디</label>
-                <input type="text" disabled value={currentUser.userId} className="w-full border border-slate-200 p-2.5 rounded-xl font-mono bg-slate-100 text-slate-500" />
+                <input 
+                  type="text" 
+                  disabled 
+                  value={currentUser.userId} 
+                  className="w-full border border-slate-200 dark:border-slate-700/60 p-2.5 rounded-xl font-mono bg-slate-100 dark:!bg-slate-800/80 text-slate-500 dark:!text-slate-400 cursor-not-allowed select-none opacity-80" 
+                />
               </div>
 
               {/* ⚡ 2. 이메일 항목 수정 가능하도록 활성화 */}

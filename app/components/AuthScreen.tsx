@@ -30,7 +30,7 @@ export const AuthScreen = ({
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // ⚡ 아이디 한글 포함 여부 체크 (제출 시 검사용)
+  // ⚡ 아이디 한글 포함 여부 체크
   const isUsernameHasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.userId || '');
 
   // ⚡ 비밀번호 확인 일치 여부 체크
@@ -39,13 +39,13 @@ export const AuthScreen = ({
     signUpForm.password &&
     signUpForm.password !== signUpForm.passwordConfirm;
 
-  // ⚡ 비밀번호 재설정(찾기) 비밀번호 확인 일치 여부 체크
+  // ⚡ 비밀번호 재설정 일치 여부 체크
   const isResetPasswordMismatch =
     newPasswordConfirm &&
     newPassword &&
     newPassword !== newPasswordConfirm;
 
-  // ⚡ 회원가입 제출 시 유효성 검사 프로세스
+  // ⚡ 회원가입 제출 시 검사
   const onSubmitSignUp = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -55,7 +55,7 @@ export const AuthScreen = ({
       return;
     }
 
-    // 2. 이름 한글 외 문자(영문/숫자/특수문자/공백 등) 포함 체크 -> alert 노출
+    // 2. 이름 한글 체크 (영문, 숫자, 특수문자, 공백 포함 시 alert)
     const nameValue = signUpForm.name || '';
     const isNameHasNonKorean = /[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(nameValue);
     if (isNameHasNonKorean) {
@@ -69,11 +69,11 @@ export const AuthScreen = ({
       return;
     }
 
-    // 모든 검증 통과 시 상위 handleSignUp 호출
+    // 상위 handleSignUp 호출
     handleSignUp(e);
   };
 
-  // ⚡ 1단계: Supabase 비밀번호 재설정 전용 이메일/OTP 발송
+  // ⚡ 비밀번호 재설정 이메일 발송
   const handleSendResetEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = resetEmail.trim().toLowerCase();
@@ -93,7 +93,6 @@ export const AuthScreen = ({
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail);
-
       if (error) throw error;
 
       alert(`'${cleanEmail}' 주소로 6자리 인증번호가 발송되었습니다.`);
@@ -105,7 +104,7 @@ export const AuthScreen = ({
     }
   };
 
-  // ⚡ 2단계: 6자리 OTP 검증 및 비밀번호 변경
+  // ⚡ 비밀번호 변경
   const handleVerifyAndChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = resetEmail.trim().toLowerCase();
@@ -133,7 +132,6 @@ export const AuthScreen = ({
         throw new Error('인증번호가 올바르지 않거나 만료되었습니다.');
       }
 
-      // 비밀번호 업데이트
       const { error: updateErr } = await supabase
         .from('users')
         .update({ password_hash: newPassword })
@@ -281,25 +279,21 @@ export const AuthScreen = ({
                 )}
               </div>
 
-              {/* ⚡ 이름 영역: 브라우저 영문 강제 전환(Auto-IME) 방지 처리 */}
+              {/* ⚡ 이름 영역: 한글 타이핑이 끊기지 않는 기본 깔끔한 Input */}
               <div className="space-y-0.5">
-                <label htmlFor="signup-user-fullname" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
+                <label htmlFor="signup-name" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이름
                 </label>
                 <input
-                  id="signup-user-fullname"
-                  name="user-fullname"
+                  id="signup-name"
+                  name="name"
                   type="text"
-                  autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="off"
-                  spellCheck={false}
+                  autoComplete="name"
                   placeholder="실명만 입력 가능"
                   value={signUpForm.name || ''}
                   onChange={(e) =>
                     setSignUpForm({ ...signUpForm, name: e.target.value })
                   }
-                  style={{ imeMode: 'active' }}
                   className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 text-xs"
                 />
               </div>

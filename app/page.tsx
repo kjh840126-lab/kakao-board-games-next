@@ -165,7 +165,8 @@ export default function MainPage() {
   const [isEditingMode, setIsEditingMode] = useState(false);
   const [isGameModalOpen, setIsGameModalOpen] = useState(false);
   const [isNoticeModalOpen, setIsNoticeModalOpen] = useState(false);
-  const [editingNotice, setEditingNotice] = useState<{ id?: number; title: string; content: string; isVisible?: string }>({ title: '', content: '', isVisible: 'Y' });
+  // ⚡ [수정] editingNotice 상태에 imageUrl 추가
+  const [editingNotice, setEditingNotice] = useState<{ id?: number; title: string; content: string; imageUrl?: string; isVisible?: string }>({ title: '', content: '', imageUrl: '', isVisible: 'Y' });
   const [isSiteModalOpen, setIsSiteModalOpen] = useState(false);
   const [editingSite, setEditingSite] = useState<BoardSite>({ siteId: 0, name: '', url: '', bannerUrl: '', description: '', isVisible: 'Y' });
   const [reportForm, setReportForm] = useState({ title: '', content: '', category: '' });
@@ -335,11 +336,13 @@ export default function MainPage() {
         setGames(shuffled);
       }
 
+      // ⚡ [수정] DB의 image_url을 imageUrl로 확실하게 매핑하여 노출
       if (noticeData) {
         setNoticeList(noticeData.map(n => ({ 
           noticeId: n.notice_id, 
           title: n.title, 
           content: n.content, 
+          imageUrl: n.image_url || n.imageUrl || '', // 👈 추가된 부분
           isVisible: n.is_visible || 'Y', 
           createdAt: n.created_at?.split('T')[0] || today 
         })));
@@ -430,7 +433,6 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 개별 반납 처리 (보정된 calcPenaltyEndDate 사용)
   const returnGame = async (rentalId: number, gameId: string) => {
     if (!currentUser) return;
     const nowIso = new Date().toISOString();
@@ -452,7 +454,6 @@ export default function MainPage() {
         const hasFuturePenalty = currentUser.penaltyEndDate && String(currentUser.penaltyEndDate) >= today;
         const baseDateStr = hasFuturePenalty ? String(currentUser.penaltyEndDate) : today;
 
-        // ⭕ 자정 기준 날짜 계산 함수 적용으로 정확한 종료일 산출
         const penaltyEndDateStr = calcPenaltyEndDate(baseDateStr, overdueDays);
         const newPenaltyPoints = (currentUser.penaltyPoints || 0) + overdueDays;
 
@@ -475,7 +476,6 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 일괄 반납 처리 (보정된 calcPenaltyEndDate 사용)
   const returnAllGames = async () => {
     if (!currentUser) return;
     const userActiveRentals = rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
@@ -507,7 +507,6 @@ export default function MainPage() {
         const hasFuturePenalty = currentUser.penaltyEndDate && String(currentUser.penaltyEndDate) >= today;
         const baseDateStr = hasFuturePenalty ? String(currentUser.penaltyEndDate) : today;
 
-        // ⭕ 자정 기준 날짜 계산 함수 적용으로 정확한 종료일 산출
         const penaltyEndDateStr = calcPenaltyEndDate(baseDateStr, totalOverdueDays);
         const newPenaltyPoints = (currentUser.penaltyPoints || 0) + totalOverdueDays;
 
@@ -661,12 +660,10 @@ export default function MainPage() {
     alert('제출되었습니다.'); setReportForm({ title: '', content: '', category: '' }); setIsReportModalOpen(false); fetchInitialData();
   };
 
-  // ⚡ [핵심 수정] saveGame 실행 시 genres 데이터 오염(\, ", [, ])을 완벽히 정제하여 DB로 전송
   const saveGame = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingGame) return;
 
-    // 1. genres에 오염된 백슬래시(\), 따옴표("), 대괄호([])를 완전히 세척합니다.
     const rawGenres = editingGame.genres;
     let cleanGenres: string[] = [];
 
@@ -682,7 +679,6 @@ export default function MainPage() {
         .filter(Boolean);
     }
 
-    // 2. DB 컬럼 규격에 맞춰 "가족게임, 전략게임" 형태의 깨끗한 콤마 문자열로 변환합니다.
     const formattedGenres = cleanGenres.join(', ');
 
     const gamePayload = {
@@ -693,7 +689,7 @@ export default function MainPage() {
       difficulty: editingGame.difficulty,
       is_visible: editingGame.isVisible,
       image_url: editingGame.imageUrl,
-      genres: formattedGenres, // 👈 콤마 구분 순수 문자열만 전송 (JSON.stringify 미사용!)
+      genres: formattedGenres,
       release_year: editingGame.releaseYear,
       bgg_rating: editingGame.bggRating,
     };
@@ -731,11 +727,13 @@ export default function MainPage() {
     else { if (currentGenres.length >= 3) { alert('장르는 최대 3개까지 선택할 수 있습니다.'); return; } setEditingGame({ ...editingGame, genres: [...currentGenres, genre] }); }
   };
 
+  // ⚡ [수정] DB로 image_url 저장 전달 구문 보완
   const saveNotice = async (e: React.FormEvent) => {
     e.preventDefault();
     const noticeDataToSave = {
       title: editingNotice.title,
       content: editingNotice.content,
+      image_url: editingNotice.imageUrl || '', // 👈 추가된 부분
       is_visible: editingNotice.isVisible || 'Y',
     };
 

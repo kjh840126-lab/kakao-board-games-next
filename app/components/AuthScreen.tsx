@@ -31,6 +31,17 @@ export const AuthScreen = ({
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
+  // ⚡ 이메일 중복 확인 실행 래퍼 함수 (성공 시 버튼 상태 변경)
+  const onCheckEmailWrapper = async (e: React.MouseEvent) => {
+    if (handleCheckEmail) {
+      const isSuccess = await handleCheckEmail(e);
+      // 상위 함수에서 리턴이 없거나 성공인 경우 setIsEmailVerified(true) 호출
+      if (isSuccess !== false && setIsEmailVerified) {
+        setIsEmailVerified(true);
+      }
+    }
+  };
+
   // ⚡ 아이디 한글 포함 여부 체크
   const isUsernameHasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.userId || '');
 
@@ -336,10 +347,10 @@ export const AuthScreen = ({
                   }}
                   className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 dark:focus:border-slate-700 text-xs"
                 />
-                {/* ⚡ 이메일 중복 확인 버튼: 검증 완료 시 비활성화 및 문구 변경 */}
+                {/* ⚡ 클릭 시 이메일 검사 실행 후 성공하면 버튼 완료 처리 */}
                 <button
                   type="button"
-                  onClick={handleCheckEmail}
+                  onClick={onCheckEmailWrapper}
                   disabled={isEmailVerified}
                   className={`w-full mt-1 border text-xs font-bold py-1.5 rounded-lg transition ${
                     isEmailVerified

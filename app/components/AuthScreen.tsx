@@ -55,7 +55,7 @@ export const AuthScreen = ({
       return;
     }
 
-    // 2. 이름 한글 체크 (영문, 숫자, 특수문자, 공백 포함 시 alert)
+    // 2. 이름 한글 체크
     const nameValue = signUpForm.name || '';
     const isNameHasNonKorean = /[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(nameValue);
     if (isNameHasNonKorean) {
@@ -69,7 +69,6 @@ export const AuthScreen = ({
       return;
     }
 
-    // 상위 handleSignUp 호출
     handleSignUp(e);
   };
 
@@ -203,14 +202,14 @@ export const AuthScreen = ({
             /* 로그인 폼 */
             <form onSubmit={handleLogin} className="space-y-3">
               <div className="space-y-1">
-                <label htmlFor="login-username" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
+                <label htmlFor="login-userid" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   아이디
                 </label>
                 <input
-                  id="login-username"
-                  name="username"
+                  id="login-userid"
+                  name="userid"
                   type="text"
-                  autoComplete="username"
+                  autoComplete="off"
                   placeholder="아이디 입력"
                   value={loginId}
                   onChange={(e) => setLoginId(e.target.value.toLowerCase().replace(/\./g, ''))}
@@ -253,16 +252,16 @@ export const AuthScreen = ({
           ) : (
             /* 회원가입 폼 */
             <form onSubmit={onSubmitSignUp} className="space-y-2">
-              {/* 아이디 영역 */}
+              {/* ⚡ 아이디 영역: name="userid" 로 명시 */}
               <div className="space-y-0.5">
-                <label htmlFor="signup-username" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
+                <label htmlFor="signup-userid" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   아이디
                 </label>
                 <input
-                  id="signup-username"
-                  name="username"
+                  id="signup-userid"
+                  name="userid"
                   type="text"
-                  autoComplete="username"
+                  autoComplete="off"
                   placeholder="LDAP 사용 금지"
                   value={signUpForm.userId || ''}
                   onChange={(e) =>
@@ -279,16 +278,16 @@ export const AuthScreen = ({
                 )}
               </div>
 
-              {/* ⚡ 이름 영역: 한글 타이핑이 끊기지 않는 기본 깔끔한 Input */}
+              {/* ⚡ 이름 영역: name="username", autoComplete="username" 으로 명시하여 한글 키보드/실명 활성화 */}
               <div className="space-y-0.5">
-                <label htmlFor="signup-name" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
+                <label htmlFor="signup-username" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이름
                 </label>
                 <input
-                  id="signup-name"
-                  name="name"
+                  id="signup-username"
+                  name="username"
                   type="text"
-                  autoComplete="name"
+                  autoComplete="username"
                   placeholder="실명만 입력 가능"
                   value={signUpForm.name || ''}
                   onChange={(e) =>

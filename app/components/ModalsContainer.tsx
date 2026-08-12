@@ -344,7 +344,7 @@ export function ModalsContainer({
               <h4 className="font-bold text-slate-400 text-[11px] px-1 mb-1">계정 설정</h4>
               <button 
                 onClick={() => { if (currentUser) { setEditName(currentUser.name); setNewPasswordInput(''); setNewPasswordConfirmInput(''); setIsEditProfileOpen(true); setIsSettingsOpen(false); } }} 
-                className="w-full py-2.5 px-2.5 rounded-xl text-left flex justify-between items-center cursor-pointer hover:bg-slate-100 text-slate-800 font-bold transition"
+                className="w-full py-2.5 px-2.5 rounded-xl text-left flex justify-between items-center cursor-pointer hover:bg-slate-100 text-slate-800 font-normal transition"
               >
                 <div className="flex items-center gap-2.5">
                   <User size={16} className="text-slate-500" />

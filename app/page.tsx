@@ -595,7 +595,7 @@ export default function MainPage() {
     setCurrentUser(user); localStorage.setItem('kakao_boardgame_user', JSON.stringify(user));
   };
 
-  // ⚡ [수정] 이메일 중복 확인 검사 로직 (반환값 명시 및 성공/실패 완벽 구분)
+  // ⚡ 이메일 중복 확인 검사 로직
   const handleCheckEmail = async (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
     const targetEmail = (signUpForm.email || signUpForm.emailPrefix || '').trim().toLowerCase();
@@ -618,22 +618,33 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ [수정] 회원가입 제출 로직 (Supabase Authentication 계정 등록 추가)
+  // ⚡ 회원가입 제출 로직 (비밀번호 6자리 이상 검사 + Supabase Auth 계정 생성)
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     const userId = signUpForm.userId.trim().toLowerCase();
     const name = signUpForm.name.trim();
     const email = (signUpForm.email || signUpForm.emailPrefix || '').trim().toLowerCase();
+    const password = signUpForm.password;
 
     if (!userId || !name) { alert('아이디와 이름을 확인하세요.'); return; }
     if (!isEmailVerified) { alert('이메일 중복 확인을 해주세요.'); return; }
-    if (signUpForm.password !== signUpForm.passwordConfirm) { alert('비밀번호가 일치하지 않습니다.'); return; }
+    
+    // ⚡ 비밀번호 6자리 최소 길이 사전 검사 (Supabase Rate Limit 방지)
+    if (!password || password.length < 6) {
+      alert('비밀번호는 최소 6자리 이상 입력해야 합니다.');
+      return;
+    }
+
+    if (password !== signUpForm.passwordConfirm) { 
+      alert('비밀번호가 일치하지 않습니다.'); 
+      return; 
+    }
 
     try {
       // ⚡ 1. Supabase Authentication (인증) 계정 가입 (비밀번호 찾기 등에 필수)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email,
-        password: signUpForm.password,
+        password: password,
         options: {
           data: {
             name: name,
@@ -643,7 +654,6 @@ export default function MainPage() {
       });
 
       if (authError) {
-        // 이미 가입된 Auth 계정인 경우 등의 에러 핸들링
         throw authError;
       }
 
@@ -652,7 +662,7 @@ export default function MainPage() {
         user_id: userId, 
         name: name, 
         email: email, 
-        password_hash: signUpForm.password, 
+        password_hash: password, 
         role: '일반회원', 
         created_at: new Date().toISOString(), 
         last_login_at: today 

@@ -43,7 +43,6 @@ export const AuthScreen = ({
 
     if (handleCheckEmail) {
       const res = await handleCheckEmail(e);
-      // ⭕ 상위 함수가 명확히 true(검사 성공)를 리턴했을 때만 완료 처리
       if (res === true && setIsEmailVerified) {
         setIsEmailVerified(true);
       }
@@ -58,13 +57,21 @@ export const AuthScreen = ({
     ? /[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.name)
     : false;
 
+  // ⚡ 비밀번호 6자리 미만 체크 (회원가입 폼)
+  const isPasswordTooShort =
+    signUpForm.password && signUpForm.password.length < 6;
+
   // ⚡ 비밀번호 확인 일치 여부 체크
   const isPasswordMismatch =
     signUpForm.passwordConfirm &&
     signUpForm.password &&
     signUpForm.password !== signUpForm.passwordConfirm;
 
-  // ⚡ 비밀번호 재설정 일치 여부 체크
+  // ⚡ 비밀번호 재설정 모달 - 새 비밀번호 6자리 미만 체크
+  const isResetPasswordTooShort =
+    newPassword && newPassword.length < 6;
+
+  // ⚡ 비밀번호 재설정 모달 - 일치 여부 체크
   const isResetPasswordMismatch =
     newPasswordConfirm &&
     newPassword &&
@@ -81,6 +88,11 @@ export const AuthScreen = ({
 
     if (isNameHasNonKorean) {
       alert('이름에는 한글만 입력 가능합니다. (영문, 숫자, 특수문자, 공백 사용 불가)');
+      return;
+    }
+
+    if (isPasswordTooShort) {
+      alert('비밀번호는 최소 6자리 이상이어야 합니다.');
       return;
     }
 
@@ -121,6 +133,11 @@ export const AuthScreen = ({
   const handleVerifyAndChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = resetEmail.trim().toLowerCase();
+
+    if (isResetPasswordTooShort) {
+      alert('새 비밀번호는 최소 6자리 이상이어야 합니다.');
+      return;
+    }
 
     if (newPassword !== newPasswordConfirm) {
       alert('새 비밀번호가 일치하지 않습니다.');
@@ -369,13 +386,20 @@ export const AuthScreen = ({
                   name="new-password"
                   type="password"
                   autoComplete="new-password"
-                  placeholder="LDAP 비밀번호는 사용 금지"
+                  placeholder="LDAP 비밀번호는 사용 금지 (최소 6자리)"
                   value={signUpForm.password || ''}
                   onChange={(e) =>
                     setSignUpForm({ ...signUpForm, password: e.target.value })
                   }
-                  className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 text-xs"
+                  className={`w-full border ${
+                    isPasswordTooShort ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'
+                  } bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 text-xs`}
                 />
+                {isPasswordTooShort && (
+                  <p className="text-[10px] text-red-500 font-medium mt-1">
+                    비밀번호는 최소 6자리 이상이어야 합니다.
+                  </p>
+                )}
               </div>
 
               {/* 비밀번호 확인 영역 */}
@@ -508,11 +532,18 @@ export const AuthScreen = ({
                     <input
                       type="password"
                       required
-                      placeholder="새 비밀번호 입력"
+                      placeholder="새 비밀번호 입력 (최소 6자리)"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full border border-slate-200 dark:border-slate-800 p-2 rounded-xl text-slate-900 dark:text-white text-xs bg-slate-50/50 dark:bg-slate-800/60 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 placeholder:text-slate-400"
+                      className={`w-full border ${
+                        isResetPasswordTooShort ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'
+                      } p-2 rounded-xl text-slate-900 dark:text-white text-xs bg-slate-50/50 dark:bg-slate-800/60 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 placeholder:text-slate-400`}
                     />
+                    {isResetPasswordTooShort && (
+                      <p className="text-[10px] text-red-500 font-medium mt-1">
+                        비밀번호는 최소 6자리 이상이어야 합니다.
+                      </p>
+                    )}
                   </div>
 
                   <div>

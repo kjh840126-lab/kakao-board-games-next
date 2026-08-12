@@ -30,25 +30,16 @@ export const AuthScreen = ({
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // ⚡ 맥북/PC 한글 IME 조합 중 상태 관리 (조합 중에 리렌더링으로 입력이 깨지는 현상 방지)
-  const [isComposing, setIsComposing] = useState(false);
-
-  // ⚡ 1. 회원가입 유효성 검사 (안내 문구 노출 및 제출 차단용)
-  // 아이디 한글 포함 여부 체크
+  // ⚡ 아이디 한글 포함 여부 체크 (제출 시 경고용)
   const isUsernameHasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.userId || '');
 
-  // ⚡ 조합 중이 아닐 때만 한글 외 문자 포함 여부 체크 (맥북 입력 씹힘 원인 원천 차단)
-  const isNameHasNonKorean = !isComposing && signUpForm.name
-    ? /[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.name)
-    : false;
-
-  // 비밀번호 확인 일치 여부 체크
+  // ⚡ 비밀번호 확인 일치 여부 체크
   const isPasswordMismatch =
     signUpForm.passwordConfirm &&
     signUpForm.password &&
     signUpForm.password !== signUpForm.passwordConfirm;
 
-  // ⚡ 2. 비밀번호 재설정(찾기) 비밀번호 확인 일치 여부 체크
+  // ⚡ 비밀번호 재설정(찾기) 비밀번호 확인 일치 여부 체크
   const isResetPasswordMismatch =
     newPasswordConfirm &&
     newPassword &&
@@ -60,13 +51,6 @@ export const AuthScreen = ({
 
     if (isUsernameHasKorean) {
       alert('아이디에는 한글을 사용할 수 없습니다.');
-      return;
-    }
-
-    // 제출 시점에 최종 검사
-    const hasNonKoreanFinal = signUpForm.name ? /[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.name) : false;
-    if (hasNonKoreanFinal) {
-      alert('이름은 한글만 입력 가능합니다.');
       return;
     }
 
@@ -280,7 +264,6 @@ export const AuthScreen = ({
                     isUsernameHasKorean ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'
                   } bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 text-xs`}
                 />
-                {/* ⚡ 아이디 한글 포함 시 경고 메시지 */}
                 {isUsernameHasKorean && (
                   <p className="text-[10px] text-red-500 font-medium mt-1">
                     아이디에는 한글을 사용할 수 없습니다.
@@ -288,7 +271,7 @@ export const AuthScreen = ({
                 )}
               </div>
 
-              {/* 이름 영역 (PC/맥북 한글 IME 조합 중 입력 끊김 완벽 보정) */}
+              {/* ⚡ 이름 영역: 한글 외 문자(영어, 숫자, 특수문자, 공백 등) 들어오면 입력 즉시 완전히 차단 */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-name" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이름
@@ -299,25 +282,13 @@ export const AuthScreen = ({
                   type="text"
                   autoComplete="off"
                   placeholder="실명만 입력 가능"
-                  value={signUpForm?.name ?? ''}
-                  onCompositionStart={() => setIsComposing(true)}
-                  onCompositionEnd={(e: any) => {
-                    setIsComposing(false);
-                    setSignUpForm({ ...signUpForm, name: e.target.value });
+                  value={signUpForm.name || ''}
+                  onChange={(e) => {
+                    const koreanOnly = e.target.value.replace(/[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '');
+                    setSignUpForm({ ...signUpForm, name: koreanOnly });
                   }}
-                  onChange={(e) =>
-                    setSignUpForm({ ...signUpForm, name: e.target.value })
-                  }
-                  className={`w-full border ${
-                    isNameHasNonKorean ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'
-                  } bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 text-xs`}
+                  className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 text-xs"
                 />
-                {/* ⚡ 이름 한글 외 문자 포함 시 경고 메시지 */}
-                {isNameHasNonKorean && (
-                  <p className="text-[10px] text-red-500 font-medium mt-1">
-                    이름은 한글만 입력 가능합니다.
-                  </p>
-                )}
               </div>
 
               {/* 이메일 영역 */}
@@ -537,7 +508,7 @@ export const AuthScreen = ({
                     <button
                       type="submit"
                       disabled={isVerifying}
-                      className="flex-1 dark:!border-slate-600 bg-[#FEE500] hover:bg-[#fada00] dark:!bg-slate-700 dark:hover:!bg-slate-700 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 transition active:scale-[0.99] cursor-pointer text-xs shadow-xs disabled:opacity-50"
+                      className="flex-1 dark:!border-slate-600 bg-[#FEE500] hover:bg-[#fada00] dark:!bg-slate-700 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 transition active:scale-[0.99] cursor-pointer text-xs shadow-xs disabled:opacity-50"
                     >
                       {isVerifying ? '변경 중...' : '비밀번호 변경'}
                     </button>

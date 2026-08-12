@@ -399,7 +399,7 @@ export const AuthScreen = ({
                     <button
                       type="submit"
                       disabled={isSendingCode}
-                      className="flex-1 bg-[#FEE500] dark:bg-slate-800 hover:bg-[#fada00] dark:hover:bg-slate-700 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 cursor-pointer transition text-xs shadow-xs disabled:opacity-50"
+                      className="flex-1 bg-[#FEE500] dark:bg-slate-800 hover:bg-[#fada00] dark:hover:bg-slate-700 dark:!bg-[#1e293b] text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 cursor-pointer transition text-xs shadow-xs disabled:opacity-50"
                     >
                       {isSendingCode ? '발송 중...' : '재설정 메일 발송'}
                     </button>
@@ -407,7 +407,7 @@ export const AuthScreen = ({
                 </form>
               ) : (
                 <form onSubmit={handleVerifyAndChangePassword} className="space-y-2.5">
-                  <div className="flex items-center justify-center gap-1.5 text-slate-900 dark:text-white font-extrabold text-sm mb-0.5">
+                  <div className="flex items-center justify-center gap-1.5 text-slate-900 dark:!border-slate-700 dark:!text-white font-extrabold text-sm mb-0.5">
                     <Lock size={16} />
                     <span>새 비밀번호 설정</span>
                   </div>

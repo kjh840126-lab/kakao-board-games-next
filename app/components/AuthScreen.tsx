@@ -311,7 +311,7 @@ export const AuthScreen = ({
                 )}
               </div>
 
-              {/* 이름 영역 */}
+              {/* ⚡ 이름 영역 (readOnly 구문 제거되어 키보드 바로 터치 동작) */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-user-fullname" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이름
@@ -320,8 +320,6 @@ export const AuthScreen = ({
                   id="signup-user-fullname"
                   name="user-fullname"
                   type="text"
-                  readOnly
-                  onFocus={(e) => e.target.removeAttribute('readOnly')}
                   autoComplete="off"
                   placeholder="실명만 입력 가능"
                   value={signUpForm.name || ''}

@@ -705,7 +705,7 @@ export function ModalsContainer({
         </div>
       )}
 
-      {/* 9. 프로필 수정 모달 (⚡ 다크모드 비활성화 항목 가시성 보정) */}
+      {/* 9. 프로필 수정 모달 (⚡ 다크모드 비활성화 항목 시독성 보정 & 이름 모바일 입력창 키보드 즉시 실행) */}
       {isEditProfileOpen && currentUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className={overlayClass} onClick={() => setIsEditProfileOpen(false)} />
@@ -738,12 +738,13 @@ export function ModalsContainer({
                 />
               </div>
 
-              {/* ⚡ 3. 이름 항목 (실시간 한글 유효성 검사) */}
+              {/* ⚡ 3. 이름 항목 (readOnly 제거로 모바일 첫 터치 시 키보드 바로 동작) */}
               <div>
                 <label className="font-bold block mb-1 text-slate-800 dark:text-slate-200">이름</label>
                 <input 
                   type="text" 
                   required 
+                  autoComplete="off"
                   placeholder="실명만 입력 가능"
                   value={editName} 
                   onChange={(e) => setEditName(e.target.value)} 

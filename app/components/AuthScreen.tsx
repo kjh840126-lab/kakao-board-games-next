@@ -281,21 +281,25 @@ export const AuthScreen = ({
                 )}
               </div>
 
-              {/* 이름 영역 (자유롭게 입력 가능, 제출 시 alert 검사) */}
+              {/* ⚡ 이름 영역: 브라우저 영문 강제 전환(Auto-IME) 방지 처리 */}
               <div className="space-y-0.5">
-                <label htmlFor="signup-name" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
+                <label htmlFor="signup-user-fullname" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이름
                 </label>
                 <input
-                  id="signup-name"
-                  name="name"
+                  id="signup-user-fullname"
+                  name="user-fullname"
                   type="text"
                   autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
                   placeholder="실명만 입력 가능"
                   value={signUpForm.name || ''}
                   onChange={(e) =>
                     setSignUpForm({ ...signUpForm, name: e.target.value })
                   }
+                  style={{ imeMode: 'active' }}
                   className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 text-xs"
                 />
               </div>

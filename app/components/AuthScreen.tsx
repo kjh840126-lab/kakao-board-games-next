@@ -35,27 +35,29 @@ export const AuthScreen = ({
   const [localIsEmailVerified, setLocalIsEmailVerified] = useState(false);
   const isVerified = isEmailVerified || localIsEmailVerified;
 
-  // ⚡ 이메일 중복 확인 클릭 핸들러
+  // ⚡ 이메일 중복 확인 클릭 핸들러 (실제 검사 성공 시에만 완료 상태 전환)
   const onCheckEmailWrapper = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!signUpForm.email && !signUpForm.emailPrefix) {
+    const targetEmail = signUpForm.email || signUpForm.emailPrefix;
+    
+    if (!targetEmail) {
       alert('이메일을 입력해 주세요.');
       return;
     }
 
     try {
       if (handleCheckEmail) {
-        await handleCheckEmail(e);
+        const res = await handleCheckEmail(e);
+        // 상위 함수에서 실패로 false를 리턴한 경우 버튼 상태를 바꾸지 않음
+        if (res === false) return;
       }
+      // 성공한 경우에만 완료 상태로 전환
       setLocalIsEmailVerified(true);
-      if (setIsEmailVerified) {
-        setIsEmailVerified(true);
-      }
+      if (setIsEmailVerified) setIsEmailVerified(true);
     } catch (err) {
+      // 에러(중복 이메일 등) 발생 시 미검증 상태 유지
       setLocalIsEmailVerified(false);
-      if (setIsEmailVerified) {
-        setIsEmailVerified(false);
-      }
+      if (setIsEmailVerified) setIsEmailVerified(false);
     }
   };
 
@@ -331,7 +333,7 @@ export const AuthScreen = ({
                 )}
               </div>
 
-              {/* ⚡ 이메일 영역 (emailPrefix 호환성 보정 반영) */}
+              {/* 이메일 영역 */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-email" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이메일
@@ -348,7 +350,7 @@ export const AuthScreen = ({
                     setSignUpForm({
                       ...signUpForm,
                       email: lowerEmail,
-                      emailPrefix: lowerEmail, // ⚡ 상위 handleCheckEmail 함수와의 호환을 위해 호환성 키 추가
+                      emailPrefix: lowerEmail,
                     });
                     setLocalIsEmailVerified(false);
                     if (setIsEmailVerified) setIsEmailVerified(false);

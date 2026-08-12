@@ -395,11 +395,11 @@ export const AuthScreen = ({
                     >
                       취소
                     </button>
-                    {/* ⚡ [강제 반영] 다크모드에서 로그인 버튼과 동일한 배경색, 외곽선, 텍스트 스타일 적용 */}
+                    {/* ⚡ [로그인 버튼과 완전히 동일한 스타일 지정] 다크모드 배경: dark:bg-slate-800/60, 테두리: dark:border-slate-700, 글자색: dark:text-white */}
                     <button
                       type="submit"
                       disabled={isSendingCode}
-                      className="flex-1 bg-[#FEE500] dark:bg-slate-800 hover:bg-[#fada00] dark:hover:bg-slate-700 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 cursor-pointer transition text-xs shadow-xs disabled:opacity-50"
+                      className="flex-1 bg-[#FEE500] dark:bg-slate-800/60 hover:bg-[#fada00] dark:hover:bg-slate-700/80 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 cursor-pointer transition text-xs shadow-xs disabled:opacity-50"
                     >
                       {isSendingCode ? '발송 중...' : '재설정 메일 발송'}
                     </button>
@@ -461,11 +461,10 @@ export const AuthScreen = ({
                     >
                       이전
                     </button>
-                    {/* ⚡ 2단계 비밀번호 변경 버튼도 동일하게 다크모드 전용 스타일 지정 */}
                     <button
                       type="submit"
                       disabled={isVerifying}
-                      className="flex-1 bg-[#FEE500] dark:bg-slate-800 hover:bg-[#fada00] dark:hover:bg-slate-700 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 cursor-pointer text-xs shadow-xs disabled:opacity-50"
+                      className="flex-1 bg-[#FEE500] dark:bg-slate-800/60 hover:bg-[#fada00] dark:hover:bg-slate-700/80 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 cursor-pointer text-xs shadow-xs disabled:opacity-50"
                     >
                       {isVerifying ? '변경 중...' : '비밀번호 변경'}
                     </button>

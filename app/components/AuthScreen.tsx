@@ -251,7 +251,10 @@ export const AuthScreen = ({
             </form>
           ) : (
             /* 회원가입 폼 */
-            <form onSubmit={onSubmitSignUp} className="space-y-2">
+            <form onSubmit={onSubmitSignUp} className="space-y-2" autoComplete="new-password">
+              {/* 더미 패스워드 필드 (브라우저 자동완성 갈고리를 여기에 걸리게 하여 실제 필드 차단) */}
+              <input type="password" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
+
               {/* 아이디 영역 */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-userid" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
@@ -259,7 +262,7 @@ export const AuthScreen = ({
                 </label>
                 <input
                   id="signup-userid"
-                  name="userid"
+                  name="user_id_field"
                   type="text"
                   autoComplete="off"
                   placeholder="LDAP 사용 금지"
@@ -278,18 +281,18 @@ export const AuthScreen = ({
                 )}
               </div>
 
-              {/* ⚡ 이름 영역: 비밀번호 자동완성 팝업 간섭 완전 차단 */}
+              {/* ⚡ 이름 영역: readOnly 해제로 브라우저 비밀번호 팝업 완전 무력화 */}
               <div className="space-y-0.5">
-                <label htmlFor="signup-name" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
+                <label htmlFor="signup-realname" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이름
                 </label>
                 <input
-                  id="signup-name"
-                  name="off_name"
+                  id="signup-realname"
+                  name="real_user_name_input"
                   type="text"
-                  autoComplete="none"
-                  data-1p-ignore="true"
-                  data-lpignore="true"
+                  readOnly
+                  onFocus={(e) => e.target.removeAttribute('readOnly')}
+                  autoComplete="off"
                   placeholder="실명만 입력 가능"
                   value={signUpForm.name || ''}
                   onChange={(e) =>
@@ -308,7 +311,7 @@ export const AuthScreen = ({
                   id="signup-email-prefix"
                   name="email"
                   type="email"
-                  autoComplete="email"
+                  autoComplete="off"
                   placeholder="회사 이메일 사용 금지"
                   value={signUpForm.emailPrefix || signUpForm.email || ''}
                   onChange={(e) => {

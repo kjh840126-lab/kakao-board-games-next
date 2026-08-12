@@ -661,15 +661,67 @@ export default function MainPage() {
     alert('제출되었습니다.'); setReportForm({ title: '', content: '', category: '' }); setIsReportModalOpen(false); fetchInitialData();
   };
 
+  // ⚡ [핵심 수정] saveGame 실행 시 genres 데이터 오염(\, ", [, ])을 완벽히 정제하여 DB로 전송
   const saveGame = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingGame) return;
-    if (isEditingMode) {
-      await supabase.from('games').update({ title: editingGame.title, min_players: editingGame.minPlayers, max_players: editingGame.maxPlayers, play_time: editingGame.playTime, difficulty: editingGame.difficulty, is_visible: editingGame.isVisible, image_url: editingGame.imageUrl, genres: editingGame.genres, release_year: editingGame.releaseYear, bgg_rating: editingGame.bggRating }).eq('game_id', editingGame.gameId);
-    } else {
-      await supabase.from('games').insert([{ game_id: editingGame.gameId, title: editingGame.title, status: '대여가능', min_players: editingGame.minPlayers, max_players: editingGame.maxPlayers, play_time: editingGame.playTime, difficulty: editingGame.difficulty, description: '', is_visible: editingGame.isVisible, image_url: editingGame.imageUrl, genres: editingGame.genres, release_year: editingGame.releaseYear, bgg_rating: editingGame.bggRating }]);
+
+    // 1. genres에 오염된 백슬래시(\), 따옴표("), 대괄호([])를 완전히 세척합니다.
+    const rawGenres = editingGame.genres;
+    let cleanGenres: string[] = [];
+
+    if (Array.isArray(rawGenres)) {
+      cleanGenres = rawGenres
+        .map((g) => String(g).replace(/[\\"[\]]/g, '').trim())
+        .filter(Boolean);
+    } else if (typeof rawGenres === 'string') {
+      cleanGenres = (rawGenres as string)
+        .replace(/[\\"[\]]/g, '')
+        .split(',')
+        .map((g) => g.trim())
+        .filter(Boolean);
     }
-    fetchInitialData(); setIsGameModalOpen(false);
+
+    // 2. DB 컬럼 규격에 맞춰 "가족게임, 전략게임" 형태의 깨끗한 콤마 문자열로 변환합니다.
+    const formattedGenres = cleanGenres.join(', ');
+
+    const gamePayload = {
+      title: editingGame.title,
+      min_players: editingGame.minPlayers,
+      max_players: editingGame.maxPlayers,
+      play_time: editingGame.playTime,
+      difficulty: editingGame.difficulty,
+      is_visible: editingGame.isVisible,
+      image_url: editingGame.imageUrl,
+      genres: formattedGenres, // 👈 콤마 구분 순수 문자열만 전송 (JSON.stringify 미사용!)
+      release_year: editingGame.releaseYear,
+      bgg_rating: editingGame.bggRating,
+    };
+
+    try {
+      if (isEditingMode) {
+        const { error } = await supabase
+          .from('games')
+          .update(gamePayload)
+          .eq('game_id', editingGame.gameId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('games').insert([
+          {
+            game_id: editingGame.gameId,
+            status: '대여가능',
+            description: '',
+            ...gamePayload,
+          },
+        ]);
+        if (error) throw error;
+      }
+
+      fetchInitialData();
+      setIsGameModalOpen(false);
+    } catch (err: any) {
+      alert('게임 저장 중 오류 발생: ' + (err.message || err));
+    }
   };
 
   const toggleGenreSelection = (genre: string) => {
@@ -739,8 +791,8 @@ export default function MainPage() {
         handleSignUp={handleSignUp}
         setIsEmailVerified={setIsEmailVerified}
         ALLOWED_EMAIL_DOMAINS={ALLOWED_EMAIL_DOMAINS}
-        users={users} // ⚡ 추가: 비밀번호 찾기 이메일 검증용 유저 목록 전달
-        fetchInitialData={fetchInitialData} // ⚡ 추가: 비밀번호 변경 후 최신 데이터 동기화용
+        users={users}
+        fetchInitialData={fetchInitialData}
       />
     );
   }

@@ -255,6 +255,9 @@ export const AuthScreen = ({
           ) : (
             /* 회원가입 폼 */
             <form onSubmit={onSubmitSignUp} className="space-y-2">
+              {/* 더미 패스워드 필드 (브라우저 자동완성 팝업 차단용) */}
+              <input type="password" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
+
               {/* 아이디 영역 */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-userid" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
@@ -281,7 +284,7 @@ export const AuthScreen = ({
                 )}
               </div>
 
-              {/* ⚡ 이름 영역 (한글 외 입력 시 경고 노출) */}
+              {/* ⚡ 이름 영역 (readOnly 속성으로 브라우저 자간 결합 차단 + 한글 외 입력 시 경고) */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-realname" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이름

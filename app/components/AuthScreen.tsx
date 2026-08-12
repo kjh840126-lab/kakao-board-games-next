@@ -31,16 +31,14 @@ export const AuthScreen = ({
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // ⚡ 확실한 동작을 위해 내부 로컬 상태로 이메일 중복 확인 완료 여부 관리
+  // ⚡ 로컬 상태로 이메일 중복 확인 완료 여부 관리
   const [localIsEmailVerified, setLocalIsEmailVerified] = useState(false);
-
-  // 상위 prop 또는 로컬 상태 중 하나라도 true이면 중복확인 완료 처리
   const isVerified = isEmailVerified || localIsEmailVerified;
 
   // ⚡ 이메일 중복 확인 클릭 핸들러
   const onCheckEmailWrapper = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!signUpForm.emailPrefix && !signUpForm.email) {
+    if (!signUpForm.email) {
       alert('이메일을 입력해 주세요.');
       return;
     }
@@ -49,7 +47,6 @@ export const AuthScreen = ({
       if (handleCheckEmail) {
         await handleCheckEmail(e);
       }
-      // 클릭 시 성공하면 로컬 상태와 상위 상태를 모두 true로 즉시 변경
       setLocalIsEmailVerified(true);
       if (setIsEmailVerified) {
         setIsEmailVerified(true);
@@ -65,7 +62,7 @@ export const AuthScreen = ({
   // ⚡ 아이디 한글 포함 여부 체크
   const isUsernameHasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.userId || '');
 
-  // ⚡ 이름 한글 외 문자 포함 여부 체크 (빈값이 아닐 때 검사)
+  // ⚡ 이름 한글 외 문자 포함 여부 체크
   const isNameHasNonKorean = signUpForm.name
     ? /[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.name)
     : false;
@@ -86,19 +83,16 @@ export const AuthScreen = ({
   const onSubmitSignUp = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 1. 아이디 한글 체크
     if (isUsernameHasKorean) {
       alert('아이디에는 한글을 사용할 수 없습니다.');
       return;
     }
 
-    // 2. 이름 한글 체크
     if (isNameHasNonKorean) {
       alert('이름에는 한글만 입력 가능합니다. (영문, 숫자, 특수문자, 공백 사용 불가)');
       return;
     }
 
-    // 3. 비밀번호 일치 체크
     if (isPasswordMismatch) {
       alert('비밀번호가 일치하지 않습니다.');
       return;
@@ -114,12 +108,6 @@ export const AuthScreen = ({
 
     if (!cleanEmail) {
       alert('이메일을 입력해 주세요.');
-      return;
-    }
-
-    const existingUser = (users || []).find((u: any) => u.email?.toLowerCase() === cleanEmail);
-    if (!existingUser) {
-      alert('등록되지 않은 이메일 주소입니다.');
       return;
     }
 
@@ -287,7 +275,6 @@ export const AuthScreen = ({
           ) : (
             /* 회원가입 폼 */
             <form onSubmit={onSubmitSignUp} className="space-y-2">
-              {/* 더미 패스워드 필드 (브라우저 자동완성 팝업 차단용) */}
               <input type="password" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
 
               {/* 아이디 영역 */}
@@ -344,32 +331,29 @@ export const AuthScreen = ({
                 )}
               </div>
 
-              {/* 이메일 영역 */}
+              {/* ⚡ 이메일 영역 (emailPrefix 속성 완정 제거 및 email 속성 단일 적용) */}
               <div className="space-y-0.5">
-                <label htmlFor="signup-email-prefix" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
+                <label htmlFor="signup-email" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이메일
                 </label>
                 <input
-                  id="signup-email-prefix"
+                  id="signup-email"
                   name="email"
                   type="email"
                   autoComplete="off"
                   placeholder="회사 이메일 사용 금지"
-                  value={signUpForm.emailPrefix || signUpForm.email || ''}
+                  value={signUpForm.email || ''}
                   onChange={(e) => {
                     const lowerEmail = e.target.value.toLowerCase();
                     setSignUpForm({
                       ...signUpForm,
-                      emailPrefix: lowerEmail,
                       email: lowerEmail,
                     });
-                    // 이메일을 수정하면 중복 검사 상태 다시 해제
                     setLocalIsEmailVerified(false);
                     if (setIsEmailVerified) setIsEmailVerified(false);
                   }}
                   className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 dark:focus:border-slate-700 text-xs"
                 />
-                {/* ⚡ 이메일 중복 확인 버튼 */}
                 <button
                   type="button"
                   onClick={onCheckEmailWrapper}

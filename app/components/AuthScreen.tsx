@@ -395,12 +395,16 @@ export const AuthScreen = ({
                     >
                       취소
                     </button>
-                    {/* ⚡ [강제 반영] 다크모드에서 로그인 버튼과 동일한 배경색, 외곽선, 텍스트 스타일 적용 */}
+                    {/* ⚡ [강제 스타일 보정] 다크 모드일 때 인라인 스타일로 로그인 버튼과 100% 동일한 CSS 부여 */}
                     <button
                       type="submit"
                       disabled={isSendingCode}
-
-                      className="flex-1 bg-[#FEE500] dark:!bg-slate-800/60 hover:bg-[#fada00] dark:hover:!bg-slate-700 dark:!bg-[#1e293b] text-slate-900 dark:!text-white font-extrabold dark:!font-bold py-2.5 rounded-xl border border-transparent dark:!border-slate-700 cursor-pointer transition text-xs shadow-xs disabled:opacity-50"
+                      style={{
+                        backgroundColor: typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? '#1e293b' : undefined,
+                        borderColor: typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? '#334155' : undefined,
+                        color: typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? '#ffffff' : undefined,
+                      }}
+                      className="flex-1 bg-[#FEE500] hover:bg-[#fada00] text-slate-900 font-extrabold py-2.5 rounded-xl border border-transparent transition active:scale-[0.99] cursor-pointer text-xs shadow-xs disabled:opacity-50"
                     >
                       {isSendingCode ? '발송 중...' : '재설정 메일 발송'}
                     </button>
@@ -408,7 +412,7 @@ export const AuthScreen = ({
                 </form>
               ) : (
                 <form onSubmit={handleVerifyAndChangePassword} className="space-y-2.5">
-                  <div className="flex items-center justify-center gap-1.5 text-slate-900 dark:!border-slate-700 dark:!text-white font-extrabold text-sm mb-0.5">
+                  <div className="flex items-center justify-center gap-1.5 text-slate-900 dark:text-white font-extrabold text-sm mb-0.5">
                     <Lock size={16} />
                     <span>새 비밀번호 설정</span>
                   </div>
@@ -462,11 +466,15 @@ export const AuthScreen = ({
                     >
                       이전
                     </button>
-                    {/* ⚡ 2단계 비밀번호 변경 버튼도 동일하게 다크모드 전용 스타일 지정 */}
                     <button
                       type="submit"
                       disabled={isVerifying}
-                      className="flex-1 bg-[#FEE500] dark:bg-slate-800 hover:bg-[#fada00] dark:hover:bg-slate-700 text-slate-900 dark:text-white font-extrabold dark:font-bold py-2.5 rounded-xl border border-transparent dark:border-slate-700 cursor-pointer text-xs shadow-xs disabled:opacity-50"
+                      style={{
+                        backgroundColor: typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? '#1e293b' : undefined,
+                        borderColor: typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? '#334155' : undefined,
+                        color: typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? '#ffffff' : undefined,
+                      }}
+                      className="flex-1 bg-[#FEE500] hover:bg-[#fada00] text-slate-900 font-extrabold py-2.5 rounded-xl border border-transparent transition active:scale-[0.99] cursor-pointer text-xs shadow-xs disabled:opacity-50"
                     >
                       {isVerifying ? '변경 중...' : '비밀번호 변경'}
                     </button>

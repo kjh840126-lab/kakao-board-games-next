@@ -30,17 +30,49 @@ export const AuthScreen = ({
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // ⚡ 회원가입 비밀번호 확인 일치 여부 체크
+  // ⚡ 1. 회원가입 유효성 검사 (안내 문구 노출 및 제출 차단용)
+  // 아이디 한글 포함 여부 체크
+  const isUsernameHasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.userId || '');
+
+  // 이름 한글 외 문자 포함 여부 체크 (빈값이 아닐 때 검사)
+  const isNameHasNonKorean = signUpForm.name
+    ? /[^가-힣]/.test(signUpForm.name)
+    : false;
+
+  // 비밀번호 확인 일치 여부 체크
   const isPasswordMismatch =
     signUpForm.passwordConfirm &&
     signUpForm.password &&
     signUpForm.password !== signUpForm.passwordConfirm;
 
-  // ⚡ 비밀번호 재설정(찾기) 비밀번호 확인 일치 여부 체크
+  // ⚡ 2. 비밀번호 재설정(찾기) 비밀번호 확인 일치 여부 체크
   const isResetPasswordMismatch =
     newPasswordConfirm &&
     newPassword &&
     newPassword !== newPasswordConfirm;
+
+  // ⚡ 회원가입 제출 전 검증 래퍼 함수
+  const onSubmitSignUp = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (isUsernameHasKorean) {
+      alert('아이디에는 한글을 사용할 수 없습니다.');
+      return;
+    }
+
+    if (isNameHasNonKorean) {
+      alert('이름은 한글만 입력 가능합니다.');
+      return;
+    }
+
+    if (isPasswordMismatch) {
+      alert('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    // 검증 통과 시 상위 handleSignUp 호출
+    handleSignUp(e);
+  };
 
   // ⚡ 1단계: Supabase 비밀번호 재설정 전용 이메일/OTP 발송
   const handleSendResetEmail = async (e: React.FormEvent) => {
@@ -184,7 +216,7 @@ export const AuthScreen = ({
                   autoComplete="username"
                   placeholder="아이디 입력"
                   value={loginId}
-                  onChange={(e) => setLoginId(e.target.value.toLowerCase().replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '').replace(/\./g, ''))}
+                  onChange={(e) => setLoginId(e.target.value.toLowerCase().replace(/\./g, ''))}
                   className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3.5 py-2 rounded-xl focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 dark:focus:border-slate-700 text-xs transition"
                 />
               </div>
@@ -223,12 +255,12 @@ export const AuthScreen = ({
             </form>
           ) : (
             /* 회원가입 폼 */
-            <form onSubmit={handleSignUp} className="space-y-2">
+            <form onSubmit={onSubmitSignUp} className="space-y-2">
+              {/* 아이디 영역 */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-username" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   아이디
                 </label>
-                {/* ⚡ 아이디: 한글 입력 자동 제거 */}
                 <input
                   id="signup-username"
                   name="username"
@@ -236,37 +268,49 @@ export const AuthScreen = ({
                   autoComplete="username"
                   placeholder="LDAP 사용 금지"
                   value={signUpForm.userId || ''}
-                  onChange={(e) => {
-                    const cleanValue = e.target.value
-                      .toLowerCase()
-                      .replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '')
-                      .replace(/\./g, '');
-                    setSignUpForm({ ...signUpForm, userId: cleanValue });
-                  }}
-                  className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 text-xs"
+                  onChange={(e) =>
+                    setSignUpForm({ ...signUpForm, userId: e.target.value })
+                  }
+                  className={`w-full border ${
+                    isUsernameHasKorean ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'
+                  } bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 text-xs`}
                 />
+                {/* ⚡ 아이디 한글 포함 시 경고 메시지 */}
+                {isUsernameHasKorean && (
+                  <p className="text-[10px] text-red-500 font-medium mt-1">
+                    아이디에는 한글을 사용할 수 없습니다.
+                  </p>
+                )}
               </div>
 
+              {/* 이름 영역 */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-name" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이름
                 </label>
-                {/* ⚡ 이름: 한글(가-힣)만 허용 */}
                 <input
                   id="signup-name"
                   name="name"
                   type="text"
                   autoComplete="off"
-                  placeholder="한글 실명만 입력 가능"
+                  placeholder="실명만 입력 가능"
                   value={signUpForm?.name ?? ''}
-                  onChange={(e) => {
-                    const koreanOnly = e.target.value.replace(/[^가-힣]/g, '');
-                    setSignUpForm({ ...signUpForm, name: koreanOnly });
-                  }}
-                  className="w-full border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 text-xs"
+                  onChange={(e) =>
+                    setSignUpForm({ ...signUpForm, name: e.target.value })
+                  }
+                  className={`w-full border ${
+                    isNameHasNonKorean ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'
+                  } bg-slate-50/50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 rounded-lg focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-slate-900 text-xs`}
                 />
+                {/* ⚡ 이름 한글 외 문자 포함 시 경고 메시지 */}
+                {isNameHasNonKorean && (
+                  <p className="text-[10px] text-red-500 font-medium mt-1">
+                    이름은 한글만 입력 가능합니다.
+                  </p>
+                )}
               </div>
 
+              {/* 이메일 영역 */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-email-prefix" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이메일
@@ -297,6 +341,7 @@ export const AuthScreen = ({
                 </button>
               </div>
 
+              {/* 비밀번호 영역 */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-password" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   비밀번호
@@ -315,6 +360,7 @@ export const AuthScreen = ({
                 />
               </div>
 
+              {/* 비밀번호 확인 영역 */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-password-confirm" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   비밀번호 확인

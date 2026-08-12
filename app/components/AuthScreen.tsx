@@ -30,11 +30,17 @@ export const AuthScreen = ({
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // ⚡ 비밀번호 확인 일치 여부 체크
+  // ⚡ 회원가입 비밀번호 확인 일치 여부 체크
   const isPasswordMismatch =
     signUpForm.passwordConfirm &&
     signUpForm.password &&
     signUpForm.password !== signUpForm.passwordConfirm;
+
+  // ⚡ 비밀번호 재설정(찾기) 비밀번호 확인 일치 여부 체크
+  const isResetPasswordMismatch =
+    newPasswordConfirm &&
+    newPassword &&
+    newPassword !== newPasswordConfirm;
 
   // ⚡ 1단계: Supabase OTP 발송
   const handleSendResetEmail = async (e: React.FormEvent) => {
@@ -395,7 +401,6 @@ export const AuthScreen = ({
                     >
                       취소
                     </button>
-                    {/* ⚡ [완벽 보정] 다크모드 시 취소 버튼 및 로그인 버튼과 동일한 불투명 slate-800 배경으로 확실하게 고정 */}
                     <button
                       type="submit"
                       disabled={isSendingCode}
@@ -443,14 +448,23 @@ export const AuthScreen = ({
 
                   <div>
                     <label className="font-bold block mb-0.5 text-slate-800 dark:text-slate-200 text-[10px]">새 비밀번호 확인</label>
+                    {/* ⚡ 비밀번호 확인 테두리 상태 수정을 적절히 반영 */}
                     <input
                       type="password"
                       required
                       placeholder="새 비밀번호 재입력"
                       value={newPasswordConfirm}
                       onChange={(e) => setNewPasswordConfirm(e.target.value)}
-                      className="w-full border border-slate-200 dark:border-slate-800 p-2 rounded-xl text-slate-900 dark:text-white text-xs bg-slate-50/50 dark:bg-slate-800/60 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 placeholder:text-slate-400"
+                      className={`w-full border ${
+                        isResetPasswordMismatch ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'
+                      } p-2 rounded-xl text-slate-900 dark:text-white text-xs bg-slate-50/50 dark:bg-slate-800/60 focus:outline-none focus:border-slate-400 dark:focus:border-slate-700 placeholder:text-slate-400`}
                     />
+                    {/* ⚡ 비밀번호 불일치 노출 메시지 추가 */}
+                    {isResetPasswordMismatch && (
+                      <p className="text-[10px] text-red-500 font-medium mt-1">
+                        비밀번호가 일치하지 않습니다.
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex gap-2 pt-1">

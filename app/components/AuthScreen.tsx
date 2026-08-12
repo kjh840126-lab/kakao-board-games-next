@@ -38,7 +38,7 @@ export const AuthScreen = ({
   // ⚡ 이메일 중복 확인 클릭 핸들러
   const onCheckEmailWrapper = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!signUpForm.email) {
+    if (!signUpForm.email && !signUpForm.emailPrefix) {
       alert('이메일을 입력해 주세요.');
       return;
     }
@@ -331,7 +331,7 @@ export const AuthScreen = ({
                 )}
               </div>
 
-              {/* ⚡ 이메일 영역 (emailPrefix 속성 완정 제거 및 email 속성 단일 적용) */}
+              {/* ⚡ 이메일 영역 (emailPrefix 호환성 보정 반영) */}
               <div className="space-y-0.5">
                 <label htmlFor="signup-email" className="font-bold text-slate-900 dark:text-slate-100 text-xs block">
                   이메일
@@ -342,12 +342,13 @@ export const AuthScreen = ({
                   type="email"
                   autoComplete="off"
                   placeholder="회사 이메일 사용 금지"
-                  value={signUpForm.email || ''}
+                  value={signUpForm.email || signUpForm.emailPrefix || ''}
                   onChange={(e) => {
                     const lowerEmail = e.target.value.toLowerCase();
                     setSignUpForm({
                       ...signUpForm,
                       email: lowerEmail,
+                      emailPrefix: lowerEmail, // ⚡ 상위 handleCheckEmail 함수와의 호환을 위해 호환성 키 추가
                     });
                     setLocalIsEmailVerified(false);
                     if (setIsEmailVerified) setIsEmailVerified(false);

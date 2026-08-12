@@ -614,7 +614,7 @@ export default function MainPage() {
     if (signUpForm.password !== signUpForm.passwordConfirm) { alert('비밀번호가 일치하지 않습니다.'); return; }
 
     try {
-      const { error } = await supabase.from('users').insert([{ user_id: userId, name: name, email: email, password_hash: signUpForm.password, role: '일반', created_at: new Date().toISOString(), last_login_at: today }]);
+      const { error } = await supabase.from('users').insert([{ user_id: userId, name: name, email: email, password_hash: signUpForm.password, role: '일반회원', created_at: new Date().toISOString(), last_login_at: today }]);
       if (error) throw error;
       alert('회원가입 완료! 로그인해 주세요.'); fetchInitialData(); setAuthTab('login'); setLoginId(userId); setLoginPassword('');
     } catch (err: any) { alert('회원가입 실패: ' + err.message); }

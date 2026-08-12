@@ -114,22 +114,23 @@ export function ModalsContainer({
 }: ModalsContainerProps) {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  // ⚡ [수정 포인트] DB에서 가져온 genres가 문자열(JSON)이든 배열이든 특수기호(\, ", [, ])를 완전히 제거하고 깨끗한 배열로 변환합니다.
+  // ⚡ [TypeScript 에러 수정] 타입 추론 명시(string) 추가
   const rawGenres = editingGame?.genres;
   const currentGenres: string[] = React.useMemo(() => {
     if (!rawGenres) return [];
     
     if (Array.isArray(rawGenres)) {
-      return rawGenres
-        .map((g) => String(g).replace(/[\\"[\]]/g, '').trim())
+      return (rawGenres as any[])
+        .map((g: any) => String(g).replace(/[\\"[\]]/g, '').trim())
         .filter(Boolean);
     }
     
     if (typeof rawGenres === 'string') {
-      return rawGenres
+      const strVal: string = rawGenres;
+      return strVal
         .replace(/[\\"[\]]/g, '')
         .split(',')
-        .map((g) => g.trim())
+        .map((g: string) => g.trim())
         .filter(Boolean);
     }
     

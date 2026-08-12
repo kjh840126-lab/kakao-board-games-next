@@ -34,9 +34,9 @@ export const AuthScreen = ({
   // 아이디 한글 포함 여부 체크
   const isUsernameHasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.userId || '');
 
-  // 이름 한글 외 문자 포함 여부 체크 (빈값이 아닐 때 검사)
+  // ⚡ [수정] 맥북 한글 IME 입력 중 조합 자음/모음(ㄱ-ㅎ, ㅏ-ㅣ) 보정을 위해 정규식 범위 확장
   const isNameHasNonKorean = signUpForm.name
-    ? /[^가-힣]/.test(signUpForm.name)
+    ? /[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(signUpForm.name)
     : false;
 
   // 비밀번호 확인 일치 여부 체크
@@ -292,7 +292,7 @@ export const AuthScreen = ({
                   id="signup-name"
                   name="name"
                   type="text"
-                  autoComplete="off"
+                  autoComplete="name"
                   placeholder="실명만 입력 가능"
                   value={signUpForm?.name ?? ''}
                   onChange={(e) =>

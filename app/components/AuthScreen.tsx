@@ -295,7 +295,7 @@ export const AuthScreen = ({
                   name="username"
                   type="text"
                   autoComplete="off"
-                  placeholder="LDAP에서 . 앞부분만 입력"
+                  placeholder="LDAP 앞부분만 입력 (. 뒷부분 입력금지)"
                   value={signUpForm.userId || ''}
                   onChange={(e) =>
                     setSignUpForm({ ...signUpForm, userId: e.target.value.toLowerCase() })

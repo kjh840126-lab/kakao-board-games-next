@@ -63,9 +63,9 @@ export const GamesTab = memo(({
       }
       if (genreFilter && !g.genres.includes(genreFilter)) return false;
       if (difficultyFilter !== 'all') {
-        if (difficultyFilter === 'easy' && g.difficulty >= 2.3) return false;
-        if (difficultyFilter === 'normal' && (g.difficulty < 2.3 || g.difficulty > 3.5)) return false;
-        if (difficultyFilter === 'hard' && g.difficulty <= 3.5) return false;
+        if (difficultyFilter === 'easy' && g.difficulty >= 2.0) return false;
+        if (difficultyFilter === 'normal' && (g.difficulty < 2.0 || g.difficulty > 3.0)) return false;
+        if (difficultyFilter === 'hard' && g.difficulty <= 3.0) return false;
       }
       return true;
     });

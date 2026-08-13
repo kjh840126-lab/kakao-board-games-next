@@ -18,7 +18,7 @@ export function Providers({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   // ⚡ iOS 사파리 홈 화면 추가(PWA) 모드에서만 안전하게 동작하는 당겨서 새로고침
-  // useIosPwaPullToRefresh();
+  useIosPwaPullToRefresh();
 
   useEffect(() => {
     setMounted(true);

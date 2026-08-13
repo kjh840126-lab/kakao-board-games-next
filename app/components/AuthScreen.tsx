@@ -240,7 +240,7 @@ export const AuthScreen = ({
                   id="login-username"
                   name="username"
                   type="text"
-                  autoComplete="off"
+                  autoComplete="username"
                   placeholder="아이디 입력"
                   value={loginId}
                   onChange={(e) => setLoginId(e.target.value.toLowerCase().replace(/\./g, ''))}
@@ -295,7 +295,7 @@ export const AuthScreen = ({
                   name="username"
                   type="text"
                   autoComplete="off"
-                  placeholder="LDAP 사용 금지"
+                  placeholder="LDAP에서 . 앞부분만 입력"
                   value={signUpForm.userId || ''}
                   onChange={(e) =>
                     setSignUpForm({ ...signUpForm, userId: e.target.value.toLowerCase() })

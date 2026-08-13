@@ -688,7 +688,7 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ [수정] 프로필/비밀번호/이메일 수정 처리 핸들러 (Supabase Auth 연동 포함)
+  // ⚡ 프로필/비밀번호/이메일 수정 처리 핸들러 (Supabase Auth 연동 포함)
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
@@ -862,8 +862,9 @@ export default function MainPage() {
     fetchInitialData(); setIsSiteModalOpen(false);
   };
 
+  // ⚡ [수정] 무조건 클릭한 공지 ID로 설정하여 항상 상세 내용이 시원하게 펼쳐지도록 보정
   const handleNoticeClick = (notice: Notice) => {
-    setExpandedNoticeId(expandedNoticeId === notice.noticeId ? null : notice.noticeId);
+    setExpandedNoticeId(notice.noticeId);
     setIsNoticeDrawerOpen(true);
   };
 

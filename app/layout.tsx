@@ -10,6 +10,12 @@ export const metadata: Metadata = {
     apple: '/apple-touch-icon.png?v=10',
   },
   manifest: '/site.webmanifest?v=10',
+  // ⚡ iOS 웹앱 하단 제어바 노출 설정 (capable: false)
+  appleWebApp: {
+    capable: false,
+    title: 'KBG',
+    statusBarStyle: 'default',
+  },
 };
 
 export const viewport: Viewport = {
@@ -28,6 +34,9 @@ export default function RootLayout({
     <html lang="ko" suppressHydrationWarning>
       <head>
         <meta id="theme-color-meta" name="theme-color" content="#FEE500" />
+        
+        {/* ⚡ iOS Safari 제어바 강제 노출 메타 태그 */}
+        <meta name="apple-mobile-web-app-capable" content="no" />
         
         <link rel="icon" href="/favicon.ico?v=10" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=10" />

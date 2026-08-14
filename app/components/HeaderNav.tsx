@@ -208,7 +208,7 @@ export const FixedBottomNav = memo(({
             }`}
           >
             <div className={`relative inline-flex items-center justify-center ${
-              activeTab === 'admin' ? 'text-sky-500 dark:text-sky-400' : 'text-slate-400 dark:text-slate-400'
+              activeTab === 'admin' ? 'text-sky-500 dark:!text-sky-400' : 'text-slate-400 dark:text-slate-400'
             }`}>
               <ShieldCheck size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
               {unreadReportsCount > 0 && (

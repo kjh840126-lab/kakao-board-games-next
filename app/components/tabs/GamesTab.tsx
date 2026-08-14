@@ -5,7 +5,7 @@ import { Game, Rental, UserRating } from '../../types';
 import { Search, Filter, Bell, ChevronRight, X, Heart, Clock, Brain, Users as PlayerIcon, RotateCcw as ResetIcon, Star, Loader2 } from 'lucide-react';
 
 // ⚡ 신규 장르 목록 6개 적용
-const PRESET_GENRES = ['전략게임', '파티게임', '협동게임', '가족게임', '테마/모험', '추리/마피아'];
+const PRESET_GENRES = ['전략게임', '파티게임', '협력게임', '가족게임', '테마/모험', '추리/마피아'];
 
 const BggIcon = memo(({ size = 12, className = "" }: { size?: number; className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 114 165" fill="none" xmlns="http://www.w3.org/2000/svg" className={`inline-block flex-shrink-0 ${className}`}>

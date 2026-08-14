@@ -4,7 +4,7 @@ import { useState, useMemo, memo } from 'react';
 import { Game, Rental, UserRating } from '../../types';
 import { Search, Filter, Bell, ChevronRight, X, Heart, Clock, Brain, Users as PlayerIcon, RotateCcw as ResetIcon, Star, Loader2, ArrowUpDown } from 'lucide-react';
 
-// ⚡ 신규 장르 목록 6개 적용
+// ⚡ 신규 장르 목록 6개 및 옵션 정의
 const PRESET_GENRES = ['전략게임', '파티게임', '협력게임', '가족게임', '테마/모험', '추리/마피아'];
 const PLAYER_OPTIONS = [1, 2, 3, 4, 5]; // 5는 5인+
 const DIFFICULTY_OPTIONS = [
@@ -60,24 +60,24 @@ export const GamesTab = memo(({
   const [gameListSearch, setGameListSearch] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // ⚡ 1. 정렬 상태 (단일 선택: 'title' | 'releaseYear' | 'bggRating')
-  const [sortOption, setSortOption] = useState<'title' | 'releaseYear' | 'bggRating'>('title');
+  // ⚡ 1. 정렬 상태 (기본값: 'random' 랜덤)
+  const [sortOption, setSortOption] = useState<'random' | 'title' | 'releaseYear' | 'bggRating'>('random');
 
   // ⚡ 2. 복수 선택 필터 상태
   const [playerFilters, setPlayerFilters] = useState<number[]>([]); // 인원수 (빈 배열 = 전체)
   const [genreFilters, setGenreFilters] = useState<string[]>([]);   // 장르 (빈 배열 = 전체)
   const [difficultyFilters, setDifficultyFilters] = useState<string[]>([]); // 난이도 (빈 배열 = 전체)
 
-  const isFilterActive = sortOption !== 'title' || playerFilters.length > 0 || genreFilters.length > 0 || difficultyFilters.length > 0;
+  const isFilterActive = sortOption !== 'random' || playerFilters.length > 0 || genreFilters.length > 0 || difficultyFilters.length > 0;
   
   const resetFilters = () => {
-    setSortOption('title');
+    setSortOption('random');
     setPlayerFilters([]);
     setGenreFilters([]);
     setDifficultyFilters([]);
   };
 
-  // ⚡ 인원수 복수 선택 핸들러 (모두 선택 시 '전체'로 변환)
+  // ⚡ 인원수 복수 선택 핸들러 (모두 선택 시 '전체'로 자동 변환)
   const togglePlayerFilter = (count: number) => {
     if (count === 0) {
       setPlayerFilters([]);
@@ -87,13 +87,14 @@ export const GamesTab = memo(({
       ? playerFilters.filter(p => p !== count)
       : [...playerFilters, count];
 
-    if (next.length === PLAYER_OPTIONS.length) {      setPlayerFilters([]);
+    if (next.length === PLAYER_OPTIONS.length) {
+      setPlayerFilters([]);
     } else {
       setPlayerFilters(next);
     }
   };
 
-  // ⚡ 장르 복수 선택 핸들러 (모두 선택 시 '전체'로 변환)
+  // ⚡ 장르 복수 선택 핸들러 (모두 선택 시 '전체'로 자동 변환)
   const toggleGenreFilter = (genre: string) => {
     if (genre === '') {
       setGenreFilters([]);
@@ -110,7 +111,7 @@ export const GamesTab = memo(({
     }
   };
 
-  // ⚡ 난이도 복수 선택 핸들러 (모두 선택 시 '전체'로 변환)
+  // ⚡ 난이도 복수 선택 핸들러 (모두 선택 시 '전체'로 자동 변환)
   const toggleDifficultyFilter = (key: string) => {
     if (key === 'all') {
       setDifficultyFilters([]);
@@ -166,8 +167,12 @@ export const GamesTab = memo(({
       return true;
     });
 
-    // 2. 정렬
-    return filtered.sort((a: Game, b: Game) => {
+    // 2. 정렬 (기본값 'random'인 경우 원래 무작위 배열 유지)
+    if (sortOption === 'random') {
+      return filtered;
+    }
+
+    return [...filtered].sort((a: Game, b: Game) => {
       if (sortOption === 'releaseYear') {
         return (Number(b.releaseYear) || 0) - (Number(a.releaseYear) || 0); // 최신순
       }
@@ -175,7 +180,7 @@ export const GamesTab = memo(({
         return (Number(b.bggRating) || 0) - (Number(a.bggRating) || 0); // 높은순
       }
       
-      // 기본값: 게임명 (ㄱㄴㄷ -> abc -> 숫자 -> 특수문자)
+      // 게임명 정렬 (ㄱㄴㄷ -> abc -> 숫자 -> 특수문자)
       const pA = getCharPriority(a.title);
       const pB = getCharPriority(b.title);
 
@@ -221,14 +226,15 @@ export const GamesTab = memo(({
             {isFilterActive && <button onClick={resetFilters} className="font-bold text-rose-500 text-xs flex items-center gap-0.5 cursor-pointer"><ResetIcon size={11} /> 초기화</button>}
           </div>
 
-          {/* ⚡ 1. 정렬 필터 (단일 선택) */}
+          {/* ⚡ 1. 정렬 필터 (맨 앞 '랜덤' 기본값 설정) */}
           <div className="flex items-center gap-2">
             <span className="font-bold text-slate-400 w-11 flex-shrink-0 text-xs flex items-center gap-0.5"><ArrowUpDown size={11} /> 정렬</span>
             <div className="flex flex-wrap gap-1 flex-1">
               {[
+                { key: 'random', label: '랜덤' },
                 { key: 'title', label: '게임명' },
-                { key: 'releaseYear', label: '출시년도 (최신순)' },
-                { key: 'bggRating', label: 'BGG평점 (높은순)' },
+                { key: 'releaseYear', label: '출시년도' },
+                { key: 'bggRating', label: 'BGG 평점' },
               ].map(sort => (
                 <button
                   key={sort.key}

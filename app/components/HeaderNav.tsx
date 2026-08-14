@@ -142,7 +142,7 @@ export const FixedBottomNav = memo(({
           type="button" 
           onClick={() => handleTabChange('returns')} 
           className={`flex flex-col items-center font-bold cursor-pointer relative ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
-            activeTab === 'returns' ? 'text-slate-900 dark:text-white' : 'text-slate-400'
+            activeTab === 'returns' ? 'text-slate-900 dark:text-white' : '!text-slate-400'
           }`}
         >
           <div className="relative inline-flex items-center justify-center">
@@ -188,7 +188,7 @@ export const FixedBottomNav = memo(({
             type="button" 
             onClick={() => handleTabChange('admin')} 
             className={`flex flex-col items-center font-bold cursor-pointer relative ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
-              activeTab === 'admin' ? 'text-sky-500' : 'text-slate-400'
+              activeTab === 'admin' ? '!text-sky-500' : '!text-slate-400'
             }`}
           >
             <div className="relative">

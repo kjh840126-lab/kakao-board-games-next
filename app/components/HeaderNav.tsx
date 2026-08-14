@@ -130,7 +130,7 @@ export const FixedBottomNav = memo(({
           type="button" 
           onClick={() => handleTabChange('games')} 
           className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
-            activeTab === 'games' ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:!text-slate-400'
+            activeTab === 'games' ? 'text-slate-900 dark:!text-white' : '!text-slate-400 dark:!text-slate-400'
           }`}
         >
           <Boxes size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
@@ -142,7 +142,7 @@ export const FixedBottomNav = memo(({
           type="button" 
           onClick={() => handleTabChange('returns')} 
           className={`flex flex-col items-center font-bold cursor-pointer relative ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
-            activeTab === 'returns' ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:!text-slate-400'
+            activeTab === 'returns' ? 'text-slate-900 dark:!text-white' : '!text-slate-400 dark:!text-slate-400'
           }`}
         >
           <div className="relative inline-flex items-center justify-center">
@@ -165,7 +165,7 @@ export const FixedBottomNav = memo(({
           type="button" 
           onClick={() => handleTabChange('ranking')} 
           className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
-            activeTab === 'ranking' ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:!text-slate-400'
+            activeTab === 'ranking' ? 'text-slate-900 dark:!text-white' : '!text-slate-400 dark:!text-slate-400'
           }`}
         >
           <Trophy size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
@@ -176,7 +176,7 @@ export const FixedBottomNav = memo(({
           type="button" 
           onClick={() => handleTabChange('sites')} 
           className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
-            activeTab === 'sites' ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:!text-slate-400'
+            activeTab === 'sites' ? 'text-slate-900 dark:!text-white' : '!text-slate-400 dark:!text-slate-400'
           }`}
         >
           <Globe size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
@@ -188,7 +188,7 @@ export const FixedBottomNav = memo(({
             type="button" 
             onClick={() => handleTabChange('admin')} 
             className={`flex flex-col items-center font-bold cursor-pointer relative ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
-              activeTab === 'admin' ? 'text-sky-500 dark:text-white' : 'text-slate-400 dark:!text-slate-400'
+              activeTab === 'admin' ? 'text-sky-500 dark:!text-sky-500' : '!text-slate-400 dark:!text-slate-400'
             }`}
           >
             <div className="relative">

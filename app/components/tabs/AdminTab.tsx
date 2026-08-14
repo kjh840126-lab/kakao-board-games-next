@@ -6,7 +6,7 @@ import { supabase } from '../../supabaseClient';
 import { 
   Search, Plus, Edit, Trash2, CheckCircle2, UserX, UserCheck, 
   ShieldAlert, AlertTriangle, Eye, EyeOff, RotateCcw, ShieldCheck, 
-  Shield, User, Loader2 
+  Shield, User, Loader2, ChevronUp, ChevronDown 
 } from 'lucide-react';
 
 type AdminSubTabType = 'gameAdmin' | 'rentalAdmin' | 'siteAdmin' | 'userAdmin' | 'noticeAdmin';
@@ -82,6 +82,31 @@ export const AdminTab = memo(({
     }
   };
 
+  // ⚡ 4. 추천 사이트 순서 이동 (Up/Down) 처리 함수
+  const moveSiteOrder = async (currentIndex: number, direction: 'up' | 'down') => {
+    if (!sites || sites.length <= 1) return;
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= sites.length) return;
+
+    const currentSite = sites[currentIndex];
+    const targetSite = sites[targetIndex];
+
+    try {
+      // DB의 display_order 또는 site_id 스왑 처리
+      const currentOrder = currentSite.displayOrder ?? currentSite.siteId;
+      const targetOrder = targetSite.displayOrder ?? targetSite.siteId;
+
+      await Promise.all([
+        supabase.from('sites').update({ display_order: targetOrder }).eq('site_id', currentSite.siteId),
+        supabase.from('sites').update({ display_order: currentOrder }).eq('site_id', targetSite.siteId),
+      ]);
+
+      window.location.reload();
+    } catch (err: any) {
+      alert('순서 변경 중 오류가 발생했습니다: ' + (err.message || err));
+    }
+  };
+
   const filteredGameAdminList = useMemo(() => (games || []).filter((g: Game) => g.title.toLowerCase().includes(gameAdminSearch.trim().toLowerCase())).sort((a: any, b: any) => b.gameId.localeCompare(a.gameId, undefined, { numeric: true })), [games, gameAdminSearch]);
   const filteredUserAdminList = useMemo(() => (users || []).sort((a: any, b: any) => b.createdAt.localeCompare(a.createdAt)).filter((u: UserData) => u.name.toLowerCase().includes(userAdminSearch.trim().toLowerCase()) || u.userId.toLowerCase().includes(userAdminSearch.trim().toLowerCase())), [users, userAdminSearch]);
   const allReturnedRentalsAdminList = useMemo(() => (rentals || []).filter((r: Rental) => r.status === '반납완료').sort((a: any, b: any) => (b.returnedAt || b.startDate).localeCompare(a.returnedAt || a.startDate)), [rentals]);
@@ -97,26 +122,26 @@ export const AdminTab = memo(({
   return (
     <div className="space-y-4 mt-0.5 w-full">
       {/* 관리자 서브 탭 네비게이션 */}
-      <div className="grid grid-cols-5 gap-1 p-1 rounded-xl font-bold w-full bg-slate-100 mb-4">
-        <button onClick={() => handleSubTabChange('gameAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'gameAdmin' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>게임관리</button>
-        <button onClick={() => handleSubTabChange('rentalAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'rentalAdmin' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>대여/반납</button>
-        <button onClick={() => handleSubTabChange('siteAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'siteAdmin' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>사이트관리</button>
-        <button onClick={() => handleSubTabChange('userAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'userAdmin' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>회원관리</button>
-        <button onClick={() => handleSubTabChange('noticeAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'noticeAdmin' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>공지사항</button>
+      <div className="grid grid-cols-5 gap-1 p-1 rounded-xl font-bold w-full bg-slate-100 dark:bg-slate-800/80 mb-4">
+        <button onClick={() => handleSubTabChange('gameAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'gameAdmin' ? 'bg-slate-900 text-white dark:bg-sky-500 shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}>게임관리</button>
+        <button onClick={() => handleSubTabChange('rentalAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'rentalAdmin' ? 'bg-slate-900 text-white dark:bg-sky-500 shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}>대여/반납</button>
+        <button onClick={() => handleSubTabChange('siteAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'siteAdmin' ? 'bg-slate-900 text-white dark:bg-sky-500 shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}>사이트관리</button>
+        <button onClick={() => handleSubTabChange('userAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'userAdmin' ? 'bg-slate-900 text-white dark:bg-sky-500 shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}>회원관리</button>
+        <button onClick={() => handleSubTabChange('noticeAdmin')} className={`py-2.5 px-1 rounded-lg transition text-center whitespace-nowrap text-xs font-bold cursor-pointer ${adminSubTab === 'noticeAdmin' ? 'bg-slate-900 text-white dark:bg-sky-500 shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}>공지사항</button>
       </div>
 
       {/* A. 게임관리 */}
       {adminSubTab === 'gameAdmin' && (
         <div className="space-y-4 w-full min-h-[200px] relative">
-          <div className="flex justify-between items-center h-10 pb-2 border-b border-slate-200/80">
-            <h2 className="font-bold text-sm flex items-center gap-2 text-slate-900"><span className="w-2 h-4 bg-sky-400 border border-sky-500 rounded-sm inline-block"></span> 게임 등록 및 수정</h2>
-            <button onClick={() => { setIsEditingMode(false); setEditingGame({ gameId: '', title: '', status: '대여가능', minPlayers: 2, maxPlayers: 4, playTime: 30, difficulty: 2.0, imageUrl: '', description: '', isVisible: 'Y', genres: ['전략게임'], createdAt: new Date().toISOString(), releaseYear: new Date().getFullYear(), bggRating: 7.0 }); setIsGameModalOpen(true); }} className="bg-slate-900 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-sm hover:bg-slate-800">
+          <div className="flex justify-between items-center h-10 pb-2 border-b border-slate-200/80 dark:border-slate-700/80">
+            <h2 className="font-bold text-sm flex items-center gap-2 text-slate-900 dark:text-white"><span className="w-2 h-4 bg-sky-400 border border-sky-500 rounded-sm inline-block"></span> 게임 등록 및 수정</h2>
+            <button onClick={() => { setIsEditingMode(false); setEditingGame({ gameId: '', title: '', status: '대여가능', minPlayers: 2, maxPlayers: 4, playTime: 30, difficulty: 2.0, imageUrl: '', description: '', isVisible: 'Y', genres: ['전략게임'], createdAt: new Date().toISOString(), releaseYear: new Date().getFullYear(), bggRating: 7.0 }); setIsGameModalOpen(true); }} className="bg-slate-900 text-white dark:bg-sky-500 dark:hover:bg-sky-600 font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-sm hover:bg-slate-800">
               <Plus size={14} /> 게임 등록
             </button>
           </div>
           <div className="relative w-full">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input type="text" placeholder="관리할 게임명 검색..." value={gameAdminSearch} onChange={(e) => setGameAdminSearch(e.target.value)} className="w-full border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 pl-10 pr-9 py-2.5 rounded-xl text-xs" />
+            <input type="text" placeholder="관리할 게임명 검색..." value={gameAdminSearch} onChange={(e) => setGameAdminSearch(e.target.value)} className="w-full border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 pl-10 pr-9 py-2.5 rounded-xl text-xs dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
           </div>
 
           <div className="space-y-2.5 w-full">
@@ -133,19 +158,19 @@ export const AdminTab = memo(({
               filteredGameAdminList.map((game: Game) => {
                 const isVisible = game.isVisible === 'Y';
                 return (
-                  <div key={game.gameId} className="w-full border border-slate-200 p-3.5 rounded-2xl flex justify-between items-center bg-white text-slate-900 shadow-sm">
+                  <div key={game.gameId} className="w-full border border-slate-200 p-3.5 rounded-2xl flex justify-between items-center bg-white text-slate-900 shadow-sm dark:bg-slate-800/60 dark:border-slate-700 dark:text-white">
                     <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                      <img src={game.imageUrl} alt={game.title} className="w-12 h-12 object-cover rounded-xl bg-slate-100 flex-shrink-0 border border-slate-200" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=300'; }} />
+                      <img src={game.imageUrl} alt={game.title} className="w-12 h-12 object-cover rounded-xl bg-slate-100 flex-shrink-0 border border-slate-200 dark:bg-slate-800 dark:border-slate-700" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=300'; }} />
                       <div className="min-w-0 flex-1 space-y-0.5">
-                        <h4 className="font-bold text-xs break-all whitespace-normal leading-snug text-slate-900">
+                        <h4 className="font-bold text-xs break-all whitespace-normal leading-snug text-slate-900 dark:text-white">
                           {game.title} <span className="text-slate-400 font-normal">({game.gameId})</span>
                         </h4>
                         
-                        <p className="text-slate-500 text-xs leading-tight">
+                        <p className="text-slate-500 dark:text-slate-400 text-xs leading-tight">
                           {game.releaseYear}년 출시 | 난이도 {Number(game.difficulty).toFixed(2)} | {game.playTime}분
                         </p>
                         
-                        <p className="text-slate-500 text-xs leading-tight">
+                        <p className="text-slate-500 dark:text-slate-400 text-xs leading-tight">
                           인원 {game.minPlayers}~{game.maxPlayers} | BGG 평점 {game.bggRating}
                         </p>
                       </div>
@@ -163,7 +188,7 @@ export const AdminTab = memo(({
                           <EyeOff size={16} className="text-slate-300 hover:text-slate-500" />
                         )}
                       </button>
-                      <button onClick={() => { setIsEditingMode(true); setEditingGame(game); setIsGameModalOpen(true); }} className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer" title="게임 수정">
+                      <button onClick={() => { setIsEditingMode(true); setEditingGame(game); setIsGameModalOpen(true); }} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer" title="게임 수정">
                         <Edit size={16} />
                       </button>
                       <button onClick={() => deleteGame(game.gameId, game.title, game.status)} className="p-1 text-slate-400 hover:text-rose-500 cursor-pointer" title="게임 삭제">
@@ -181,12 +206,12 @@ export const AdminTab = memo(({
       {/* B. 대여/반납 현황 */}
       {adminSubTab === 'rentalAdmin' && (
         <div className="space-y-4 w-full min-h-[200px] relative">
-          <div className="flex justify-between items-center h-10 pb-2 border-b border-slate-200/80">
-            <h2 className="font-bold text-sm flex items-center gap-2 text-slate-900"><span className="w-2 h-4 bg-sky-400 border border-sky-500 rounded-sm inline-block"></span> 대여 및 반납 현황</h2>
+          <div className="flex justify-between items-center h-10 pb-2 border-b border-slate-200/80 dark:border-slate-700/80">
+            <h2 className="font-bold text-sm flex items-center gap-2 text-slate-900 dark:text-white"><span className="w-2 h-4 bg-sky-400 border border-sky-500 rounded-sm inline-block"></span> 대여 및 반납 현황</h2>
           </div>
-          <div className="flex p-1 rounded-xl font-bold w-full bg-slate-100">
-            <button onClick={() => setAdminRentalTab('active')} className={`flex-1 py-2 rounded-lg text-xs cursor-pointer ${adminRentalTab === 'active' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}>대여중 ({(rentals || []).filter((r: any) => r.status === '대여중').length})</button>
-            <button onClick={() => setAdminRentalTab('completed')} className={`flex-1 py-2 rounded-lg text-xs cursor-pointer ${adminRentalTab === 'completed' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}>반납완료 ({allReturnedRentalsAdminList.length})</button>
+          <div className="flex p-1 rounded-xl font-bold w-full bg-slate-100 dark:bg-slate-800">
+            <button onClick={() => setAdminRentalTab('active')} className={`flex-1 py-2 rounded-lg text-xs cursor-pointer ${adminRentalTab === 'active' ? 'bg-white text-slate-900 dark:bg-slate-700 dark:text-white shadow-sm' : 'text-slate-400'}`}>대여중 ({(rentals || []).filter((r: any) => r.status === '대여중').length})</button>
+            <button onClick={() => setAdminRentalTab('completed')} className={`flex-1 py-2 rounded-lg text-xs cursor-pointer ${adminRentalTab === 'completed' ? 'bg-white text-slate-900 dark:bg-slate-700 dark:text-white shadow-sm' : 'text-slate-400'}`}>반납완료 ({allReturnedRentalsAdminList.length})</button>
           </div>
 
           {!isInitialLoaded ? (
@@ -205,11 +230,11 @@ export const AdminTab = memo(({
                   const isOverdue = today > rental.endDate;
                   const overdueDays = isOverdue ? getDaysDifference(today, rental.endDate) : 0;
                   return (
-                    <div key={rental.rentalId} className={`w-full p-4 rounded-2xl border shadow-sm space-y-3 ${isOverdue ? 'border-rose-300 bg-rose-50/30' : 'border-slate-200 bg-white'}`}>
+                    <div key={rental.rentalId} className={`w-full p-4 rounded-2xl border shadow-sm space-y-3 ${isOverdue ? 'border-rose-300 bg-rose-50/30 dark:bg-rose-950/20 dark:border-rose-800' : 'border-slate-200 bg-white dark:bg-slate-800/60 dark:border-slate-700'}`}>
                       <div className="flex justify-between items-start gap-2">
                         <div className="space-y-0.5 flex-1 min-w-0">
-                          <p className="text-xs text-slate-400 font-medium">대여회원: <strong className="text-slate-900 font-bold">{rental.userId}</strong></p>
-                          <h4 className="font-bold text-xs text-slate-900 leading-snug">{rental.gameTitle} <span className="text-slate-400 font-normal">({rental.gameId})</span></h4>
+                          <p className="text-xs text-slate-400 font-medium">대여회원: <strong className="text-slate-900 dark:text-white font-bold">{rental.userId}</strong></p>
+                          <h4 className="font-bold text-xs text-slate-900 dark:text-white leading-snug">{rental.gameTitle} <span className="text-slate-400 font-normal">({rental.gameId})</span></h4>
                         </div>
 
                         <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -220,7 +245,7 @@ export const AdminTab = memo(({
                           )}
                           <button 
                             onClick={() => handleAdminReturn(rental)}
-                            className="px-2.5 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl cursor-pointer flex items-center gap-1 transition-colors shadow-sm"
+                            className="px-2.5 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl cursor-pointer flex items-center gap-1 transition-colors shadow-sm dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800"
                             title="관리자 강제 반납 처리"
                           >
                             <RotateCcw size={12} /> 반납
@@ -228,9 +253,9 @@ export const AdminTab = memo(({
                         </div>
                       </div>
 
-                      <div className="pt-2.5 border-t border-slate-100 flex justify-between items-center text-xs text-slate-500">
+                      <div className="pt-2.5 border-t border-slate-100 dark:border-slate-700/60 flex justify-between items-center text-xs text-slate-500 dark:text-slate-400">
                         <span>대여일: {rental.startDate}</span>
-                        <span>반납예정일: <strong className={isOverdue ? "text-rose-600 font-bold" : "text-slate-900 font-bold"}>{rental.endDate}</strong></span>
+                        <span>반납예정일: <strong className={isOverdue ? "text-rose-600 dark:text-rose-400 font-bold" : "text-slate-900 dark:text-white font-bold"}>{rental.endDate}</strong></span>
                       </div>
                     </div>
                   );
@@ -250,17 +275,17 @@ export const AdminTab = memo(({
                   const overdueDays = isOverdueReturned ? getDaysDifference(returnedDate, rental.endDate) : 0;
 
                   return (
-                    <div key={rental.rentalId} className="w-full p-4 rounded-2xl border border-slate-200 bg-white shadow-sm space-y-3">
+                    <div key={rental.rentalId} className="w-full p-4 rounded-2xl border border-slate-200 bg-white shadow-sm space-y-3 dark:bg-slate-800/60 dark:border-slate-700">
                       <div className="space-y-0.5">
-                        <p className="text-xs text-slate-400 font-medium">대여회원: <strong className="text-slate-900 font-bold">{rental.userId}</strong></p>
-                        <h4 className="font-bold text-xs text-slate-900 flex items-center gap-1.5"><CheckCircle2 size={15} className="text-emerald-500" /> {rental.gameTitle} <span className="text-slate-400 font-normal">({rental.gameId})</span></h4>
+                        <p className="text-xs text-slate-400 font-medium">대여회원: <strong className="text-slate-900 dark:text-white font-bold">{rental.userId}</strong></p>
+                        <h4 className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1.5"><CheckCircle2 size={15} className="text-emerald-500" /> {rental.gameTitle} <span className="text-slate-400 font-normal">({rental.gameId})</span></h4>
                       </div>
-                      <div className="pt-2.5 border-t border-slate-100 flex justify-between items-center text-xs text-slate-500">
+                      <div className="pt-2.5 border-t border-slate-100 dark:border-slate-700/60 flex justify-between items-center text-xs text-slate-500 dark:text-slate-400">
                         <span>대여일: {rental.startDate}</span>
                         <span>
-                          반납일: <strong className="text-emerald-600 font-bold">{returnedDate}</strong>
+                          반납일: <strong className="text-emerald-600 dark:text-emerald-400 font-bold">{returnedDate}</strong>
                           {isOverdueReturned && (
-                            <span className="text-rose-600 font-bold ml-1">(연체 {overdueDays}일)</span>
+                            <span className="text-rose-600 dark:text-rose-400 font-bold ml-1">(연체 {overdueDays}일)</span>
                           )}
                         </span>
                       </div>
@@ -273,12 +298,12 @@ export const AdminTab = memo(({
         </div>
       )}
 
-      {/* C. 추천 사이트 관리 */}
+      {/* C. 추천 사이트 관리 (순서 변경 Up/Down 기능 적용) */}
       {adminSubTab === 'siteAdmin' && (
         <div className="space-y-4 w-full min-h-[200px] relative">
-          <div className="flex justify-between items-center h-10 pb-2 border-b border-slate-200/80">
-            <h2 className="font-bold text-sm flex items-center gap-2 text-slate-900"><span className="w-2 h-4 bg-sky-400 border border-sky-500 rounded-sm inline-block"></span> 추천 사이트 관리</h2>
-            <button onClick={() => { setEditingSite({ siteId: 0, name: '', url: '', bannerUrl: '', description: '', isVisible: 'Y' }); setIsSiteModalOpen(true); }} className="bg-slate-900 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-sm hover:bg-slate-800">
+          <div className="flex justify-between items-center h-10 pb-2 border-b border-slate-200/80 dark:border-slate-700/80">
+            <h2 className="font-bold text-sm flex items-center gap-2 text-slate-900 dark:text-white"><span className="w-2 h-4 bg-sky-400 border border-sky-500 rounded-sm inline-block"></span> 추천 사이트 관리</h2>
+            <button onClick={() => { setEditingSite({ siteId: 0, name: '', url: '', bannerUrl: '', description: '', isVisible: 'Y' }); setIsSiteModalOpen(true); }} className="bg-slate-900 text-white dark:bg-sky-500 dark:hover:bg-sky-600 font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-sm hover:bg-slate-800">
               <Plus size={14} /> 사이트 추가
             </button>
           </div>
@@ -294,14 +319,41 @@ export const AdminTab = memo(({
                 등록된 추천 사이트가 없습니다.
               </div>
             ) : (
-              (sites || []).map((s: BoardSite) => {
+              (sites || []).map((s: BoardSite, index: number) => {
                 const isVisible = s.isVisible === 'Y';
+                const isFirst = index === 0;
+                const isLast = index === (sites || []).length - 1;
+
                 return (
-                  <div key={s.siteId} className="w-full border border-slate-200 p-4 rounded-2xl bg-white text-slate-900 shadow-sm">
+                  <div key={s.siteId} className="w-full border border-slate-200 p-4 rounded-2xl bg-white text-slate-900 shadow-sm dark:bg-slate-800/60 dark:border-slate-700 dark:text-white">
                     <div className="flex justify-between items-start gap-2">
-                      <h3 className="font-bold text-xs text-slate-900 leading-tight flex-1">{s.name}</h3>
+                      <h3 className="font-bold text-xs text-slate-900 dark:text-white leading-tight flex-1">{s.name}</h3>
                       
+                      {/* ⚡ 조작 및 순서 변경 버튼 그룹 */}
                       <div className="flex items-center gap-1 flex-shrink-0">
+                        {/* 순서 변경 위로(Up) 버튼 */}
+                        <button
+                          onClick={() => moveSiteOrder(index, 'up')}
+                          disabled={isFirst}
+                          className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                          title="위로 이동"
+                        >
+                          <ChevronUp size={16} />
+                        </button>
+
+                        {/* 순서 변경 아래로(Down) 버튼 */}
+                        <button
+                          onClick={() => moveSiteOrder(index, 'down')}
+                          disabled={isLast}
+                          className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                          title="아래로 이동"
+                        >
+                          <ChevronDown size={16} />
+                        </button>
+
+                        <div className="w-[1px] h-3 bg-slate-200 dark:bg-slate-700 mx-0.5" />
+
+                        {/* 노출 / 숨김 토글 */}
                         <button 
                           onClick={() => toggleSiteVisibility(s)} 
                           className="p-1 cursor-pointer" 
@@ -313,13 +365,17 @@ export const AdminTab = memo(({
                             <EyeOff size={16} className="text-slate-300 hover:text-slate-500" />
                           )}
                         </button>
+
+                        {/* 수정 버튼 */}
                         <button 
                           onClick={() => { setEditingSite(s); setIsSiteModalOpen(true); }} 
-                          className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
+                          className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                           title="사이트 수정"
                         >
                           <Edit size={16} />
                         </button>
+
+                        {/* 삭제 버튼 */}
                         <button 
                           onClick={() => deleteSite(s.siteId, s.name)} 
                           className="p-1 text-slate-400 hover:text-rose-500 cursor-pointer"
@@ -334,7 +390,7 @@ export const AdminTab = memo(({
                       <p className="text-xs text-slate-400 font-normal break-all my-0.5 leading-snug">{s.url}</p>
                     )}
 
-                    <p className="text-xs text-slate-600 leading-snug font-medium mt-1">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-snug font-medium mt-1">
                       {s.description}
                     </p>
                   </div>
@@ -348,12 +404,12 @@ export const AdminTab = memo(({
       {/* D. 회원 관리 */}
       {adminSubTab === 'userAdmin' && (
         <div className="space-y-4 w-full min-h-[200px] relative">
-          <div className="flex justify-between items-center h-10 pb-2 border-b border-slate-200/80">
-            <h2 className="font-bold text-sm flex items-center gap-2 text-slate-900"><span className="w-2 h-4 bg-sky-400 border border-sky-500 rounded-sm inline-block"></span> 회원 관리</h2>
+          <div className="flex justify-between items-center h-10 pb-2 border-b border-slate-200/80 dark:border-slate-700/80">
+            <h2 className="font-bold text-sm flex items-center gap-2 text-slate-900 dark:text-white"><span className="w-2 h-4 bg-sky-400 border border-sky-500 rounded-sm inline-block"></span> 회원 관리</h2>
           </div>
           <div className="relative w-full">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input type="text" placeholder="회원명 또는 ID 검색..." value={userAdminSearch} onChange={(e) => setUserAdminSearch(e.target.value)} className="w-full border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 pl-10 pr-9 py-2.5 rounded-xl text-xs" />
+            <input type="text" placeholder="회원명 또는 ID 검색..." value={userAdminSearch} onChange={(e) => setUserAdminSearch(e.target.value)} className="w-full border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 pl-10 pr-9 py-2.5 rounded-xl text-xs dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
           </div>
           
           <div className="space-y-3 w-full">
@@ -376,11 +432,11 @@ export const AdminTab = memo(({
                 const penaltyScore = Number(u.penaltyPoints || 0);
 
                 return (
-                  <div key={u.userId} className="w-full border border-slate-200 p-4 rounded-2xl bg-white text-slate-900 shadow-sm space-y-2.5">
-                    <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+                  <div key={u.userId} className="w-full border border-slate-200 p-4 rounded-2xl bg-white text-slate-900 shadow-sm space-y-2.5 dark:bg-slate-800/60 dark:border-slate-700 dark:text-white">
+                    <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-700/60">
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-bold text-sm text-slate-900">{u.userId}</span>
+                          <span className="font-bold text-sm text-slate-900 dark:text-white">{u.userId}</span>
                           
                           {isMasterRole && (
                             <span className="px-2 py-0.5 rounded-md font-extrabold text-[10px] bg-purple-100 text-purple-800 border border-purple-200 flex items-center gap-1">
@@ -393,7 +449,7 @@ export const AdminTab = memo(({
                             </span>
                           )}
                           {isUserRole && (
-                            <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-slate-100 text-slate-700 border border-slate-200 flex items-center gap-1">
+                            <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-slate-100 text-slate-700 border border-slate-200 flex items-center gap-1 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600">
                               <User size={11} /> 일반회원
                             </span>
                           )}
@@ -410,10 +466,10 @@ export const AdminTab = memo(({
                         {isMaster && isAdminRole && (
                           <button 
                             onClick={() => handleUserRoleChange(u, '일반회원')} 
-                            className="p-2 text-slate-700 bg-slate-100 rounded-xl cursor-pointer border border-slate-200 hover:bg-slate-200 flex items-center justify-center transition shadow-sm"
+                            className="p-2 text-slate-700 bg-slate-100 rounded-xl cursor-pointer border border-slate-200 hover:bg-slate-200 flex items-center justify-center transition shadow-sm dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600"
                             title="일반회원으로 전환"
                           >
-                            <UserCheck size={16} className="text-slate-600" />
+                            <UserCheck size={16} className="text-slate-600 dark:text-slate-300" />
                           </button>
                         )}
 
@@ -451,9 +507,9 @@ export const AdminTab = memo(({
 
                     <div className="flex justify-between items-center text-xs text-slate-400 pt-0.5">
                       <span>가입일: {u.createdAt}</span>
-                      <span className="flex items-center gap-1 font-semibold text-slate-500">
+                      <span className="flex items-center gap-1 font-semibold text-slate-500 dark:text-slate-400">
                         <ShieldAlert size={14} className={penaltyScore > 0 ? "text-rose-500" : "text-slate-400"} />
-                        패널티: <strong className={penaltyScore > 0 ? "text-rose-600 font-bold" : "text-slate-600"}>{penaltyScore}점</strong>
+                        패널티: <strong className={penaltyScore > 0 ? "text-rose-600 dark:text-rose-400 font-bold" : "text-slate-600 dark:text-slate-300"}>{penaltyScore}점</strong>
                       </span>
                     </div>
                   </div>
@@ -467,9 +523,9 @@ export const AdminTab = memo(({
       {/* E. 공지사항 관리 */}
       {adminSubTab === 'noticeAdmin' && (
         <div className="space-y-4 w-full min-h-[200px] relative">
-          <div className="flex justify-between items-center h-10 pb-2 border-b border-slate-200/80">
-            <h2 className="font-bold text-sm flex items-center gap-2 text-slate-900"><span className="w-2 h-4 bg-sky-400 border border-sky-500 rounded-sm inline-block"></span> 공지사항 관리</h2>
-            <button onClick={() => { setEditingNotice({ id: undefined, title: '', content: '', imageUrl: '', isVisible: 'Y' }); setIsNoticeModalOpen(true); }} className="bg-slate-900 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-sm hover:bg-slate-800">
+          <div className="flex justify-between items-center h-10 pb-2 border-b border-slate-200/80 dark:border-slate-700/80">
+            <h2 className="font-bold text-sm flex items-center gap-2 text-slate-900 dark:text-white"><span className="w-2 h-4 bg-sky-400 border border-sky-500 rounded-sm inline-block"></span> 공지사항 관리</h2>
+            <button onClick={() => { setEditingNotice({ id: undefined, title: '', content: '', imageUrl: '', isVisible: 'Y' }); setIsNoticeModalOpen(true); }} className="bg-slate-900 text-white dark:bg-sky-500 dark:hover:bg-sky-600 font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-sm hover:bg-slate-800">
               <Plus size={14} /> 공지 작성
             </button>
           </div>
@@ -489,9 +545,9 @@ export const AdminTab = memo(({
                 const isVisible = (n as any).isVisible !== 'N';
 
                 return (
-                  <div key={n.noticeId} className="w-full border border-slate-200 p-4 rounded-2xl bg-white text-slate-900 shadow-sm">
+                  <div key={n.noticeId} className="w-full border border-slate-200 p-4 rounded-2xl bg-white text-slate-900 shadow-sm dark:bg-slate-800/60 dark:border-slate-700 dark:text-white">
                     <div className="flex justify-between items-start gap-2">
-                      <h3 className="font-bold text-sm text-slate-900 flex-1 leading-snug">{n.title}</h3>
+                      <h3 className="font-bold text-sm text-slate-900 dark:text-white flex-1 leading-snug">{n.title}</h3>
                       <div className="flex items-center gap-1 flex-shrink-0 pt-0.5">
                         <button
                           onClick={() => toggleNoticeVisibility(n)}
@@ -506,7 +562,6 @@ export const AdminTab = memo(({
                         </button>
                         <button 
                           onClick={() => { 
-                            // ⚡ [핵심 수정] imageUrl 매핑 추가
                             setEditingNotice({ 
                               id: n.noticeId, 
                               title: n.title, 
@@ -516,7 +571,7 @@ export const AdminTab = memo(({
                             }); 
                             setIsNoticeModalOpen(true); 
                           }} 
-                          className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
+                          className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                           title="공지 수정"
                         >
                           <Edit size={16} />
@@ -531,11 +586,11 @@ export const AdminTab = memo(({
                       </div>
                     </div>
 
-                    <p className="text-xs text-slate-500 leading-snug whitespace-pre-wrap break-all mt-1.5 mb-2.5">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-snug whitespace-pre-wrap break-all mt-1.5 mb-2.5">
                       {n.content}
                     </p>
 
-                    <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-400 font-medium">
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60 text-[11px] text-slate-400 font-medium">
                       {n.createdAt} 작성
                     </div>
                   </div>

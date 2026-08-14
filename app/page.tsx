@@ -299,7 +299,8 @@ export default function MainPage() {
         supabase.from('games').select('*'),
         supabase.from('notices').select('*').order('created_at', { ascending: false }),
         supabase.from('reports').select('*').order('created_at', { ascending: false }),
-        supabase.from('sites').select('*').order('site_id', { ascending: true })
+        // ⚡ sites 테이블 조회 시 display_order 정렬 우선 적용 (없을 경우 site_id로 정렬)
+        supabase.from('sites').select('*').order('display_order', { ascending: true }).order('site_id', { ascending: true })
       ]);
 
       if (currentUser) {
@@ -348,7 +349,18 @@ export default function MainPage() {
       }
 
       if (reportsData) setReportList(reportsData.map(r => ({ reportId: r.report_id || r.id, userId: r.user_id, category: r.category || '신고/건의', title: r.title, content: r.content, createdAt: r.created_at?.replace('T', ' ').substring(0, 16) || today, isRead: !!r.is_read, status: r.status })));
-      if (sitesData) setSiteList(sitesData.map(s => ({ siteId: s.site_id, name: s.name, url: s.url, bannerUrl: s.banner_url || '', description: s.description || '', isVisible: s.is_visible || 'Y' })));
+      
+      if (sitesData) {
+        setSiteList(sitesData.map(s => ({ 
+          siteId: s.site_id, 
+          name: s.name, 
+          url: s.url, 
+          bannerUrl: s.banner_url || '', 
+          description: s.description || '', 
+          isVisible: s.is_visible || 'Y',
+          displayOrder: s.display_order ?? s.site_id // ⚡ displayOrder 매핑 추가
+        })));
+      }
     } catch (e) {
     } finally {
       setIsInitialLoaded(true);

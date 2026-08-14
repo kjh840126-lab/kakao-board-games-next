@@ -103,7 +103,6 @@ FixedHeader.displayName = 'FixedHeader';
 
 // 하단 네비게이션
 export const FixedBottomNav = memo(({ 
-  isDarkMode, 
   isIosDevice, 
   activeTab, 
   isAdmin, 
@@ -115,16 +114,14 @@ export const FixedBottomNav = memo(({
   return (
     <nav 
       style={{ fontSize: '11px' }}
-      className={`fixed bottom-0 left-0 right-0 w-full z-40 shadow-lg transition-colors border-t ${
-        isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200/80'
-      } ${isIosDevice ? IOS_CONFIG.NAV_PADDING_BOTTOM : 'pb-[calc(env(safe-area-inset-bottom,0px)+12px)]'}`}
+      className={`fixed bottom-0 left-0 right-0 w-full z-40 shadow-lg transition-colors border-t bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 ${
+        isIosDevice ? IOS_CONFIG.NAV_PADDING_BOTTOM : 'pb-[calc(env(safe-area-inset-bottom,0px)+12px)]'
+      }`}
     >
       {isIosDevice && (
         <div 
           aria-hidden="true"
-          className={`absolute left-0 right-0 -bottom-[100px] h-[100px] pointer-events-none z-0 ${
-            isDarkMode ? 'bg-slate-900' : 'bg-white'
-          }`} 
+          className="absolute left-0 right-0 -bottom-[100px] h-[100px] pointer-events-none z-0 bg-white dark:bg-slate-900" 
         />
       )}
 
@@ -133,19 +130,19 @@ export const FixedBottomNav = memo(({
           type="button" 
           onClick={() => handleTabChange('games')} 
           className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
-            activeTab === 'games' ? (isDarkMode ? 'text-white' : 'text-slate-900') : 'text-slate-400'
+            activeTab === 'games' ? 'text-slate-900 dark:text-white' : 'text-slate-400'
           }`}
         >
           <Boxes size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
           <span className="mt-1">대여</span>
         </button>
 
-        {/* ⚡ 반납 탭 (조건문 괄호 적용으로 활성화 오타 수정) */}
+        {/* ⚡ 반납 탭 (다크모드 지원 + 조건문 단순화) */}
         <button 
           type="button" 
           onClick={() => handleTabChange('returns')} 
           className={`flex flex-col items-center font-bold cursor-pointer relative ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
-            activeTab === 'returns' ? (isDarkMode ? 'text-white' : 'text-slate-900') : 'text-slate-400'
+            activeTab === 'returns' ? 'text-slate-900 dark:text-white' : 'text-slate-400'
           }`}
         >
           <div className="relative inline-flex items-center justify-center">
@@ -168,7 +165,7 @@ export const FixedBottomNav = memo(({
           type="button" 
           onClick={() => handleTabChange('ranking')} 
           className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
-            activeTab === 'ranking' ? (isDarkMode ? 'text-white' : 'text-slate-900') : 'text-slate-400'
+            activeTab === 'ranking' ? 'text-slate-900 dark:text-white' : 'text-slate-400'
           }`}
         >
           <Trophy size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
@@ -179,7 +176,7 @@ export const FixedBottomNav = memo(({
           type="button" 
           onClick={() => handleTabChange('sites')} 
           className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
-            activeTab === 'sites' ? (isDarkMode ? 'text-white' : 'text-slate-900') : 'text-slate-400'
+            activeTab === 'sites' ? 'text-slate-900 dark:text-white' : 'text-slate-400'
           }`}
         >
           <Globe size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />

@@ -868,6 +868,22 @@ export default function MainPage() {
     setIsNoticeDrawerOpen(true);
   };
 
+  // ⚡ 현재 사용자의 대여 중(반납 대상) 보드게임 목록 계산
+  const userActiveRentals = useMemo(() => {
+    if (!currentUser) return [];
+    return rentals.filter(
+      (r) => r.userId === currentUser.userId && r.status === '대여중'
+    );
+  }, [rentals, currentUser]);
+
+  // ⚡ 대여 중인 건수
+  const activeRentalsCount = userActiveRentals.length;
+
+  // ⚡ 대여 건 중 연체된 항목 존재 여부 (오늘 날짜가 반납예정일보다 지난 경우)
+  const hasOverdueRental = useMemo(() => {
+    return userActiveRentals.some((r) => today > r.endDate);
+  }, [userActiveRentals, today]);
+
   const returnedRentalsList = useMemo(() => rentals.filter((r: Rental) => currentUser && r.userId === currentUser.userId && r.status === '반납완료'), [rentals, currentUser]);
   const visibleSitesList = useMemo(() => sites.filter((s: BoardSite) => s.isVisible === 'Y'), [sites]);
   const favoriteGamesList = useMemo(() => games.filter((g: Game) => userFavorites.includes(g.gameId)), [games, userFavorites]);
@@ -960,7 +976,16 @@ export default function MainPage() {
         isSiteModalOpen={isSiteModalOpen} setIsSiteModalOpen={setIsSiteModalOpen} editingSite={editingSite} setEditingSite={setEditingSite} saveSite={saveSite}
       />
 
-      <FixedBottomNav isIosDevice={isIosDevice} activeTab={activeTab} isAdmin={isAdmin} unreadReportsCount={unreadReportsCount} handleTabChange={handleTabChange} />
+      {/* ⚡ activeRentalsCount & hasOverdueRental 전달 */}
+      <FixedBottomNav 
+        isIosDevice={isIosDevice} 
+        activeTab={activeTab} 
+        isAdmin={isAdmin} 
+        unreadReportsCount={unreadReportsCount} 
+        activeRentalsCount={activeRentalsCount}
+        hasOverdueRental={hasOverdueRental}
+        handleTabChange={handleTabChange} 
+      />
     </div>
   );
 }

@@ -58,7 +58,6 @@ export const FixedHeader = memo(({
               <span>{currentUser?.userId}</span>
             </div>
 
-            {/* ⚡ 통합 뱃지: 예전 AlertCircle 아이콘 복원 & 패널티 n점 볼드체 제거(font-normal) */}
             {hasPenaltyPoints && (
               <span className={`bg-rose-600 text-white px-2 py-0.5 rounded-md flex items-center gap-1 shadow-xs ${
                 isIosDevice ? IOS_CONFIG.HEADER_BADGE_TEXT_SIZE : 'text-[10px]'
@@ -130,13 +129,25 @@ export const FixedBottomNav = memo(({
       )}
 
       <div className="flex justify-around px-2 pt-2.5 pb-2 relative z-10">
-        <button type="button" onClick={() => handleTabChange('games')} className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${activeTab === 'games' ? isDarkMode ? 'text-white' : 'text-slate-900' : 'text-slate-400'}`}>
+        <button 
+          type="button" 
+          onClick={() => handleTabChange('games')} 
+          className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
+            activeTab === 'games' ? (isDarkMode ? 'text-white' : 'text-slate-900') : 'text-slate-400'
+          }`}
+        >
           <Boxes size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
           <span className="mt-1">대여</span>
         </button>
 
-        {/* ⚡ 반납 탭 (대여중일 때 레드닷 표시) */}
-        <button type="button" onClick={() => handleTabChange('returns')} className={`flex flex-col items-center font-bold cursor-pointer relative ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${activeTab === 'returns' ? isDarkMode ? 'text-white' : 'text-slate-900' : 'text-slate-400'}`}>
+        {/* ⚡ 반납 탭 (조건문 괄호 적용으로 활성화 오타 수정) */}
+        <button 
+          type="button" 
+          onClick={() => handleTabChange('returns')} 
+          className={`flex flex-col items-center font-bold cursor-pointer relative ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
+            activeTab === 'returns' ? (isDarkMode ? 'text-white' : 'text-slate-900') : 'text-slate-400'
+          }`}
+        >
           <div className="relative inline-flex items-center justify-center">
             <PackageCheck size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
             
@@ -153,16 +164,36 @@ export const FixedBottomNav = memo(({
           <span className="mt-1">반납</span>
         </button>
 
-        <button type="button" onClick={() => handleTabChange('ranking')} className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${activeTab === 'ranking' ? isDarkMode ? 'text-white' : 'text-slate-900' : 'text-slate-400'}`}>
+        <button 
+          type="button" 
+          onClick={() => handleTabChange('ranking')} 
+          className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
+            activeTab === 'ranking' ? (isDarkMode ? 'text-white' : 'text-slate-900') : 'text-slate-400'
+          }`}
+        >
           <Trophy size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
           <span className="mt-1">랭킹</span>
         </button>
-        <button type="button" onClick={() => handleTabChange('sites')} className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${activeTab === 'sites' ? isDarkMode ? 'text-white' : 'text-slate-900' : 'text-slate-400'}`}>
+
+        <button 
+          type="button" 
+          onClick={() => handleTabChange('sites')} 
+          className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
+            activeTab === 'sites' ? (isDarkMode ? 'text-white' : 'text-slate-900') : 'text-slate-400'
+          }`}
+        >
           <Globe size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
           <span className="mt-1">사이트</span>
         </button>
+
         {isAdmin && (
-          <button type="button" onClick={() => handleTabChange('admin')} className={`flex flex-col items-center font-bold cursor-pointer relative ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${activeTab === 'admin' ? 'text-sky-500' : 'text-slate-400'}`}>
+          <button 
+            type="button" 
+            onClick={() => handleTabChange('admin')} 
+            className={`flex flex-col items-center font-bold cursor-pointer relative ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
+              activeTab === 'admin' ? 'text-sky-500' : 'text-slate-400'
+            }`}
+          >
             <div className="relative">
               <ShieldCheck size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
               {unreadReportsCount > 0 && (

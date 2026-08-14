@@ -234,7 +234,7 @@ export const GamesTab = memo(({
                 { key: 'random', label: '랜덤' },
                 { key: 'title', label: '게임명' },
                 { key: 'releaseYear', label: '출시년도' },
-                { key: 'bggRating', label: 'BGG 평점' },
+                { key: 'bggRating', label: 'BGG평점' },
               ].map(sort => (
                 <button
                   key={sort.key}

@@ -133,24 +133,26 @@ export const FixedBottomNav = memo(({
           className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
             activeTab === 'games' 
               ? 'text-slate-900 dark:text-white' 
-              : 'text-slate-400 dark:!text-slate-400'
+              : 'text-slate-400 dark:text-slate-400'
           }`}
         >
           <Boxes size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
           <span className="mt-1">대여</span>
         </button>
 
-        {/* 반납 탭 */}
+        {/* ⚡ 반납 탭 (div 영역에도 색상 상속 강제) */}
         <button 
           type="button" 
           onClick={() => handleTabChange('returns')} 
           className={`flex flex-col items-center font-bold cursor-pointer relative ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
             activeTab === 'returns' 
               ? 'text-slate-900 dark:text-white' 
-              : 'text-slate-400 dark:!text-slate-400'
+              : 'text-slate-400 dark:text-slate-400'
           }`}
         >
-          <div className="relative inline-flex items-center justify-center">
+          <div className={`relative inline-flex items-center justify-center ${
+            activeTab === 'returns' ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-400'
+          }`}>
             <PackageCheck size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
             
             {/* 대여 중일 때 레드닷 */}
@@ -173,7 +175,7 @@ export const FixedBottomNav = memo(({
           className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
             activeTab === 'ranking' 
               ? 'text-slate-900 dark:text-white' 
-              : 'text-slate-400 dark:!text-slate-400'
+              : 'text-slate-400 dark:text-slate-400'
           }`}
         >
           <Trophy size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
@@ -187,14 +189,14 @@ export const FixedBottomNav = memo(({
           className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
             activeTab === 'sites' 
               ? 'text-slate-900 dark:text-white' 
-              : 'text-slate-400 dark:!text-slate-400'
+              : 'text-slate-400 dark:text-slate-400'
           }`}
         >
           <Globe size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
           <span className="mt-1">사이트</span>
         </button>
 
-        {/* 관리자 탭 */}
+        {/* ⚡ 관리자 탭 (div 영역에도 색상 상속 강제) */}
         {isAdmin && (
           <button 
             type="button" 
@@ -202,10 +204,12 @@ export const FixedBottomNav = memo(({
             className={`flex flex-col items-center font-bold cursor-pointer relative ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
               activeTab === 'admin' 
                 ? 'text-sky-500 dark:text-sky-400' 
-                : 'text-slate-400 dark:!text-slate-400'
+                : 'text-slate-400 dark:text-slate-400'
             }`}
           >
-            <div className="relative">
+            <div className={`relative inline-flex items-center justify-center ${
+              activeTab === 'admin' ? 'text-sky-500 dark:text-sky-400' : 'text-slate-400 dark:text-slate-400'
+            }`}>
               <ShieldCheck size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
               {unreadReportsCount > 0 && (
                 <span className="absolute -top-1 -right-2 bg-rose-600 text-white font-extrabold w-3.5 h-3.5 rounded-full flex items-center justify-center text-[8px] border border-white shadow-sm">

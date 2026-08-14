@@ -868,12 +868,15 @@ export default function MainPage() {
     setIsNoticeDrawerOpen(true);
   };
 
-  // ⚡ 현재 사용자의 대여 중(반납 대상) 보드게임 목록 계산
+  // ⚡ 현재 사용자의 대여 중(반납 대상) 보드게임 목록 계산 (대소문자/공백 오차 방지)
   const userActiveRentals = useMemo(() => {
-    if (!currentUser) return [];
-    return rentals.filter(
-      (r) => r.userId === currentUser.userId && r.status === '대여중'
-    );
+    if (!currentUser || !currentUser.userId) return [];
+    const currentUserIdClean = String(currentUser.userId).trim().toLowerCase();
+
+    return rentals.filter((r) => {
+      const rentalUserIdClean = String(r.userId || '').trim().toLowerCase();
+      return rentalUserIdClean === currentUserIdClean && r.status === '대여중';
+    });
   }, [rentals, currentUser]);
 
   // ⚡ 대여 중인 건수
@@ -881,7 +884,7 @@ export default function MainPage() {
 
   // ⚡ 대여 건 중 연체된 항목 존재 여부 (오늘 날짜가 반납예정일보다 지난 경우)
   const hasOverdueRental = useMemo(() => {
-    return userActiveRentals.some((r) => today > r.endDate);
+    return userActiveRentals.some((r) => r.endDate && today > r.endDate);
   }, [userActiveRentals, today]);
 
   const returnedRentalsList = useMemo(() => rentals.filter((r: Rental) => currentUser && r.userId === currentUser.userId && r.status === '반납완료'), [rentals, currentUser]);
@@ -978,6 +981,7 @@ export default function MainPage() {
 
       {/* ⚡ activeRentalsCount & hasOverdueRental 전달 */}
       <FixedBottomNav 
+        isDarkMode={theme === 'dark'}
         isIosDevice={isIosDevice} 
         activeTab={activeTab} 
         isAdmin={isAdmin} 

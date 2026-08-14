@@ -109,6 +109,8 @@ export const FixedBottomNav = memo(({
   activeTab, 
   isAdmin, 
   unreadReportsCount, 
+  activeRentalsCount = 0,
+  hasOverdueRental = false,
   handleTabChange 
 }: any) => {
   return (
@@ -132,10 +134,25 @@ export const FixedBottomNav = memo(({
           <Boxes size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
           <span className="mt-1">대여</span>
         </button>
-        <button type="button" onClick={() => handleTabChange('returns')} className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${activeTab === 'returns' ? isDarkMode ? 'text-white' : 'text-slate-900' : 'text-slate-400'}`}>
-          <PackageCheck size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
+
+        {/* ⚡ 반납 탭 (대여중일 때 레드닷 표시) */}
+        <button type="button" onClick={() => handleTabChange('returns')} className={`flex flex-col items-center font-bold cursor-pointer relative ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${activeTab === 'returns' ? isDarkMode ? 'text-white' : 'text-slate-900' : 'text-slate-400'}`}>
+          <div className="relative inline-flex items-center justify-center">
+            <PackageCheck size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
+            
+            {/* ⚡ 대여 중인 보드게임이 존재할 때만 나타나는 레드닷 */}
+            {activeRentalsCount > 0 && (
+              <span className="absolute -top-1 -right-1.5 flex h-2.5 w-2.5 z-10">
+                {hasOverdueRental && (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                )}
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500 ring-2 ring-white dark:ring-slate-900"></span>
+              </span>
+            )}
+          </div>
           <span className="mt-1">반납</span>
         </button>
+
         <button type="button" onClick={() => handleTabChange('ranking')} className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${activeTab === 'ranking' ? isDarkMode ? 'text-white' : 'text-slate-900' : 'text-slate-400'}`}>
           <Trophy size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
           <span className="mt-1">랭킹</span>

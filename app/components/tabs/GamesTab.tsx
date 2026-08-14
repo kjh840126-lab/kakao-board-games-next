@@ -228,7 +228,7 @@ export const GamesTab = memo(({
 
           {/* ⚡ 1. 정렬 필터 (맨 앞 '랜덤' 기본값 설정) */}
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-400 w-11 flex-shrink-0 text-xs flex items-center gap-0.5"><ArrowUpDown size={11} /> 정렬</span>
+            <span className="font-bold text-slate-400 w-11 flex-shrink-0 text-xs">정렬</span>
             <div className="flex flex-wrap gap-1 flex-1">
               {[
                 { key: 'random', label: '랜덤' },

@@ -126,29 +126,34 @@ export const FixedBottomNav = memo(({
       )}
 
       <div className="flex justify-around px-2 pt-2.5 pb-2 relative z-10">
+        {/* 대여 탭 */}
         <button 
           type="button" 
           onClick={() => handleTabChange('games')} 
           className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
-            activeTab === 'games' ? 'text-slate-900 dark:!text-white' : '!text-slate-400 dark:!text-slate-400'
+            activeTab === 'games' 
+              ? 'text-slate-900 dark:text-white' 
+              : 'text-slate-400 dark:!text-slate-400'
           }`}
         >
           <Boxes size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
           <span className="mt-1">대여</span>
         </button>
 
-        {/* ⚡ 반납 탭 (다크모드 지원 + 조건문 단순화) */}
+        {/* 반납 탭 */}
         <button 
           type="button" 
           onClick={() => handleTabChange('returns')} 
           className={`flex flex-col items-center font-bold cursor-pointer relative ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
-            activeTab === 'returns' ? 'text-slate-900 dark:!text-white' : '!text-slate-400 dark:!text-slate-400'
+            activeTab === 'returns' 
+              ? 'text-slate-900 dark:text-white' 
+              : 'text-slate-400 dark:!text-slate-400'
           }`}
         >
           <div className="relative inline-flex items-center justify-center">
             <PackageCheck size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
             
-            {/* ⚡ 대여 중인 보드게임이 존재할 때만 나타나는 레드닷 */}
+            {/* 대여 중일 때 레드닷 */}
             {activeRentalsCount > 0 && (
               <span className="absolute -top-1 -right-1.5 flex h-2.5 w-2.5 z-10">
                 {hasOverdueRental && (
@@ -161,34 +166,43 @@ export const FixedBottomNav = memo(({
           <span className="mt-1">반납</span>
         </button>
 
+        {/* 랭킹 탭 */}
         <button 
           type="button" 
           onClick={() => handleTabChange('ranking')} 
           className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
-            activeTab === 'ranking' ? 'text-slate-900 dark:!text-white' : '!text-slate-400 dark:!text-slate-400'
+            activeTab === 'ranking' 
+              ? 'text-slate-900 dark:text-white' 
+              : 'text-slate-400 dark:!text-slate-400'
           }`}
         >
           <Trophy size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
           <span className="mt-1">랭킹</span>
         </button>
 
+        {/* 사이트 탭 */}
         <button 
           type="button" 
           onClick={() => handleTabChange('sites')} 
           className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
-            activeTab === 'sites' ? 'text-slate-900 dark:!text-white' : '!text-slate-400 dark:!text-slate-400'
+            activeTab === 'sites' 
+              ? 'text-slate-900 dark:text-white' 
+              : 'text-slate-400 dark:!text-slate-400'
           }`}
         >
           <Globe size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
           <span className="mt-1">사이트</span>
         </button>
 
+        {/* 관리자 탭 */}
         {isAdmin && (
           <button 
             type="button" 
             onClick={() => handleTabChange('admin')} 
             className={`flex flex-col items-center font-bold cursor-pointer relative ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
-              activeTab === 'admin' ? 'text-sky-500 dark:!text-sky-500' : '!text-slate-400 dark:!text-slate-400'
+              activeTab === 'admin' 
+                ? 'text-sky-500 dark:text-sky-400' 
+                : 'text-slate-400 dark:!text-slate-400'
             }`}
           >
             <div className="relative">

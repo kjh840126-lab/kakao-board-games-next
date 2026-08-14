@@ -236,6 +236,7 @@ export default function MainPage() {
 
   useEffect(() => { if (mounted) fetchInitialData(); }, [mounted]);
 
+  // ⚡ 탭 전환 시 터치 반응성 보정 및 사파리 관성 스크롤 충돌 방지 (UI 변화 0%)
   const handleTabChange = useCallback((newTab: 'games' | 'returns' | 'ranking' | 'sites' | 'admin') => {
     if (newTab === activeTab) return;
 
@@ -246,16 +247,17 @@ export default function MainPage() {
     setActiveTab(newTab);
     if (typeof window !== 'undefined') localStorage.setItem('kakao_bg_activeTab', newTab);
 
-    setTimeout(() => {
-      requestAnimationFrame(() => {
-        if (newTab === 'games') {
-          window.scrollTo(0, scrollPositions.current['games'] || 0);
-        } else {
-          window.scrollTo(0, 0);
-          if (mainScrollRef.current) mainScrollRef.current.scrollTop = 0;
-        }
-      });
-    }, 20);
+    requestAnimationFrame(() => {
+      if (newTab === 'games') {
+        window.scrollTo({
+          top: scrollPositions.current['games'] || 0,
+          behavior: 'instant' as ScrollBehavior
+        });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+        if (mainScrollRef.current) mainScrollRef.current.scrollTop = 0;
+      }
+    });
   }, [activeTab]);
 
   useEffect(() => {
@@ -299,7 +301,6 @@ export default function MainPage() {
         supabase.from('games').select('*'),
         supabase.from('notices').select('*').order('created_at', { ascending: false }),
         supabase.from('reports').select('*').order('created_at', { ascending: false }),
-        // ⚡ sites 테이블 조회 시 display_order 정렬 우선 적용 (없을 경우 site_id로 정렬)
         supabase.from('sites').select('*').order('display_order', { ascending: true }).order('site_id', { ascending: true })
       ]);
 
@@ -358,7 +359,7 @@ export default function MainPage() {
           bannerUrl: s.banner_url || '', 
           description: s.description || '', 
           isVisible: s.is_visible || 'Y',
-          displayOrder: s.display_order ?? s.site_id // ⚡ displayOrder 매핑 추가
+          displayOrder: s.display_order ?? s.site_id
         })));
       }
     } catch (e) {

@@ -113,7 +113,12 @@ export const FixedBottomNav = memo(({
 }: any) => {
   return (
     <nav 
-      style={{ fontSize: '11px' }}
+      style={{ 
+        fontSize: '11px',
+        WebkitTransform: 'translateZ(0)',
+        transform: 'translateZ(0)',
+        touchAction: 'manipulation'
+      }}
       className={`fixed bottom-0 left-0 right-0 w-full z-40 shadow-lg transition-colors border-t bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 ${
         isIosDevice ? IOS_CONFIG.NAV_PADDING_BOTTOM : 'pb-[calc(env(safe-area-inset-bottom,0px)+12px)]'
       }`}
@@ -130,7 +135,7 @@ export const FixedBottomNav = memo(({
         <button 
           type="button" 
           onClick={() => handleTabChange('games')} 
-          className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
+          className={`flex flex-col items-center font-bold cursor-pointer touch-manipulation select-none ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
             activeTab === 'games' 
               ? 'text-slate-900 dark:text-white' 
               : 'text-slate-400 dark:text-slate-400'
@@ -144,7 +149,7 @@ export const FixedBottomNav = memo(({
         <button 
           type="button" 
           onClick={() => handleTabChange('returns')} 
-          className={`flex flex-col items-center font-bold cursor-pointer relative ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
+          className={`flex flex-col items-center font-bold cursor-pointer relative touch-manipulation select-none ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
             activeTab === 'returns' 
               ? 'text-slate-900 dark:text-white' 
               : 'text-slate-400 dark:text-slate-400'
@@ -172,7 +177,7 @@ export const FixedBottomNav = memo(({
         <button 
           type="button" 
           onClick={() => handleTabChange('ranking')} 
-          className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
+          className={`flex flex-col items-center font-bold cursor-pointer touch-manipulation select-none ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
             activeTab === 'ranking' 
               ? 'text-slate-900 dark:text-white' 
               : 'text-slate-400 dark:text-slate-400'
@@ -186,7 +191,7 @@ export const FixedBottomNav = memo(({
         <button 
           type="button" 
           onClick={() => handleTabChange('sites')} 
-          className={`flex flex-col items-center font-bold cursor-pointer ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
+          className={`flex flex-col items-center font-bold cursor-pointer touch-manipulation select-none ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
             activeTab === 'sites' 
               ? 'text-slate-900 dark:text-white' 
               : 'text-slate-400 dark:text-slate-400'
@@ -201,14 +206,14 @@ export const FixedBottomNav = memo(({
           <button 
             type="button" 
             onClick={() => handleTabChange('admin')} 
-            className={`flex flex-col items-center font-bold cursor-pointer relative ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
+            className={`flex flex-col items-center font-bold cursor-pointer relative touch-manipulation select-none ${isIosDevice ? IOS_CONFIG.NAV_TEXT_SIZE : 'text-[10px]'} ${
               activeTab === 'admin' 
                 ? 'text-sky-500 dark:text-sky-400' 
                 : 'text-slate-400 dark:text-slate-400'
             }`}
           >
             <div className={`relative inline-flex items-center justify-center ${
-              activeTab === 'admin' ? 'text-sky-500 dark:!text-sky-400' : 'text-slate-400 dark:text-slate-400'
+              activeTab === 'admin' ? 'text-sky-500 dark:text-sky-400' : 'text-slate-400 dark:text-slate-400'
             }`}>
               <ShieldCheck size={isIosDevice ? IOS_CONFIG.NAV_ICON_SIZE : 20} />
               {unreadReportsCount > 0 && (

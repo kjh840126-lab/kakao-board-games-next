@@ -236,7 +236,7 @@ export default function MainPage() {
 
   useEffect(() => { if (mounted) fetchInitialData(); }, [mounted]);
 
-  // ⚡ 탭 전환 시 터치 반응성 보정 및 사파리 관성 스크롤 충돌 방지 (UI 변화 0%)
+  // ⚡ 탭 전환 시 터치 반응성 보정 및 사파리 관성 스크롤 충돌 방지
   const handleTabChange = useCallback((newTab: 'games' | 'returns' | 'ranking' | 'sites' | 'admin') => {
     if (newTab === activeTab) return;
 
@@ -445,7 +445,7 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ [수정] 개별 반납 처리 (평점 유무에 따른 완료 메시지/평점 팝업 분기)
+  // ⚡ [수정] 알럿 안내 확인 후 평점 모달이 순차적으로 뜨도록 비동기 딜레이 보정
   const returnGame = async (rentalId: number, gameId: string) => {
     if (!currentUser) return;
     const nowIso = new Date().toISOString();
@@ -480,17 +480,19 @@ export default function MainPage() {
           .eq('user_id', currentUser.userId);
 
         alert(`반납이 완료되었습니다.\n${overdueDays}일 연체로 인해 ${penaltyEndDateStr}까지 대여정지가 적용됩니다.`);
+      } else {
+        alert('반납이 완료되었습니다.');
       }
 
-      // ⚡ 나의 평점이 작성되지 않은 게임인 경우 평점 팝업 노출, 작성된 경우 기본 반납 완료창 노출
+      // ⚡ 알럿을 확인하고 닫은 직후 평점이 없을 때 모달 오픈
       const existingRating = allRatings.find(r => r.userId === currentUser.userId && r.gameId === gameId);
       const targetGameObj = games.find(g => g.gameId === gameId);
 
       if (!existingRating && targetGameObj) {
-        setSelectedScore(5.0);
-        setRatingModalGame(targetGameObj);
-      } else {
-        if (!isOverdue) alert('반납이 완료되었습니다.');
+        setTimeout(() => {
+          setSelectedScore(5.0);
+          setRatingModalGame(targetGameObj);
+        }, 100);
       }
 
       fetchInitialData();
@@ -499,7 +501,7 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ [수정] 일괄 반납 처리 (평점 미작성 건 중 1건 랜덤 추출하여 평점 팝업 노출)
+  // ⚡ [수정] 일괄 반납 시에도 알럿창 확인 후 평점 없는 건에 한해 1건 무작위 팝업 오픈
   const returnAllGames = async () => {
     if (!currentUser) return;
     const userActiveRentals = rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
@@ -544,9 +546,11 @@ export default function MainPage() {
           .eq('user_id', currentUser.userId);
 
         alert(`모든 보드게임이 반납되었습니다.\n연체건(총 ${totalOverdueDays}일)으로 인해 ${penaltyEndDateStr}까지 대여정지가 적용됩니다.`);
+      } else {
+        alert('모든 보드게임이 반납되었습니다.');
       }
 
-      // ⚡ 평점이 등록되지 않은 반납 대상 게임 목록 추출 후 무작위 1건 노출
+      // ⚡ 알럿창을 확인하고 닫은 직후 미작성 평점 건 중 1건 무작위 선택하여 팝업 오픈
       const unratedGames = games.filter(g => 
         activeGameIds.includes(g.gameId) && 
         !allRatings.some(r => r.userId === currentUser.userId && r.gameId === g.gameId)
@@ -556,10 +560,10 @@ export default function MainPage() {
         const randomIndex = Math.floor(Math.random() * unratedGames.length);
         const selectedRandomGame = unratedGames[randomIndex];
 
-        setSelectedScore(5.0);
-        setRatingModalGame(selectedRandomGame);
-      } else {
-        if (totalOverdueDays === 0) alert('모든 보드게임이 반납되었습니다.');
+        setTimeout(() => {
+          setSelectedScore(5.0);
+          setRatingModalGame(selectedRandomGame);
+        }, 100);
       }
 
       fetchInitialData();

@@ -46,7 +46,7 @@ const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   return Math.round((utc1 - utc2) / (1000 * 60 * 60 * 24));
 };
 
-// ⚡ 2. 자정 기준 대여정지 종료일 정확히 계산 (11일 + 7일 = 18일)
+// ⚡ 2. 자정 기준 대여정지 종료일 정확히 계산
 const calcPenaltyEndDate = (baseDateStr: string, addDays: number) => {
   const [y, m, d] = baseDateStr.split('T')[0].split('-').map(Number);
   const targetDate = new Date(y, m - 1, d + addDays);
@@ -445,6 +445,7 @@ export default function MainPage() {
     }
   };
 
+  // ⚡ [수정] 개별 반납 시 대여정지 연장/신규 계산 로직 반영
   const returnGame = async (rentalId: number, gameId: string) => {
     if (!currentUser) return;
     const nowIso = new Date().toISOString();
@@ -463,10 +464,13 @@ export default function MainPage() {
       if (gameErr) throw gameErr;
 
       if (isOverdue && overdueDays > 0) {
+        // 기존 미래 대여정지 존재 여부 확인
         const hasFuturePenalty = currentUser.penaltyEndDate && String(currentUser.penaltyEndDate) >= today;
         const baseDateStr = hasFuturePenalty ? String(currentUser.penaltyEndDate) : today;
 
-        const penaltyEndDateStr = calcPenaltyEndDate(baseDateStr, overdueDays);
+        // 기존 대여정지가 있으면 overdueDays 그대로 연장, 없으면 (overdueDays - 1) 적용 (당일 포함)
+        const addDays = hasFuturePenalty ? overdueDays : (overdueDays - 1);
+        const penaltyEndDateStr = calcPenaltyEndDate(baseDateStr, addDays);
         const newPenaltyPoints = (currentUser.penaltyPoints || 0) + overdueDays;
 
         await supabase
@@ -488,6 +492,7 @@ export default function MainPage() {
     }
   };
 
+  // ⚡ [수정] 일괄 반납 시 대여정지 연장/신규 계산 로직 반영
   const returnAllGames = async () => {
     if (!currentUser) return;
     const userActiveRentals = rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
@@ -516,10 +521,13 @@ export default function MainPage() {
       if (gameErr) throw gameErr;
 
       if (totalOverdueDays > 0) {
+        // 기존 미래 대여정지 존재 여부 확인
         const hasFuturePenalty = currentUser.penaltyEndDate && String(currentUser.penaltyEndDate) >= today;
         const baseDateStr = hasFuturePenalty ? String(currentUser.penaltyEndDate) : today;
 
-        const penaltyEndDateStr = calcPenaltyEndDate(baseDateStr, totalOverdueDays);
+        // 기존 대여정지가 있으면 totalOverdueDays 그대로 연장, 없으면 (totalOverdueDays - 1) 적용 (당일 포함)
+        const addDays = hasFuturePenalty ? totalOverdueDays : (totalOverdueDays - 1);
+        const penaltyEndDateStr = calcPenaltyEndDate(baseDateStr, addDays);
         const newPenaltyPoints = (currentUser.penaltyPoints || 0) + totalOverdueDays;
 
         await supabase
@@ -875,7 +883,7 @@ export default function MainPage() {
     fetchInitialData(); setIsSiteModalOpen(false);
   };
 
-  // ⚡ [수정] 무조건 클릭한 공지 ID로 설정하여 항상 상세 내용이 시원하게 펼쳐지도록 보정
+  // ⚡ 무조건 클릭한 공지 ID로 설정하여 항상 상세 내용이 시원하게 펼쳐지도록 보정
   const handleNoticeClick = (notice: Notice) => {
     setExpandedNoticeId(notice.noticeId);
     setIsNoticeDrawerOpen(true);

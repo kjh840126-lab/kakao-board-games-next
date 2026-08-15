@@ -445,7 +445,7 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ [수정] 개별 반납 시 대여정지 연장/신규 계산 로직 반영
+  // ⚡ [수정] 개별 반납 처리 (평점 유무에 따른 완료 메시지/평점 팝업 분기)
   const returnGame = async (rentalId: number, gameId: string) => {
     if (!currentUser) return;
     const nowIso = new Date().toISOString();
@@ -464,11 +464,9 @@ export default function MainPage() {
       if (gameErr) throw gameErr;
 
       if (isOverdue && overdueDays > 0) {
-        // 기존 미래 대여정지 존재 여부 확인
         const hasFuturePenalty = currentUser.penaltyEndDate && String(currentUser.penaltyEndDate) >= today;
         const baseDateStr = hasFuturePenalty ? String(currentUser.penaltyEndDate) : today;
 
-        // 기존 대여정지가 있으면 overdueDays 그대로 연장, 없으면 (overdueDays - 1) 적용 (당일 포함)
         const addDays = hasFuturePenalty ? overdueDays : (overdueDays - 1);
         const penaltyEndDateStr = calcPenaltyEndDate(baseDateStr, addDays);
         const newPenaltyPoints = (currentUser.penaltyPoints || 0) + overdueDays;
@@ -482,8 +480,17 @@ export default function MainPage() {
           .eq('user_id', currentUser.userId);
 
         alert(`반납이 완료되었습니다.\n${overdueDays}일 연체로 인해 ${penaltyEndDateStr}까지 대여정지가 적용됩니다.`);
+      }
+
+      // ⚡ 나의 평점이 작성되지 않은 게임인 경우 평점 팝업 노출, 작성된 경우 기본 반납 완료창 노출
+      const existingRating = allRatings.find(r => r.userId === currentUser.userId && r.gameId === gameId);
+      const targetGameObj = games.find(g => g.gameId === gameId);
+
+      if (!existingRating && targetGameObj) {
+        setSelectedScore(5.0);
+        setRatingModalGame(targetGameObj);
       } else {
-        alert('반납이 완료되었습니다.');
+        if (!isOverdue) alert('반납이 완료되었습니다.');
       }
 
       fetchInitialData();
@@ -492,7 +499,7 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ [수정] 일괄 반납 시 대여정지 연장/신규 계산 로직 반영
+  // ⚡ [수정] 일괄 반납 처리 (평점 미작성 건 중 1건 랜덤 추출하여 평점 팝업 노출)
   const returnAllGames = async () => {
     if (!currentUser) return;
     const userActiveRentals = rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
@@ -521,11 +528,9 @@ export default function MainPage() {
       if (gameErr) throw gameErr;
 
       if (totalOverdueDays > 0) {
-        // 기존 미래 대여정지 존재 여부 확인
         const hasFuturePenalty = currentUser.penaltyEndDate && String(currentUser.penaltyEndDate) >= today;
         const baseDateStr = hasFuturePenalty ? String(currentUser.penaltyEndDate) : today;
 
-        // 기존 대여정지가 있으면 totalOverdueDays 그대로 연장, 없으면 (totalOverdueDays - 1) 적용 (당일 포함)
         const addDays = hasFuturePenalty ? totalOverdueDays : (totalOverdueDays - 1);
         const penaltyEndDateStr = calcPenaltyEndDate(baseDateStr, addDays);
         const newPenaltyPoints = (currentUser.penaltyPoints || 0) + totalOverdueDays;
@@ -539,8 +544,22 @@ export default function MainPage() {
           .eq('user_id', currentUser.userId);
 
         alert(`모든 보드게임이 반납되었습니다.\n연체건(총 ${totalOverdueDays}일)으로 인해 ${penaltyEndDateStr}까지 대여정지가 적용됩니다.`);
+      }
+
+      // ⚡ 평점이 등록되지 않은 반납 대상 게임 목록 추출 후 무작위 1건 노출
+      const unratedGames = games.filter(g => 
+        activeGameIds.includes(g.gameId) && 
+        !allRatings.some(r => r.userId === currentUser.userId && r.gameId === g.gameId)
+      );
+
+      if (unratedGames.length > 0) {
+        const randomIndex = Math.floor(Math.random() * unratedGames.length);
+        const selectedRandomGame = unratedGames[randomIndex];
+
+        setSelectedScore(5.0);
+        setRatingModalGame(selectedRandomGame);
       } else {
-        alert('모든 보드게임이 반납되었습니다.');
+        if (totalOverdueDays === 0) alert('모든 보드게임이 반납되었습니다.');
       }
 
       fetchInitialData();
@@ -624,22 +643,22 @@ export default function MainPage() {
     if (!targetEmail) { 
       alert('이메일을 입력해 주세요.'); 
       setIsEmailVerified(false);
-      return false; // ❌ 실패 시 false 반환
+      return false;
     }
 
     const existing = users.find(u => u.email?.toLowerCase() === targetEmail);
     if (existing) { 
       alert('이미 사용 중인 이메일입니다.'); 
       setIsEmailVerified(false); 
-      return false; // ❌ 중복 시 false 반환
+      return false;
     } else { 
       alert('사용 가능한 이메일입니다.'); 
       setIsEmailVerified(true); 
-      return true; // ⭕ 성공 시 true 반환
+      return true;
     }
   };
 
-  // ⚡ 회원가입 제출 로직 (아이디 사전 중복 검사 + 비밀번호 6자리 검사 + Supabase Auth 계정 생성)
+  // ⚡ 회원가입 제출 로직
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     const userId = signUpForm.userId.trim().toLowerCase();
@@ -649,7 +668,6 @@ export default function MainPage() {
 
     if (!userId || !name) { alert('아이디와 이름을 확인하세요.'); return; }
 
-    // ⚡ 아이디 이미 존재 여부 사전 검사 (DB pkey 중복 에러 방지)
     const isUserIdExists = users.some((u) => u.userId?.toLowerCase() === userId);
     if (isUserIdExists) {
       alert('이미 등록된 아이디입니다. 다른 아이디를 입력해 주세요.');
@@ -658,7 +676,6 @@ export default function MainPage() {
 
     if (!isEmailVerified) { alert('이메일 중복 확인을 해주세요.'); return; }
     
-    // ⚡ 비밀번호 6자리 최소 길이 사전 검사 (Supabase Rate Limit 방지)
     if (!password || password.length < 6) {
       alert('비밀번호는 최소 6자리 이상 입력해야 합니다.');
       return;
@@ -670,7 +687,6 @@ export default function MainPage() {
     }
 
     try {
-      // ⚡ 1. Supabase Authentication (인증) 계정 가입 (비밀번호 찾기 등에 필수)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email,
         password: password,
@@ -686,7 +702,6 @@ export default function MainPage() {
         throw authError;
       }
 
-      // ⚡ 2. 커스텀 users DB 테이블 저장
       const { error: dbError } = await supabase.from('users').insert([{ 
         user_id: userId, 
         name: name, 
@@ -709,7 +724,7 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 프로필/비밀번호/이메일 수정 처리 핸들러 (Supabase Auth 연동 포함)
+  // ⚡ 프로필/비밀번호/이메일 수정 처리 핸들러
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
@@ -728,7 +743,6 @@ export default function MainPage() {
     if (changePassword) updates.password_hash = changePassword;
 
     try {
-      // ⚡ 1. Supabase Authentication 계정 정보 동기화
       const authUpdates: any = {
         data: { name: editName.trim() },
       };
@@ -741,7 +755,6 @@ export default function MainPage() {
         console.warn('Supabase Auth 업데이트 경고:', authError.message);
       }
 
-      // ⚡ 2. 커스텀 users DB 테이블 정보 업데이트
       const { error: dbError } = await supabase
         .from('users')
         .update(updates)
@@ -883,13 +896,11 @@ export default function MainPage() {
     fetchInitialData(); setIsSiteModalOpen(false);
   };
 
-  // ⚡ 무조건 클릭한 공지 ID로 설정하여 항상 상세 내용이 시원하게 펼쳐지도록 보정
   const handleNoticeClick = (notice: Notice) => {
     setExpandedNoticeId(notice.noticeId);
     setIsNoticeDrawerOpen(true);
   };
 
-  // ⚡ 현재 사용자의 대여 중(반납 대상) 보드게임 목록 계산 (대소문자/공백 오차 방지)
   const userActiveRentals = useMemo(() => {
     if (!currentUser || !currentUser.userId) return [];
     const currentUserIdClean = String(currentUser.userId).trim().toLowerCase();
@@ -900,10 +911,8 @@ export default function MainPage() {
     });
   }, [rentals, currentUser]);
 
-  // ⚡ 대여 중인 건수
   const activeRentalsCount = userActiveRentals.length;
 
-  // ⚡ 대여 건 중 연체된 항목 존재 여부 (오늘 날짜가 반납예정일보다 지난 경우)
   const hasOverdueRental = useMemo(() => {
     return userActiveRentals.some((r) => r.endDate && today > r.endDate);
   }, [userActiveRentals, today]);

@@ -445,7 +445,7 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ [수정] 알럿 안내 확인 후 평점 모달이 순차적으로 뜨도록 비동기 딜레이 보정
+  // ⚡ 알럿 안내 확인 후 평점 모달이 순차적으로 뜨도록 비동기 딜레이 보정
   const returnGame = async (rentalId: number, gameId: string) => {
     if (!currentUser) return;
     const nowIso = new Date().toISOString();
@@ -501,7 +501,7 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ [수정] 일괄 반납 시에도 알럿창 확인 후 평점 없는 건에 한해 1건 무작위 팝업 오픈
+  // ⚡ 일괄 반납 시에도 알럿창 확인 후 평점 없는 건에 한해 1건 무작위 팝업 오픈
   const returnAllGames = async () => {
     if (!currentUser) return;
     const userActiveRentals = rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
@@ -639,7 +639,6 @@ export default function MainPage() {
     setCurrentUser(user); localStorage.setItem('kakao_boardgame_user', JSON.stringify(user));
   };
 
-  // ⚡ 이메일 중복 확인 검사 로직
   const handleCheckEmail = async (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
     const targetEmail = (signUpForm.email || signUpForm.emailPrefix || '').trim().toLowerCase();
@@ -662,7 +661,6 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 회원가입 제출 로직
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     const userId = signUpForm.userId.trim().toLowerCase();
@@ -728,7 +726,6 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 프로필/비밀번호/이메일 수정 처리 핸들러
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
@@ -805,6 +802,7 @@ export default function MainPage() {
     alert('제출되었습니다.'); setReportForm({ title: '', content: '', category: '' }); setIsReportModalOpen(false); fetchInitialData();
   };
 
+  // ⚡ 장르 자동 가나다(ㄱㄴㄷ) 정렬 후 저장
   const saveGame = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingGame) return;
@@ -823,6 +821,9 @@ export default function MainPage() {
         .map((g) => g.trim())
         .filter(Boolean);
     }
+
+    // ⚡ 가나다(ㄱㄴㄷ) 순 정렬 적용
+    cleanGenres.sort((a, b) => a.localeCompare(b, 'ko'));
 
     const formattedGenres = cleanGenres.join(', ');
 

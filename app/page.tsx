@@ -19,7 +19,7 @@ const ALLOWED_EMAIL_DOMAINS = ['kakaocorp.com', 'kakaoenterprise.com', 'kakaomob
 const LOGIN_LOGO_URL = '/logo.png';
 const currentYear = new Date().getFullYear();
 
-const AVAILABLE_GENRES = ['전략게임', '파티게임', '협력게임', '가족게임', '테마/모험', '추리/마피아'];
+const AVAILABLE_GENRES = ['가족게임', '전략게임', '추리/마피아', '테마/모험', '파티게임', '협력게임'];
 
 const checkIsIosDevice = () => {
   if (typeof window === 'undefined') return false;

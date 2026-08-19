@@ -5,7 +5,7 @@ import { Game, Rental, UserRating } from '../../types';
 import { Search, Filter, Bell, ChevronRight, X, Heart, Clock, Brain, Users as PlayerIcon, RotateCcw as ResetIcon, Star, Loader2, ArrowUpDown } from 'lucide-react';
 
 // ⚡ 신규 장르 목록 6개 및 옵션 정의
-const PRESET_GENRES = ['전략게임', '파티게임', '협력게임', '가족게임', '테마/모험', '추리/마피아'];
+const PRESET_GENRES = ['가족게임', '머더미스터리', '전략게임', '추리/마피아', '파티게임', '테마/모험', '협력게임'];
 const PLAYER_OPTIONS = [1, 2, 3, 4, 5]; // 5는 5인+
 const DIFFICULTY_OPTIONS = [
   { key: 'easy', label: '쉬움' },

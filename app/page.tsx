@@ -33,15 +33,20 @@ const getTodayKST = () => {
   return formatter.format(new Date());
 };
 
-// ⚡ 1. 자정(UTC 00:00:00) 기준 날짜 차이(연체 일수) 정확히 계산 (pure YYYY-MM-DD 정제 파싱)
-const getDaysDifference = (dateStr1: string, dateStr2: string) => {
-  if (!dateStr1 || !dateStr2) return 0;
-  
-  const cleanDate1 = dateStr1.split('T')[0].split(' ')[0];
-  const cleanDate2 = dateStr2.split('T')[0].split(' ')[0];
+// ⚡ 날짜 문자열에서 YYYY-MM-DD 10자리만 완벽 추출하는 안전 함수
+const toPureDateStr = (dateStr: string | null | undefined) => {
+  if (!dateStr) return '';
+  return String(dateStr).split('T')[0].split(' ')[0].substring(0, 10);
+};
 
-  const [y1, m1, d1] = cleanDate1.split('-').map(Number);
-  const [y2, m2, d2] = cleanDate2.split('-').map(Number);
+// ⚡ 자정(UTC 00:00:00) 기준 두 날짜 차이(일수) 계산
+const getDaysDifference = (dateStr1: string, dateStr2: string) => {
+  const clean1 = toPureDateStr(dateStr1);
+  const clean2 = toPureDateStr(dateStr2);
+  if (!clean1 || !clean2) return 0;
+
+  const [y1, m1, d1] = clean1.split('-').map(Number);
+  const [y2, m2, d2] = clean2.split('-').map(Number);
   
   const utc1 = Date.UTC(y1, m1 - 1, d1);
   const utc2 = Date.UTC(y2, m2 - 1, d2);
@@ -49,12 +54,10 @@ const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   return Math.round((utc1 - utc2) / (1000 * 60 * 60 * 24));
 };
 
-// ⚡ 2. 자정 기준 대여정지 종료일 정확히 계산 (KST/UTC 시차 및 기기 시간대 오차 완벽 방지)
+// ⚡ 자정 기준 대여정지 종료일 정확히 계산
 const calcPenaltyEndDate = (baseDateStr: string, addDays: number) => {
-  if (!baseDateStr) return getTodayKST();
-
-  const cleanBaseDate = baseDateStr.split('T')[0].split(' ')[0];
-  const [y, m, d] = cleanBaseDate.split('-').map(Number);
+  const cleanBase = toPureDateStr(baseDateStr) || getTodayKST();
+  const [y, m, d] = cleanBase.split('-').map(Number);
   
   const targetUtcMs = Date.UTC(y, m - 1, d) + (addDays * 1000 * 60 * 60 * 24);
   const targetDate = new Date(targetUtcMs);
@@ -103,7 +106,6 @@ export default function MainPage() {
   const [isFavoritesModalOpen, setIsFavoritesModalOpen] = useState(false);
   const [isMyRatingsModalOpen, setIsMyRatingsModalOpen] = useState(false);
 
-  // ⚡ 폰트 크기 상태 초기화 (localStorage 연동)
   const [fontSize, setFontSize] = useState<'normal' | 'large'>(() => {
     if (typeof window !== 'undefined') {
       const savedFont = localStorage.getItem('kakao_bg_fontSize');
@@ -314,7 +316,15 @@ export default function MainPage() {
 
       if (usersData) {
         const mappedUsers: UserData[] = usersData.map(u => ({
-          userId: u.user_id, name: u.name, email: u.email, role: u.role as Role, passwordHash: u.password_hash, penaltyPoints: Number(u.penalty_count || 0), penaltyEndDate: u.penalty_end_date || null, createdAt: u.created_at?.split('T')[0] || today, lastLoginAt: u.last_login_at || '기록없음'
+          userId: u.user_id, 
+          name: u.name, 
+          email: u.email, 
+          role: u.role as Role, 
+          passwordHash: u.password_hash, 
+          penaltyPoints: Number(u.penalty_count || 0), 
+          penaltyEndDate: toPureDateStr(u.penalty_end_date) || null, 
+          createdAt: toPureDateStr(u.created_at) || today, 
+          lastLoginAt: u.last_login_at || '기록없음'
         }));
         setUsers(mappedUsers);
         if (currentUser) {
@@ -323,7 +333,20 @@ export default function MainPage() {
         }
       }
 
-      if (rentalsData) setRentals(rentalsData.map(r => ({ rentalId: r.rental_id, userId: r.user_id, gameId: r.game_id, gameTitle: r.game_title, status: r.status, startDate: r.start_date, endDate: r.end_date, returnedAt: r.returned_at })));
+      // ⚡ [핵심] DB에서 rentals를 불러올 때 start_date, end_date를 YYYY-MM-DD 10자리로 강제 정제
+      if (rentalsData) {
+        setRentals(rentalsData.map(r => ({ 
+          rentalId: r.rental_id, 
+          userId: r.user_id, 
+          gameId: r.game_id, 
+          gameTitle: r.game_title, 
+          status: r.status, 
+          startDate: toPureDateStr(r.start_date), 
+          endDate: toPureDateStr(r.end_date), 
+          returnedAt: r.returned_at 
+        })));
+      }
+
       if (ratingsData) setAllRatings(ratingsData.map(r => ({ userId: r.user_id, gameId: r.game_id, score: Number(r.score) })));
       
       if (gamesData) {
@@ -346,7 +369,7 @@ export default function MainPage() {
           content: n.content, 
           imageUrl: n.image_url || n.imageUrl || '',
           isVisible: n.is_visible || 'Y', 
-          createdAt: n.created_at?.split('T')[0] || today 
+          createdAt: toPureDateStr(n.created_at) || today 
         })));
       }
 
@@ -433,7 +456,7 @@ export default function MainPage() {
 
       if (insertedData) {
         const mappedNewRentals: Rental[] = insertedData.map(r => ({
-          rentalId: r.rental_id, userId: r.user_id, gameId: r.game_id, gameTitle: r.game_title, status: r.status, startDate: r.start_date, endDate: r.end_date, returnedAt: r.returned_at
+          rentalId: r.rental_id, userId: r.user_id, gameId: r.game_id, gameTitle: r.game_title, status: r.status, startDate: toPureDateStr(r.start_date), endDate: toPureDateStr(r.end_date), returnedAt: r.returned_at
         }));
         setRentals(prevRentals => [...mappedNewRentals, ...prevRentals]);
       }
@@ -446,7 +469,6 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 반납 처리 시 정제된 YYYY-MM-DD 만으로 연체 비교 및 차이 계산
   const returnGame = async (rentalId: number, gameId: string) => {
     if (!currentUser) return;
     const nowIso = new Date().toISOString();
@@ -454,7 +476,7 @@ export default function MainPage() {
     const targetRental = rentals.find((r) => r.rentalId === rentalId);
     if (!targetRental) return;
 
-    const cleanEndDate = targetRental.endDate ? targetRental.endDate.split('T')[0].split(' ')[0] : '';
+    const cleanEndDate = toPureDateStr(targetRental.endDate);
     const isOverdue = today > cleanEndDate;
     const overdueDays = isOverdue ? getDaysDifference(today, cleanEndDate) : 0;
 
@@ -466,7 +488,7 @@ export default function MainPage() {
       if (gameErr) throw gameErr;
 
       if (isOverdue && overdueDays > 0) {
-        const cleanPenaltyEndDate = currentUser.penaltyEndDate ? String(currentUser.penaltyEndDate).split('T')[0].split(' ')[0] : '';
+        const cleanPenaltyEndDate = toPureDateStr(currentUser.penaltyEndDate);
         const hasFuturePenalty = cleanPenaltyEndDate && cleanPenaltyEndDate >= today;
         const baseDateStr = hasFuturePenalty ? cleanPenaltyEndDate : today;
 
@@ -503,7 +525,6 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 일괄 반납 처리 시에도 정제된 YYYY-MM-DD 날짜로 연체 계산
   const returnAllGames = async () => {
     if (!currentUser) return;
     const userActiveRentals = rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
@@ -516,7 +537,7 @@ export default function MainPage() {
     let totalOverdueDays = 0;
 
     userActiveRentals.forEach((r) => {
-      const cleanEndDate = r.endDate ? r.endDate.split('T')[0].split(' ')[0] : '';
+      const cleanEndDate = toPureDateStr(r.endDate);
       if (today > cleanEndDate) {
         const days = getDaysDifference(today, cleanEndDate);
         if (days > 0) {
@@ -533,7 +554,7 @@ export default function MainPage() {
       if (gameErr) throw gameErr;
 
       if (totalOverdueDays > 0) {
-        const cleanPenaltyEndDate = currentUser.penaltyEndDate ? String(currentUser.penaltyEndDate).split('T')[0].split(' ')[0] : '';
+        const cleanPenaltyEndDate = toPureDateStr(currentUser.penaltyEndDate);
         const hasFuturePenalty = cleanPenaltyEndDate && cleanPenaltyEndDate >= today;
         const baseDateStr = hasFuturePenalty ? cleanPenaltyEndDate : today;
 
@@ -921,7 +942,7 @@ export default function MainPage() {
 
   const hasOverdueRental = useMemo(() => {
     return userActiveRentals.some((r) => {
-      const cleanEndDate = r.endDate ? r.endDate.split('T')[0].split(' ')[0] : '';
+      const cleanEndDate = toPureDateStr(r.endDate);
       return cleanEndDate && today > cleanEndDate;
     });
   }, [userActiveRentals, today]);

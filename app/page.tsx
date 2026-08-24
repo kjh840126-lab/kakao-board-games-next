@@ -46,14 +46,18 @@ const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   return Math.round((utc1 - utc2) / (1000 * 60 * 60 * 24));
 };
 
-// ⚡ 2. 자정 기준 대여정지 종료일 정확히 계산
+// ⚡ 2. 자정 기준 대여정지 종료일 정확히 계산 (KST/UTC 시차 및 기기 시간대 오차 완벽 방지)
 const calcPenaltyEndDate = (baseDateStr: string, addDays: number) => {
+  if (!baseDateStr) return getTodayKST();
+
   const [y, m, d] = baseDateStr.split('T')[0].split('-').map(Number);
-  const targetDate = new Date(y, m - 1, d + addDays);
+  // UTC 자정 기준 타임스탬프에 일수(ms) 합산
+  const targetUtcMs = Date.UTC(y, m - 1, d) + (addDays * 1000 * 60 * 60 * 24);
+  const targetDate = new Date(targetUtcMs);
   
-  const year = targetDate.getFullYear();
-  const month = String(targetDate.getMonth() + 1).padStart(2, '0');
-  const day = String(targetDate.getDate()).padStart(2, '0');
+  const year = targetDate.getUTCFullYear();
+  const month = String(targetDate.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(targetDate.getUTCDate()).padStart(2, '0');
   
   return `${year}-${month}-${day}`;
 };

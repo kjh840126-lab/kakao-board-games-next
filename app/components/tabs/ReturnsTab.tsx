@@ -4,15 +4,18 @@ import { memo, useMemo } from 'react';
 import { Rental } from '../../types';
 import { RotateCcw, CheckCircle2, Loader2 } from 'lucide-react';
 
-// ⚡ pure YYYY-MM-DD 정제 파싱 및 정확한 연체 일수 계산 함수 (시차/시간대 오차 완벽 차단)
-const getDaysDifference = (dateStr1: string, dateStr2: string) => {
-  if (!dateStr1 || !dateStr2) return 0;
-  
-  const cleanDate1 = dateStr1.split('T')[0].split(' ')[0];
-  const cleanDate2 = dateStr2.split('T')[0].split(' ')[0];
+const toPureDateStr = (dateStr: string | null | undefined) => {
+  if (!dateStr) return '';
+  return String(dateStr).split('T')[0].split(' ')[0].substring(0, 10);
+};
 
-  const [y1, m1, d1] = cleanDate1.split('-').map(Number);
-  const [y2, m2, d2] = cleanDate2.split('-').map(Number);
+const getDaysDifference = (dateStr1: string, dateStr2: string) => {
+  const clean1 = toPureDateStr(dateStr1);
+  const clean2 = toPureDateStr(dateStr2);
+  if (!clean1 || !clean2) return 0;
+
+  const [y1, m1, d1] = clean1.split('-').map(Number);
+  const [y2, m2, d2] = clean2.split('-').map(Number);
   
   const utc1 = Date.UTC(y1, m1 - 1, d1);
   const utc2 = Date.UTC(y2, m2 - 1, d2);
@@ -21,12 +24,10 @@ const getDaysDifference = (dateStr1: string, dateStr2: string) => {
 };
 
 export const ReturnsTab = memo(({ isInitialLoaded, rentals, currentUser, today, returnGame, returnAllGames }: any) => {
-  // 1) 현재 사용자의 대여 중인 목록
   const activeRentals = useMemo(() => {
     return rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
   }, [rentals, currentUser]);
 
-  // 2) 현재 사용자의 반납 완료된 목록
   const returnedRentalsList = useMemo(() => {
     return rentals
       .filter((r: Rental) => r.userId === currentUser?.userId && r.status === '반납완료')
@@ -35,7 +36,6 @@ export const ReturnsTab = memo(({ isInitialLoaded, rentals, currentUser, today, 
 
   return (
     <div className="space-y-5 mt-0.5 w-full">
-      {/* 대여 현황 요약 바 */}
       <div className="p-4 rounded-2xl flex justify-between items-center shadow-sm bg-slate-900 text-white">
         <div className="flex items-center justify-between w-full">
           <span className="text-slate-300 font-medium">현재 대여 중인 게임</span>
@@ -65,8 +65,7 @@ export const ReturnsTab = memo(({ isInitialLoaded, rentals, currentUser, today, 
           </div>
         ) : (
           activeRentals.map((rental: Rental) => {
-            // ⚡ DB 날짜 포맷의 T/시간 제거 후 오직 YYYY-MM-DD 로만 연체 판단
-            const cleanEndDate = rental.endDate ? rental.endDate.split('T')[0].split(' ')[0] : '';
+            const cleanEndDate = toPureDateStr(rental.endDate);
             const isOverdue = today > cleanEndDate;
             const overdueDays = isOverdue ? getDaysDifference(today, cleanEndDate) : 0;
 
@@ -77,7 +76,7 @@ export const ReturnsTab = memo(({ isInitialLoaded, rentals, currentUser, today, 
                     {rental.gameTitle} <span className="text-slate-400 font-medium">({rental.gameId})</span>
                   </h4>
                   <div className="mt-1 space-y-0.5 text-xs text-slate-500">
-                    <div>대여일: {rental.startDate?.split('T')[0]}</div>
+                    <div>대여일: {toPureDateStr(rental.startDate)}</div>
                     <div>반납예정일: {isOverdue ? <strong className="text-rose-600 font-extrabold">{cleanEndDate} (연체 {overdueDays}일)</strong> : <strong>{cleanEndDate}</strong>}</div>
                   </div>
                 </div>
@@ -105,8 +104,8 @@ export const ReturnsTab = memo(({ isInitialLoaded, rentals, currentUser, today, 
           </div>
         ) : (
           returnedRentalsList.map((rental: Rental) => {
-            const cleanEndDate = rental.endDate ? rental.endDate.split('T')[0].split(' ')[0] : '';
-            const returnedDate = (rental.returnedAt?.split('T')[0] || rental.startDate)?.split(' ')[0];
+            const cleanEndDate = toPureDateStr(rental.endDate);
+            const returnedDate = toPureDateStr(rental.returnedAt) || toPureDateStr(rental.startDate);
             const isOverdueReturned = cleanEndDate && returnedDate > cleanEndDate;
             const overdueDays = isOverdueReturned ? getDaysDifference(returnedDate, cleanEndDate) : 0;
 
@@ -129,7 +128,7 @@ export const ReturnsTab = memo(({ isInitialLoaded, rentals, currentUser, today, 
                   </div>
 
                   <p className="text-slate-500 mt-1 text-xs pl-5">
-                    대여일: {rental.startDate?.split('T')[0]} | 반납일: {returnedDate}
+                    대여일: {toPureDateStr(rental.startDate)} | 반납일: {returnedDate}
                   </p>
                 </div>
               </div>

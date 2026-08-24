@@ -11,10 +11,25 @@ import {
 
 type AdminSubTabType = 'gameAdmin' | 'rentalAdmin' | 'siteAdmin' | 'userAdmin' | 'noticeAdmin';
 
+// ⚡ 순수 YYYY-MM-DD 10자리만 정제 추출
+const toPureDateStr = (dateStr: string | null | undefined) => {
+  if (!dateStr) return '';
+  return String(dateStr).split('T')[0].split(' ')[0].substring(0, 10);
+};
+
+// ⚡ 8/24 - 8/20 = 정확히 4일이 산출되는 자정 기준 연체 일수 계산 함수 (버그 수정: +1 제거)
 const getDaysDifference = (dateStr1: string, dateStr2: string) => {
-  if (!dateStr1 || !dateStr2) return 0;
-  const d1 = new Date(dateStr1); const d2 = new Date(dateStr2);
-  return Math.floor((d1.getTime() - d2.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const clean1 = toPureDateStr(dateStr1);
+  const clean2 = toPureDateStr(dateStr2);
+  if (!clean1 || !clean2) return 0;
+
+  const [y1, m1, d1] = clean1.split('-').map(Number);
+  const [y2, m2, d2] = clean2.split('-').map(Number);
+  
+  const utc1 = Date.UTC(y1, m1 - 1, d1);
+  const utc2 = Date.UTC(y2, m2 - 1, d2);
+  
+  return Math.round((utc1 - utc2) / (1000 * 60 * 60 * 24));
 };
 
 export const AdminTab = memo(({
@@ -24,7 +39,6 @@ export const AdminTab = memo(({
   setEditingNotice, setIsNoticeModalOpen, deleteNotice,
   returnGame
 }: any) => {
-  // ⚡ 새로고침 시 기존 선택 서브 탭 유지를 위한 localStorage 읽기 초기화
   const [adminSubTab, setAdminSubTab] = useState<AdminSubTabType>(() => {
     if (typeof window !== 'undefined') {
       const savedSubTab = localStorage.getItem('kakao_bg_adminSubTab');
@@ -41,7 +55,6 @@ export const AdminTab = memo(({
 
   const today = new Date().toISOString().split('T')[0];
 
-  // ⚡ 서브 탭 변경 시 localStorage에 선택한 탭 보존
   const handleSubTabChange = (newSubTab: AdminSubTabType) => {
     setAdminSubTab(newSubTab);
     if (typeof window !== 'undefined') {
@@ -49,7 +62,6 @@ export const AdminTab = memo(({
     }
   };
 
-  // ⚡ 1. 게임 노출/숨김 토글 처리 함수
   const toggleGameVisibility = async (game: Game) => {
     const nextStatus = game.isVisible === 'N' ? 'Y' : 'N';
     const { error } = await supabase.from('games').update({ is_visible: nextStatus }).eq('game_id', game.gameId);
@@ -60,7 +72,6 @@ export const AdminTab = memo(({
     }
   };
 
-  // ⚡ 2. 추천 사이트 노출/숨김 토글 처리 함수
   const toggleSiteVisibility = async (site: BoardSite) => {
     const nextStatus = site.isVisible === 'N' ? 'Y' : 'N';
     const { error } = await supabase.from('sites').update({ is_visible: nextStatus }).eq('site_id', site.siteId);
@@ -71,7 +82,6 @@ export const AdminTab = memo(({
     }
   };
 
-  // ⚡ 3. 공지사항 노출/숨김 토글 처리 함수
   const toggleNoticeVisibility = async (notice: Notice) => {
     const nextStatus = (notice as any).isVisible === 'N' ? 'Y' : 'N';
     const { error } = await supabase.from('notices').update({ is_visible: nextStatus }).eq('notice_id', notice.noticeId);
@@ -82,7 +92,6 @@ export const AdminTab = memo(({
     }
   };
 
-  // ⚡ 4. 추천 사이트 순서 이동 (Up/Down) 처리 함수
   const moveSiteOrder = async (currentIndex: number, direction: 'up' | 'down') => {
     if (!sites || sites.length <= 1) return;
     const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
@@ -92,7 +101,6 @@ export const AdminTab = memo(({
     const targetSite = sites[targetIndex];
 
     try {
-      // DB의 display_order 또는 site_id 스왑 처리
       const currentOrder = currentSite.displayOrder ?? currentSite.siteId;
       const targetOrder = targetSite.displayOrder ?? targetSite.siteId;
 
@@ -227,8 +235,9 @@ export const AdminTab = memo(({
                 </div>
               ) : (
                 (rentals || []).filter((r: any) => r.status === '대여중').map((rental: any) => {
-                  const isOverdue = today > rental.endDate;
-                  const overdueDays = isOverdue ? getDaysDifference(today, rental.endDate) : 0;
+                  const cleanEndDate = toPureDateStr(rental.endDate);
+                  const isOverdue = today > cleanEndDate;
+                  const overdueDays = isOverdue ? getDaysDifference(today, cleanEndDate) : 0;
                   return (
                     <div key={rental.rentalId} className={`w-full p-4 rounded-2xl border shadow-sm space-y-3 ${isOverdue ? 'border-rose-300 bg-rose-50/30 dark:bg-rose-950/20 dark:border-rose-800' : 'border-slate-200 bg-white dark:bg-slate-800/60 dark:border-slate-700'}`}>
                       <div className="flex justify-between items-start gap-2">
@@ -254,8 +263,8 @@ export const AdminTab = memo(({
                       </div>
 
                       <div className="pt-2.5 border-t border-slate-100 dark:border-slate-700/60 flex justify-between items-center text-xs text-slate-500 dark:text-slate-400">
-                        <span>대여일: {rental.startDate}</span>
-                        <span>반납예정일: <strong className={isOverdue ? "text-rose-600 dark:text-rose-400 font-bold" : "text-slate-900 dark:text-white font-bold"}>{rental.endDate}</strong></span>
+                        <span>대여일: {toPureDateStr(rental.startDate)}</span>
+                        <span>반납예정일: <strong className={isOverdue ? "text-rose-600 dark:text-rose-400 font-bold" : "text-slate-900 dark:text-white font-bold"}>{cleanEndDate}</strong></span>
                       </div>
                     </div>
                   );
@@ -270,9 +279,10 @@ export const AdminTab = memo(({
                 </div>
               ) : (
                 allReturnedRentalsAdminList.map((rental: any) => {
-                  const returnedDate = rental.returnedAt?.split('T')[0] || rental.startDate;
-                  const isOverdueReturned = returnedDate > rental.endDate;
-                  const overdueDays = isOverdueReturned ? getDaysDifference(returnedDate, rental.endDate) : 0;
+                  const cleanEndDate = toPureDateStr(rental.endDate);
+                  const returnedDate = toPureDateStr(rental.returnedAt) || toPureDateStr(rental.startDate);
+                  const isOverdueReturned = returnedDate > cleanEndDate;
+                  const overdueDays = isOverdueReturned ? getDaysDifference(returnedDate, cleanEndDate) : 0;
 
                   return (
                     <div key={rental.rentalId} className="w-full p-4 rounded-2xl border border-slate-200 bg-white shadow-sm space-y-3 dark:bg-slate-800/60 dark:border-slate-700">
@@ -281,7 +291,7 @@ export const AdminTab = memo(({
                         <h4 className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1.5"><CheckCircle2 size={15} className="text-emerald-500" /> {rental.gameTitle} <span className="text-slate-400 font-normal">({rental.gameId})</span></h4>
                       </div>
                       <div className="pt-2.5 border-t border-slate-100 dark:border-slate-700/60 flex justify-between items-center text-xs text-slate-500 dark:text-slate-400">
-                        <span>대여일: {rental.startDate}</span>
+                        <span>대여일: {toPureDateStr(rental.startDate)}</span>
                         <span>
                           반납일: <strong className="text-emerald-600 dark:text-emerald-400 font-bold">{returnedDate}</strong>
                           {isOverdueReturned && (
@@ -298,7 +308,7 @@ export const AdminTab = memo(({
         </div>
       )}
 
-      {/* C. 추천 사이트 관리 (순서 변경 Up/Down 기능 적용) */}
+      {/* C. 추천 사이트 관리 */}
       {adminSubTab === 'siteAdmin' && (
         <div className="space-y-4 w-full min-h-[200px] relative">
           <div className="flex justify-between items-center h-10 pb-2 border-b border-slate-200/80 dark:border-slate-700/80">
@@ -329,9 +339,7 @@ export const AdminTab = memo(({
                     <div className="flex justify-between items-start gap-2">
                       <h3 className="font-bold text-xs text-slate-900 dark:text-white leading-tight flex-1">{s.name}</h3>
                       
-                      {/* ⚡ 조작 및 순서 변경 버튼 그룹 */}
                       <div className="flex items-center gap-1 flex-shrink-0">
-                        {/* 순서 변경 위로(Up) 버튼 */}
                         <button
                           onClick={() => moveSiteOrder(index, 'up')}
                           disabled={isFirst}
@@ -341,7 +349,6 @@ export const AdminTab = memo(({
                           <ChevronUp size={16} />
                         </button>
 
-                        {/* 순서 변경 아래로(Down) 버튼 */}
                         <button
                           onClick={() => moveSiteOrder(index, 'down')}
                           disabled={isLast}
@@ -353,7 +360,6 @@ export const AdminTab = memo(({
 
                         <div className="w-[1px] h-3 bg-slate-200 dark:bg-slate-700 mx-0.5" />
 
-                        {/* 노출 / 숨김 토글 */}
                         <button 
                           onClick={() => toggleSiteVisibility(s)} 
                           className="p-1 cursor-pointer" 
@@ -366,7 +372,6 @@ export const AdminTab = memo(({
                           )}
                         </button>
 
-                        {/* 수정 버튼 */}
                         <button 
                           onClick={() => { setEditingSite(s); setIsSiteModalOpen(true); }} 
                           className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
@@ -375,7 +380,6 @@ export const AdminTab = memo(({
                           <Edit size={16} />
                         </button>
 
-                        {/* 삭제 버튼 */}
                         <button 
                           onClick={() => deleteSite(s.siteId, s.name)} 
                           className="p-1 text-slate-400 hover:text-rose-500 cursor-pointer"
@@ -506,7 +510,7 @@ export const AdminTab = memo(({
                     </div>
 
                     <div className="flex justify-between items-center text-xs text-slate-400 pt-0.5">
-                      <span>가입일: {u.createdAt}</span>
+                      <span>가입일: {toPureDateStr(u.createdAt)}</span>
                       <span className="flex items-center gap-1 font-semibold text-slate-500 dark:text-slate-400">
                         <ShieldAlert size={14} className={penaltyScore > 0 ? "text-rose-500" : "text-slate-400"} />
                         패널티: <strong className={penaltyScore > 0 ? "text-rose-600 dark:text-rose-400 font-bold" : "text-slate-600 dark:text-slate-300"}>{penaltyScore}점</strong>
@@ -591,7 +595,7 @@ export const AdminTab = memo(({
                     </p>
 
                     <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60 text-[11px] text-slate-400 font-medium">
-                      {n.createdAt} 작성
+                      {toPureDateStr(n.createdAt)} 작성
                     </div>
                   </div>
                 );

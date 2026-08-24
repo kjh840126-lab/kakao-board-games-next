@@ -27,19 +27,16 @@ const checkIsIosDevice = () => {
   return /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
 };
 
-// ⚡ 한국 표준시(KST) 기준 YYYY-MM-DD 날짜 반환 함수
 const getTodayKST = () => {
   const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' });
   return formatter.format(new Date());
 };
 
-// ⚡ 날짜 문자열에서 YYYY-MM-DD 10자리만 완벽 추출하는 안전 함수
 const toPureDateStr = (dateStr: string | null | undefined) => {
   if (!dateStr) return '';
   return String(dateStr).split('T')[0].split(' ')[0].substring(0, 10);
 };
 
-// ⚡ 자정(UTC 00:00:00) 기준 두 날짜 차이(일수) 계산
 const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   const clean1 = toPureDateStr(dateStr1);
   const clean2 = toPureDateStr(dateStr2);
@@ -54,7 +51,6 @@ const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   return Math.round((utc1 - utc2) / (1000 * 60 * 60 * 24));
 };
 
-// ⚡ 자정 기준 대여정지 종료일 정확히 계산
 const calcPenaltyEndDate = (baseDateStr: string, addDays: number) => {
   const cleanBase = toPureDateStr(baseDateStr) || getTodayKST();
   const [y, m, d] = cleanBase.split('-').map(Number);
@@ -333,7 +329,6 @@ export default function MainPage() {
         }
       }
 
-      // ⚡ [핵심] DB에서 rentals를 불러올 때 start_date, end_date를 YYYY-MM-DD 10자리로 강제 정제
       if (rentalsData) {
         setRentals(rentalsData.map(r => ({ 
           rentalId: r.rental_id, 

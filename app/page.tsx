@@ -293,9 +293,9 @@ export default function MainPage() {
 
   const fetchInitialData = async () => {
     try {
-      // ⚡ 보안 조치: password_hash 컬럼 제외 후 필요한 컬럼만 명시하여 조회
+      // ⚡ 보안 조치: password_hash 필드를 완전 제외하여 네트워크 탭 노출 차단
       const [{ data: usersData }, { data: rentalsData }, { data: ratingsData }, { data: gamesData }, { data: noticeData }, { data: reportsData }, { data: sitesData }] = await Promise.all([
-        supabase.from('users').select('user_id, name, email, role, password_hash, penalty_count, penalty_end_date, created_at, last_login_at'),
+        supabase.from('users').select('user_id, name, email, role, penalty_count, penalty_end_date, created_at, last_login_at'),
         supabase.from('rentals').select('*'),
         supabase.from('ratings').select('*'),
         supabase.from('games').select('*'),
@@ -317,7 +317,7 @@ export default function MainPage() {
           name: u.name, 
           email: u.email, 
           role: u.role as Role, 
-          passwordHash: u.password_hash || '', 
+          passwordHash: '', 
           penaltyPoints: Number(u.penalty_count || 0), 
           penaltyEndDate: toPureDateStr(u.penalty_end_date) || null, 
           createdAt: toPureDateStr(u.created_at) || today, 
@@ -650,12 +650,10 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 로그인 핸들러 (커스텀 DB에서 회원 확인)
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanId = loginId.trim().toLowerCase();
     
-    // DB에서 직접 아이디/비밀번호 매칭 확인
     const { data: userDbData, error } = await supabase
       .from('users')
       .select('user_id, name, email, role, password_hash, penalty_count, penalty_end_date, created_at, last_login_at')

@@ -56,7 +56,6 @@ const calcPenaltyEndDate = (baseDateStr: string, addDays: number) => {
   const cleanBaseDate = baseDateStr.split('T')[0].split(' ')[0];
   const [y, m, d] = cleanBaseDate.split('-').map(Number);
   
-  // UTC 자정 기준 타임스탬프에 일수(ms) 합산
   const targetUtcMs = Date.UTC(y, m - 1, d) + (addDays * 1000 * 60 * 60 * 24);
   const targetDate = new Date(targetUtcMs);
   
@@ -113,7 +112,6 @@ export default function MainPage() {
     return 'normal';
   });
 
-  // ⚡ 폰트 변경 전용 토글 함수 (상태 변경 + localStorage 즉시 저장)
   const handleSetFontSize = useCallback((size: 'normal' | 'large') => {
     setFontSize(size);
     if (typeof window !== 'undefined') {
@@ -121,7 +119,6 @@ export default function MainPage() {
     }
   }, []);
 
-  // ⚡ 다크모드 상태 관리 추가
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('kakao_bg_theme');
@@ -183,7 +180,6 @@ export default function MainPage() {
   const [isIosDevice, setIsIosDevice] = useState(false);
   const scrollPositions = useRef<{ [key: string]: number }>({ games: 0, returns: 0, ranking: 0, sites: 0, admin: 0 });
 
-  // ⚡ 마운트 초기 로드
   useEffect(() => {
     setMounted(true);
     setIsIosDevice(checkIsIosDevice());
@@ -212,10 +208,8 @@ export default function MainPage() {
   const headerRef = useRef<HTMLElement | null>(null); 
   const mainScrollRef = useRef<HTMLDivElement | null>(null);
   
-  // ⚡ 한국 표준시(KST) 기준 오늘 날짜 고정 (YYYY-MM-DD)
   const today = getTodayKST();
 
-  // ⚡ 테마 및 폰트 크기 동적 반영 Effect
   useEffect(() => {
     if (typeof document !== 'undefined' && mounted) {
       const root = document.documentElement;
@@ -234,7 +228,6 @@ export default function MainPage() {
       root.style.setProperty('--bg-header', isHeaderAdminTheme ? '#38bdf8' : '#FEE500');
       if (metaTheme) metaTheme.setAttribute('content', isHeaderAdminTheme ? '#38bdf8' : '#FEE500');
       
-      // ⚡ 폰트 클래스 토글
       if (isLargeFont) root.classList.add('text-large');
       else root.classList.remove('text-large');
 
@@ -245,7 +238,6 @@ export default function MainPage() {
 
   useEffect(() => { if (mounted) fetchInitialData(); }, [mounted]);
 
-  // ⚡ 탭 전환 시 터치 반응성 보정 및 사파리 관성 스크롤 충돌 방지
   const handleTabChange = useCallback((newTab: 'games' | 'returns' | 'ranking' | 'sites' | 'admin') => {
     if (newTab === activeTab) return;
 
@@ -454,7 +446,7 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 알럿 안내 확인 후 평점 모달이 순차적으로 뜨도록 비동기 딜레이 보정
+  // ⚡ 반납 처리 시 정제된 YYYY-MM-DD 만으로 연체 비교 및 차이 계산
   const returnGame = async (rentalId: number, gameId: string) => {
     if (!currentUser) return;
     const nowIso = new Date().toISOString();
@@ -462,8 +454,9 @@ export default function MainPage() {
     const targetRental = rentals.find((r) => r.rentalId === rentalId);
     if (!targetRental) return;
 
-    const isOverdue = today > targetRental.endDate;
-    const overdueDays = isOverdue ? getDaysDifference(today, targetRental.endDate) : 0;
+    const cleanEndDate = targetRental.endDate ? targetRental.endDate.split('T')[0].split(' ')[0] : '';
+    const isOverdue = today > cleanEndDate;
+    const overdueDays = isOverdue ? getDaysDifference(today, cleanEndDate) : 0;
 
     try {
       const { error: rentalErr } = await supabase.from('rentals').update({ status: '반납완료', returned_at: nowIso }).eq('rental_id', rentalId);
@@ -473,8 +466,9 @@ export default function MainPage() {
       if (gameErr) throw gameErr;
 
       if (isOverdue && overdueDays > 0) {
-        const hasFuturePenalty = currentUser.penaltyEndDate && String(currentUser.penaltyEndDate) >= today;
-        const baseDateStr = hasFuturePenalty ? String(currentUser.penaltyEndDate) : today;
+        const cleanPenaltyEndDate = currentUser.penaltyEndDate ? String(currentUser.penaltyEndDate).split('T')[0].split(' ')[0] : '';
+        const hasFuturePenalty = cleanPenaltyEndDate && cleanPenaltyEndDate >= today;
+        const baseDateStr = hasFuturePenalty ? cleanPenaltyEndDate : today;
 
         const addDays = hasFuturePenalty ? overdueDays : (overdueDays - 1);
         const penaltyEndDateStr = calcPenaltyEndDate(baseDateStr, addDays);
@@ -493,7 +487,6 @@ export default function MainPage() {
         alert('반납이 완료되었습니다.');
       }
 
-      // ⚡ 알럿을 확인하고 닫은 직후 평점이 없을 때 모달 오픈
       const existingRating = allRatings.find(r => r.userId === currentUser.userId && r.gameId === gameId);
       const targetGameObj = games.find(g => g.gameId === gameId);
 
@@ -510,7 +503,7 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ 일괄 반납 시에도 알럿창 확인 후 평점 없는 건에 한해 1건 무작위 팝업 오픈
+  // ⚡ 일괄 반납 처리 시에도 정제된 YYYY-MM-DD 날짜로 연체 계산
   const returnAllGames = async () => {
     if (!currentUser) return;
     const userActiveRentals = rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
@@ -523,8 +516,9 @@ export default function MainPage() {
     let totalOverdueDays = 0;
 
     userActiveRentals.forEach((r) => {
-      if (today > r.endDate) {
-        const days = getDaysDifference(today, r.endDate);
+      const cleanEndDate = r.endDate ? r.endDate.split('T')[0].split(' ')[0] : '';
+      if (today > cleanEndDate) {
+        const days = getDaysDifference(today, cleanEndDate);
         if (days > 0) {
           totalOverdueDays += days;
         }
@@ -539,8 +533,9 @@ export default function MainPage() {
       if (gameErr) throw gameErr;
 
       if (totalOverdueDays > 0) {
-        const hasFuturePenalty = currentUser.penaltyEndDate && String(currentUser.penaltyEndDate) >= today;
-        const baseDateStr = hasFuturePenalty ? String(currentUser.penaltyEndDate) : today;
+        const cleanPenaltyEndDate = currentUser.penaltyEndDate ? String(currentUser.penaltyEndDate).split('T')[0].split(' ')[0] : '';
+        const hasFuturePenalty = cleanPenaltyEndDate && cleanPenaltyEndDate >= today;
+        const baseDateStr = hasFuturePenalty ? cleanPenaltyEndDate : today;
 
         const addDays = hasFuturePenalty ? totalOverdueDays : (totalOverdueDays - 1);
         const penaltyEndDateStr = calcPenaltyEndDate(baseDateStr, addDays);
@@ -559,7 +554,6 @@ export default function MainPage() {
         alert('모든 보드게임이 반납되었습니다.');
       }
 
-      // ⚡ 알럿창을 확인하고 닫은 직후 미작성 평점 건 중 1건 무작위 선택하여 팝업 오픈
       const unratedGames = games.filter(g => 
         activeGameIds.includes(g.gameId) && 
         !allRatings.some(r => r.userId === currentUser.userId && r.gameId === g.gameId)
@@ -811,7 +805,6 @@ export default function MainPage() {
     alert('제출되었습니다.'); setReportForm({ title: '', content: '', category: '' }); setIsReportModalOpen(false); fetchInitialData();
   };
 
-  // ⚡ 장르 자동 가나다(ㄱㄴㄷ) 정렬 후 저장
   const saveGame = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingGame) return;
@@ -831,7 +824,6 @@ export default function MainPage() {
         .filter(Boolean);
     }
 
-    // ⚡ 가나다(ㄱㄴㄷ) 순 정렬 적용
     cleanGenres.sort((a, b) => a.localeCompare(b, 'ko'));
 
     const formattedGenres = cleanGenres.join(', ');
@@ -928,7 +920,10 @@ export default function MainPage() {
   const activeRentalsCount = userActiveRentals.length;
 
   const hasOverdueRental = useMemo(() => {
-    return userActiveRentals.some((r) => r.endDate && today > r.endDate);
+    return userActiveRentals.some((r) => {
+      const cleanEndDate = r.endDate ? r.endDate.split('T')[0].split(' ')[0] : '';
+      return cleanEndDate && today > cleanEndDate;
+    });
   }, [userActiveRentals, today]);
 
   const returnedRentalsList = useMemo(() => rentals.filter((r: Rental) => currentUser && r.userId === currentUser.userId && r.status === '반납완료'), [rentals, currentUser]);

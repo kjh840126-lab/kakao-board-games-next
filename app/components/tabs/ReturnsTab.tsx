@@ -4,7 +4,7 @@ import { memo, useMemo } from 'react';
 import { Rental } from '../../types';
 import { RotateCcw, CheckCircle2, Loader2 } from 'lucide-react';
 
-// ⚡ pure YYYY-MM-DD 정제 파싱 및 정확한 연체 일수 계산 함수 (시차/시간대 오차 차단)
+// ⚡ pure YYYY-MM-DD 정제 파싱 및 정확한 연체 일수 계산 함수 (시차/시간대 오차 완벽 차단)
 const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   if (!dateStr1 || !dateStr2) return 0;
   
@@ -65,8 +65,11 @@ export const ReturnsTab = memo(({ isInitialLoaded, rentals, currentUser, today, 
           </div>
         ) : (
           activeRentals.map((rental: Rental) => {
-            const isOverdue = today > rental.endDate;
-            const overdueDays = isOverdue ? getDaysDifference(today, rental.endDate) : 0;
+            // ⚡ DB 날짜 포맷의 T/시간 제거 후 오직 YYYY-MM-DD 로만 연체 판단
+            const cleanEndDate = rental.endDate ? rental.endDate.split('T')[0].split(' ')[0] : '';
+            const isOverdue = today > cleanEndDate;
+            const overdueDays = isOverdue ? getDaysDifference(today, cleanEndDate) : 0;
+
             return (
               <div key={rental.rentalId} className={`w-full border p-3.5 rounded-2xl flex justify-between items-center ${isOverdue ? 'border-rose-300 bg-rose-50/40' : 'border-amber-300/60 bg-amber-50/40'}`}>
                 <div className="min-w-0 flex-1 pr-2">
@@ -74,8 +77,8 @@ export const ReturnsTab = memo(({ isInitialLoaded, rentals, currentUser, today, 
                     {rental.gameTitle} <span className="text-slate-400 font-medium">({rental.gameId})</span>
                   </h4>
                   <div className="mt-1 space-y-0.5 text-xs text-slate-500">
-                    <div>대여일: {rental.startDate}</div>
-                    <div>반납예정일: {isOverdue ? <strong className="text-rose-600 font-extrabold">{rental.endDate} (연체 {overdueDays}일)</strong> : <strong>{rental.endDate}</strong>}</div>
+                    <div>대여일: {rental.startDate?.split('T')[0]}</div>
+                    <div>반납예정일: {isOverdue ? <strong className="text-rose-600 font-extrabold">{cleanEndDate} (연체 {overdueDays}일)</strong> : <strong>{cleanEndDate}</strong>}</div>
                   </div>
                 </div>
                 <button onClick={() => returnGame(rental.rentalId, rental.gameId)} className="bg-slate-900 text-white font-bold px-3 py-1.5 rounded-xl hover:bg-slate-800 cursor-pointer text-xs flex-shrink-0">반납</button>
@@ -102,15 +105,14 @@ export const ReturnsTab = memo(({ isInitialLoaded, rentals, currentUser, today, 
           </div>
         ) : (
           returnedRentalsList.map((rental: Rental) => {
-            // ⚡ 반납 당시 연체 여부 계산 (실제 반납일 > 반납예정일)
-            const returnedDate = rental.returnedAt?.split('T')[0] || rental.startDate;
-            const isOverdueReturned = rental.endDate && returnedDate > rental.endDate;
-            const overdueDays = isOverdueReturned ? getDaysDifference(returnedDate, rental.endDate) : 0;
+            const cleanEndDate = rental.endDate ? rental.endDate.split('T')[0].split(' ')[0] : '';
+            const returnedDate = (rental.returnedAt?.split('T')[0] || rental.startDate)?.split(' ')[0];
+            const isOverdueReturned = cleanEndDate && returnedDate > cleanEndDate;
+            const overdueDays = isOverdueReturned ? getDaysDifference(returnedDate, cleanEndDate) : 0;
 
             return (
               <div key={rental.rentalId} className="w-full border p-3.5 rounded-2xl flex justify-between items-center bg-white border-slate-200/80 shadow-2xs">
                 <div className="min-w-0 flex-1">
-                  {/* 게임명 행 (우측 끝에 연체 뱃지 노출) */}
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-start gap-1.5 min-w-0 flex-1">
                       <CheckCircle2 size={15} className="text-emerald-600 flex-shrink-0 mt-0.5" />
@@ -119,7 +121,6 @@ export const ReturnsTab = memo(({ isInitialLoaded, rentals, currentUser, today, 
                       </h4>
                     </div>
 
-                    {/* ⚡ 우측 끝: 연체 반납된 경우 붉은색 뱃지 표시 */}
                     {isOverdueReturned && overdueDays > 0 && (
                       <span className="bg-rose-100 text-rose-600 font-extrabold text-[10px] px-2 py-0.5 rounded-md flex-shrink-0">
                         연체 {overdueDays}일
@@ -127,9 +128,8 @@ export const ReturnsTab = memo(({ isInitialLoaded, rentals, currentUser, today, 
                     )}
                   </div>
 
-                  {/* 날짜 정보 행 */}
                   <p className="text-slate-500 mt-1 text-xs pl-5">
-                    대여일: {rental.startDate} | 반납일: {returnedDate}
+                    대여일: {rental.startDate?.split('T')[0]} | 반납일: {returnedDate}
                   </p>
                 </div>
               </div>

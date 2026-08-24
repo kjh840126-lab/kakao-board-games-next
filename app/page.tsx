@@ -33,12 +33,15 @@ const getTodayKST = () => {
   return formatter.format(new Date());
 };
 
-// ⚡ 1. 자정(UTC 00:00:00) 기준 날짜 차이(연체 일수) 정확히 계산
+// ⚡ 1. 자정(UTC 00:00:00) 기준 날짜 차이(연체 일수) 정확히 계산 (pure YYYY-MM-DD 정제 파싱)
 const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   if (!dateStr1 || !dateStr2) return 0;
   
-  const [y1, m1, d1] = dateStr1.split('T')[0].split('-').map(Number);
-  const [y2, m2, d2] = dateStr2.split('T')[0].split('-').map(Number);
+  const cleanDate1 = dateStr1.split('T')[0].split(' ')[0];
+  const cleanDate2 = dateStr2.split('T')[0].split(' ')[0];
+
+  const [y1, m1, d1] = cleanDate1.split('-').map(Number);
+  const [y2, m2, d2] = cleanDate2.split('-').map(Number);
   
   const utc1 = Date.UTC(y1, m1 - 1, d1);
   const utc2 = Date.UTC(y2, m2 - 1, d2);
@@ -50,7 +53,9 @@ const getDaysDifference = (dateStr1: string, dateStr2: string) => {
 const calcPenaltyEndDate = (baseDateStr: string, addDays: number) => {
   if (!baseDateStr) return getTodayKST();
 
-  const [y, m, d] = baseDateStr.split('T')[0].split('-').map(Number);
+  const cleanBaseDate = baseDateStr.split('T')[0].split(' ')[0];
+  const [y, m, d] = cleanBaseDate.split('-').map(Number);
+  
   // UTC 자정 기준 타임스탬프에 일수(ms) 합산
   const targetUtcMs = Date.UTC(y, m - 1, d) + (addDays * 1000 * 60 * 60 * 24);
   const targetDate = new Date(targetUtcMs);

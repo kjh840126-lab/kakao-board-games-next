@@ -4,12 +4,20 @@ import { memo, useMemo } from 'react';
 import { Rental } from '../../types';
 import { RotateCcw, CheckCircle2, Loader2 } from 'lucide-react';
 
-// ⚡ 날짜 차이 계산 함수
+// ⚡ pure YYYY-MM-DD 정제 파싱 및 정확한 연체 일수 계산 함수 (시차/시간대 오차 차단)
 const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   if (!dateStr1 || !dateStr2) return 0;
-  const d1 = new Date(dateStr1); 
-  const d2 = new Date(dateStr2);
-  return Math.floor((d1.getTime() - d2.getTime()) / (1000 * 60 * 60 * 24));
+  
+  const cleanDate1 = dateStr1.split('T')[0].split(' ')[0];
+  const cleanDate2 = dateStr2.split('T')[0].split(' ')[0];
+
+  const [y1, m1, d1] = cleanDate1.split('-').map(Number);
+  const [y2, m2, d2] = cleanDate2.split('-').map(Number);
+  
+  const utc1 = Date.UTC(y1, m1 - 1, d1);
+  const utc2 = Date.UTC(y2, m2 - 1, d2);
+  
+  return Math.round((utc1 - utc2) / (1000 * 60 * 60 * 24));
 };
 
 export const ReturnsTab = memo(({ isInitialLoaded, rentals, currentUser, today, returnGame, returnAllGames }: any) => {

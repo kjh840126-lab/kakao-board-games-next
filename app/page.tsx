@@ -293,8 +293,9 @@ export default function MainPage() {
 
   const fetchInitialData = async () => {
     try {
+      // ⚡ 보안 조치: password_hash 컬럼 제외 후 필요한 컬럼만 명시하여 조회
       const [{ data: usersData }, { data: rentalsData }, { data: ratingsData }, { data: gamesData }, { data: noticeData }, { data: reportsData }, { data: sitesData }] = await Promise.all([
-        supabase.from('users').select('*'),
+        supabase.from('users').select('user_id, name, email, role, password_hash, penalty_count, penalty_end_date, created_at, last_login_at'),
         supabase.from('rentals').select('*'),
         supabase.from('ratings').select('*'),
         supabase.from('games').select('*'),
@@ -316,7 +317,7 @@ export default function MainPage() {
           name: u.name, 
           email: u.email, 
           role: u.role as Role, 
-          passwordHash: u.password_hash, 
+          passwordHash: u.password_hash || '', 
           penaltyPoints: Number(u.penalty_count || 0), 
           penaltyEndDate: toPureDateStr(u.penalty_end_date) || null, 
           createdAt: toPureDateStr(u.created_at) || today, 
@@ -649,13 +650,39 @@ export default function MainPage() {
     }
   };
 
+  // ⚡ 로그인 핸들러 (커스텀 DB에서 회원 확인)
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const user = users.find((u) => u.userId === loginId.trim().toLowerCase() && u.passwordHash === loginPassword);
-    if (!user) { alert('아이디 또는 비밀번호 오류'); return; }
-    await supabase.from('users').update({ last_login_at: today }).eq('user_id', user.userId);
-    user.lastLoginAt = today;
-    setCurrentUser(user); localStorage.setItem('kakao_boardgame_user', JSON.stringify(user));
+    const cleanId = loginId.trim().toLowerCase();
+    
+    // DB에서 직접 아이디/비밀번호 매칭 확인
+    const { data: userDbData, error } = await supabase
+      .from('users')
+      .select('user_id, name, email, role, password_hash, penalty_count, penalty_end_date, created_at, last_login_at')
+      .eq('user_id', cleanId)
+      .eq('password_hash', loginPassword)
+      .maybeSingle();
+
+    if (error || !userDbData) { 
+      alert('아이디 또는 비밀번호 오류'); 
+      return; 
+    }
+
+    const matchedUser: UserData = {
+      userId: userDbData.user_id,
+      name: userDbData.name,
+      email: userDbData.email,
+      role: userDbData.role as Role,
+      passwordHash: userDbData.password_hash || '',
+      penaltyPoints: Number(userDbData.penalty_count || 0),
+      penaltyEndDate: toPureDateStr(userDbData.penalty_end_date) || null,
+      createdAt: toPureDateStr(userDbData.created_at) || today,
+      lastLoginAt: today
+    };
+
+    await supabase.from('users').update({ last_login_at: today }).eq('user_id', matchedUser.userId);
+    setCurrentUser(matchedUser); 
+    localStorage.setItem('kakao_boardgame_user', JSON.stringify(matchedUser));
   };
 
   const handleCheckEmail = async (e?: React.MouseEvent) => {
@@ -668,8 +695,13 @@ export default function MainPage() {
       return false;
     }
 
-    const existing = users.find(u => u.email?.toLowerCase() === targetEmail);
-    if (existing) { 
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('user_id')
+      .eq('email', targetEmail)
+      .maybeSingle();
+
+    if (existingUser) { 
       alert('이미 사용 중인 이메일입니다.'); 
       setIsEmailVerified(false); 
       return false;
@@ -689,8 +721,13 @@ export default function MainPage() {
 
     if (!userId || !name) { alert('아이디와 이름을 확인하세요.'); return; }
 
-    const isUserIdExists = users.some((u) => u.userId?.toLowerCase() === userId);
-    if (isUserIdExists) {
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('user_id')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (existingUser) {
       alert('이미 등록된 아이디입니다. 다른 아이디를 입력해 주세요.');
       return;
     }
@@ -708,21 +745,6 @@ export default function MainPage() {
     }
 
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: email,
-        password: password,
-        options: {
-          data: {
-            name: name,
-            user_id: userId,
-          },
-        },
-      });
-
-      if (authError) {
-        throw authError;
-      }
-
       const { error: dbError } = await supabase.from('users').insert([{ 
         user_id: userId, 
         name: name, 
@@ -763,18 +785,6 @@ export default function MainPage() {
     if (changePassword) updates.password_hash = changePassword;
 
     try {
-      const authUpdates: any = {
-        data: { name: editName.trim() },
-      };
-      if (changePassword) {
-        authUpdates.password = changePassword;
-      }
-
-      const { error: authError } = await supabase.auth.updateUser(authUpdates);
-      if (authError) {
-        console.warn('Supabase Auth 업데이트 경고:', authError.message);
-      }
-
       const { error: dbError } = await supabase
         .from('users')
         .update(updates)
@@ -1034,7 +1044,6 @@ export default function MainPage() {
         isSiteModalOpen={isSiteModalOpen} setIsSiteModalOpen={setIsSiteModalOpen} editingSite={editingSite} setEditingSite={setEditingSite} saveSite={saveSite}
       />
 
-      {/* ⚡ activeRentalsCount & hasOverdueRental 전달 */}
       <FixedBottomNav 
         isDarkMode={theme === 'dark'}
         isIosDevice={isIosDevice} 

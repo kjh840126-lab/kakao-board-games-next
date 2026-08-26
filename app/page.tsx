@@ -478,7 +478,6 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ KST 자정 기준 타임스탬프로 반납 시간 생성
   const returnGame = async (rentalId: number, gameId: string) => {
     if (!currentUser) return;
     const nowIso = getKSTIsoString();
@@ -535,7 +534,6 @@ export default function MainPage() {
     }
   };
 
-  // ⚡ KST 자정 기준 타임스탬프로 일괄 반납 시간 생성
   const returnAllGames = async () => {
     if (!currentUser) return;
     const userActiveRentals = rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
@@ -931,14 +929,54 @@ export default function MainPage() {
     setIsNoticeModalOpen(false);
   };
 
+  // ⚡ 신규 등록 시 display_order가 기존 사이트의 최대값 + 1로 들어가도록 보정
   const saveSite = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingSite.siteId > 0) {
-      await supabase.from('sites').update({ name: editingSite.name, url: editingSite.url, banner_url: editingSite.bannerUrl, description: editingSite.description, is_visible: editingSite.isVisible }).eq('site_id', editingSite.siteId);
-    } else {
-      await supabase.from('sites').insert([{ site_id: Date.now(), name: editingSite.name, url: editingSite.url, banner_url: editingSite.bannerUrl, description: editingSite.description, is_visible: editingSite.isVisible }]);
+
+    try {
+      if (editingSite.siteId > 0) {
+        const { error } = await supabase
+          .from('sites')
+          .update({
+            name: editingSite.name,
+            url: editingSite.url,
+            banner_url: editingSite.bannerUrl,
+            description: editingSite.description,
+            is_visible: editingSite.isVisible,
+          })
+          .eq('site_id', editingSite.siteId);
+
+        if (error) throw error;
+      } else {
+        // 기존 사이트 목록 중 가장 큰 displayOrder 값 + 1 추출
+        const maxOrder = sites.reduce((max, s) => {
+          const order = s.displayOrder ?? s.siteId;
+          return order > max ? order : max;
+        }, 0);
+
+        const nextOrder = maxOrder + 1;
+        const newSiteId = Date.now();
+
+        const { error } = await supabase.from('sites').insert([
+          {
+            site_id: newSiteId,
+            name: editingSite.name,
+            url: editingSite.url,
+            banner_url: editingSite.bannerUrl,
+            description: editingSite.description,
+            is_visible: editingSite.isVisible,
+            display_order: nextOrder,
+          },
+        ]);
+
+        if (error) throw error;
+      }
+
+      fetchInitialData();
+      setIsSiteModalOpen(false);
+    } catch (err: any) {
+      alert('사이트 저장 중 오류가 발생했습니다: ' + (err.message || err));
     }
-    fetchInitialData(); setIsSiteModalOpen(false);
   };
 
   const handleNoticeClick = (notice: Notice) => {

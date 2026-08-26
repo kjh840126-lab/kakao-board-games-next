@@ -6,7 +6,7 @@ import {
   Type, Calendar, Trash2, Image, Clock, ShoppingCart, CheckCircle2, Check, Sun, Moon, Loader2 
 } from 'lucide-react';
 import { Game, Notice, ReportData, BoardSite, UserData } from '../types';
-import { supabase, uploadGameImage, uploadNoticeImage } from '../supabaseClient';
+import { supabase, uploadGameImage, uploadNoticeImage, uploadSiteBannerImage } from '../supabaseClient';
 
 interface ModalsContainerProps {
   isAdminReportDrawerOpen: boolean;
@@ -116,6 +116,7 @@ export function ModalsContainer({
 }: ModalsContainerProps) {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingNoticeImage, setIsUploadingNoticeImage] = useState(false);
+  const [isUploadingSiteBanner, setIsUploadingSiteBanner] = useState(false);
 
   // ⚡ 이름 한글 외 문자(영문, 숫자, 특수문자, 공백) 포함 여부 실시간 검사
   const isNameHasNonKorean = editName
@@ -221,6 +222,29 @@ export function ModalsContainer({
       alert('공지 이미지 업로드 중 오류가 발생했습니다: ' + (err.message || err));
     } finally {
       setIsUploadingNoticeImage(false);
+    }
+  };
+
+  // ⚡ 추천 사이트 배너 파일 업로드 핸들러
+  const handleSiteBannerFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingSite) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('이미지 파일 크기는 5MB 이하만 업로드 가능합니다.');
+      return;
+    }
+
+    try {
+      setIsUploadingSiteBanner(true);
+      const publicUrl = await uploadSiteBannerImage(file);
+      if (publicUrl) {
+        setEditingSite({ ...editingSite, bannerUrl: publicUrl });
+      }
+    } catch (err: any) {
+      alert('배너 이미지 업로드 중 오류가 발생했습니다: ' + (err.message || err));
+    } finally {
+      setIsUploadingSiteBanner(false);
     }
   };
 
@@ -715,7 +739,7 @@ export function ModalsContainer({
               <button onClick={() => setIsEditProfileOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button>
             </div>
             <form onSubmit={onSubmitProfile} className="space-y-3.5">
-              {/* ⚡ 1. 아이디 항목 (비활성화 스타일 명확화: dark:!bg-slate-950/80 dark:!border-slate-700) */}
+              {/* ⚡ 1. 아이디 항목 */}
               <div>
                 <label className="font-bold block mb-1 text-slate-400 dark:text-slate-500">아이디</label>
                 <input 
@@ -726,7 +750,7 @@ export function ModalsContainer({
                 />
               </div>
 
-              {/* ⚡ 2. 이메일 항목 (비활성화 스타일 명확화: dark:!bg-slate-950/80 dark:!border-slate-700) */}
+              {/* ⚡ 2. 이메일 항목 */}
               <div>
                 <label className="font-bold block mb-1 text-slate-400 dark:text-slate-500">이메일</label>
                 <input 
@@ -738,7 +762,7 @@ export function ModalsContainer({
                 />
               </div>
 
-              {/* ⚡ 3. 이름 항목 (입력 가능 스타일: dark:!bg-slate-800/90) */}
+              {/* ⚡ 3. 이름 항목 */}
               <div>
                 <label className="font-bold block mb-1 text-slate-800 dark:text-slate-200">이름</label>
                 <input 
@@ -759,7 +783,7 @@ export function ModalsContainer({
                 )}
               </div>
 
-              {/* ⚡ 4. 비밀번호 변경 영역 (입력 가능 스타일: dark:!bg-slate-800/90) */}
+              {/* ⚡ 4. 비밀번호 변경 영역 */}
               <div className="pt-2 border-t border-slate-200/20 dark:border-slate-800 space-y-2">
                 <label className="font-bold block text-slate-400 dark:text-slate-500">비밀번호 변경 (선택)</label>
                 
@@ -1060,24 +1084,77 @@ export function ModalsContainer({
         </div>
       )}
 
-      {/* 12. 추천 사이트 등록 모달 */}
+      {/* 12. 추천 사이트 등록 모달 (⚡ 배너 이미지 파일 첨부 및 미리보기 적용) */}
       {isSiteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className={overlayClass} onClick={() => setIsSiteModalOpen(false)} />
           <div className="relative rounded-2xl w-full max-w-sm p-5 space-y-3.5 shadow-2xl border bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-900 dark:text-white text-xs">
-            <div className="flex justify-between items-center pb-2 border-b border-slate-200/20 dark:border-slate-800"><h3 className="font-extrabold text-base">{editingSite.siteId > 0 ? '추천 사이트 수정' : '추천 사이트 등록'}</h3><button onClick={() => setIsSiteModalOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button></div>
+            <div className="flex justify-between items-center pb-2 border-b border-slate-200/20 dark:border-slate-800">
+              <h3 className="font-extrabold text-base">{editingSite.siteId > 0 ? '추천 사이트 수정' : '추천 사이트 등록'}</h3>
+              <button onClick={() => setIsSiteModalOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button>
+            </div>
             <form onSubmit={saveSite} className="space-y-3">
-              <div><label className="font-bold block mb-1">사이트명</label><input type="text" required value={editingSite.name} onChange={(e) => setEditingSite({ ...editingSite, name: e.target.value })} className="w-full border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-800/60" /></div>
-              <div><label className="font-bold block mb-1">사이트 URL</label><input type="url" required value={editingSite.url} onChange={(e) => setEditingSite({ ...editingSite, url: e.target.value })} className="w-full border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-800/60" /></div>
-              <div><label className="font-bold block mb-1">배너 이미지 URL</label><input type="url" placeholder="https://example.com/banner.jpg" value={editingSite.bannerUrl} onChange={(e) => setEditingSite({ ...editingSite, bannerUrl: e.target.value })} className="w-full border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-800/60" /></div>
-              <div><label className="font-bold block mb-1">사이트 설명</label><textarea rows={3} value={editingSite.description} onChange={(e) => setEditingSite({ ...editingSite, description: e.target.value })} className="w-full border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-800/60 resize-none"></textarea></div>
+              <div>
+                <label className="font-bold block mb-1">사이트명</label>
+                <input type="text" required value={editingSite.name} onChange={(e) => setEditingSite({ ...editingSite, name: e.target.value })} className="w-full border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-800/60" />
+              </div>
+
+              <div>
+                <label className="font-bold block mb-1">사이트 URL</label>
+                <input type="url" required value={editingSite.url} onChange={(e) => setEditingSite({ ...editingSite, url: e.target.value })} className="w-full border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-800/60" />
+              </div>
+
+              {/* ⚡ 배너 이미지 파일 첨부 및 URL 직접 입력 */}
+              <div className="space-y-1.5">
+                <label className="font-bold block flex items-center gap-1"><Image size={13} /> 배너 이미지 첨부 (선택)</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={isUploadingSiteBanner}
+                  onChange={handleSiteBannerFileChange}
+                  className="w-full text-[11px] text-slate-500 dark:text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-bold file:bg-slate-900 dark:file:bg-slate-800 file:text-white hover:file:bg-slate-800 dark:hover:file:bg-slate-700 cursor-pointer border border-slate-200 dark:border-slate-800 rounded-xl p-1 bg-slate-50 dark:bg-slate-800/60 min-w-0"
+                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="url"
+                    placeholder="또는 배너 URL 직접 입력"
+                    value={editingSite.bannerUrl || ''}
+                    onChange={(e) => setEditingSite({ ...editingSite, bannerUrl: e.target.value })}
+                    className="flex-1 border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-800/60 text-xs focus:outline-none min-w-0"
+                  />
+                  <div className="w-[42px] h-[42px] rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden flex-shrink-0 relative shadow-2xs">
+                    {isUploadingSiteBanner ? (
+                      <Loader2 size={16} className="animate-spin text-slate-500" />
+                    ) : editingSite.bannerUrl ? (
+                      <img
+                        src={editingSite.bannerUrl}
+                        alt="미리보기"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Image size={16} className="text-slate-300 dark:text-slate-600" />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold block mb-1">사이트 설명</label>
+                <textarea rows={3} value={editingSite.description} onChange={(e) => setEditingSite({ ...editingSite, description: e.target.value })} className="w-full border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-800/60 resize-none"></textarea>
+              </div>
+
               <div>
                 <label className="font-bold block mb-1">노출 여부</label>
                 <select value={editingSite.isVisible} onChange={(e) => setEditingSite({ ...editingSite, isVisible: e.target.value as 'Y' | 'N' })} className="w-full border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white font-semibold cursor-pointer">
-                  <option value="Y">노출</option><option value="N">숨김</option>
+                  <option value="Y">노출</option>
+                  <option value="N">숨김</option>
                 </select>
               </div>
-              <div className="flex gap-2 pt-2"><button type="button" onClick={() => setIsSiteModalOpen(false)} className="flex-1 bg-slate-100 dark:bg-slate-800 py-2.5 rounded-xl font-bold text-slate-700 dark:text-slate-200 cursor-pointer">취소</button><button type="submit" className="flex-1 bg-slate-900 dark:bg-slate-800 text-white py-2.5 rounded-xl font-bold cursor-pointer hover:bg-slate-800 dark:hover:bg-slate-700">저장</button></div>
+
+              <div className="flex gap-2 pt-2">
+                <button type="button" onClick={() => setIsSiteModalOpen(false)} className="flex-1 bg-slate-100 dark:bg-slate-800 py-2.5 rounded-xl font-bold text-slate-700 dark:text-slate-200 cursor-pointer">취소</button>
+                <button type="submit" disabled={isUploadingSiteBanner} className="flex-1 bg-slate-900 dark:bg-slate-800 text-white py-2.5 rounded-xl font-bold cursor-pointer disabled:opacity-50 hover:bg-slate-800 dark:hover:bg-slate-700">저장</button>
+              </div>
             </form>
           </div>
         </div>

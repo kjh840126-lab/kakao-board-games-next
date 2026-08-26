@@ -464,10 +464,17 @@ export default function MainPage() {
       alert('대여 처리 중 오류가 발생했습니다: ' + (err.message || err));
     }
   };
+  
+  const getKSTIsoString = () => {
+  const now = new Date();
+  const kstOffset = 9 * 60 * 60 * 1000;
+  const kstDate = new Date(now.getTime() + kstOffset);
+  return kstDate.toISOString().replace('Z', '+09:00');
+  };
 
   const returnGame = async (rentalId: number, gameId: string) => {
     if (!currentUser) return;
-    const nowIso = new Date().toISOString();
+    const nowIso = getKSTIsoString();
 
     const targetRental = rentals.find((r) => r.rentalId === rentalId);
     if (!targetRental) return;
@@ -528,7 +535,7 @@ export default function MainPage() {
     
     const activeRentalIds = userActiveRentals.map(r => r.rentalId);
     const activeGameIds = userActiveRentals.map(r => r.gameId);
-    const nowIso = new Date().toISOString();
+    const nowIso = getKSTIsoString();
 
     let totalOverdueDays = 0;
 

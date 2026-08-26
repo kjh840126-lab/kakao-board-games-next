@@ -5,9 +5,8 @@ import {
   Siren, Settings, Bell, X, ChevronDown, ChevronRight, Heart, Star, User, LogOut, 
   Type, Calendar, Trash2, Image, Clock, ShoppingCart, CheckCircle2, Check, Sun, Moon, Loader2 
 } from 'lucide-react';
-// ⚡ 상대 경로 보정: ../ -> ../../
+// ⚡ 상대 경로 보정: ../ -> ../../ (Vercel 빌드 오류 완벽 해결)
 import { Game, Notice, ReportData, BoardSite, UserData } from '../../types';
-// ⚡ Vercel 빌드 오류 해결: 루트 경로의 supabaseClient 모듈 상대 경로 정확히 지정 (../../)
 import { supabase, uploadGameImage, uploadNoticeImage, uploadSiteBannerImage } from '../../supabaseClient';
 
 interface ModalsContainerProps {

@@ -27,9 +27,23 @@ const checkIsIosDevice = () => {
   return /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
 };
 
+// ⚡ 1. 한국 표준시(KST) 기준 YYYY-MM-DD 자정 날짜 반환
 const getTodayKST = () => {
-  const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' });
+  const formatter = new Intl.DateTimeFormat('en-CA', { 
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
   return formatter.format(new Date());
+};
+
+// ⚡ 2. 한국 표준시(KST) 기준 ISO 타임스탬프 생성 (오전 9시 시차 오차 차단)
+const getKSTIsoString = () => {
+  const now = new Date();
+  const kstOffset = 9 * 60 * 60 * 1000;
+  const kstDate = new Date(now.getTime() + kstOffset);
+  return kstDate.toISOString().replace('Z', '+09:00');
 };
 
 const toPureDateStr = (dateStr: string | null | undefined) => {
@@ -293,7 +307,6 @@ export default function MainPage() {
 
   const fetchInitialData = async () => {
     try {
-      // ⚡ 보안 조치: password_hash 필드를 완전 제외하여 네트워크 탭 노출 차단
       const [{ data: usersData }, { data: rentalsData }, { data: ratingsData }, { data: gamesData }, { data: noticeData }, { data: reportsData }, { data: sitesData }] = await Promise.all([
         supabase.from('users').select('user_id, name, email, role, penalty_count, penalty_end_date, created_at, last_login_at'),
         supabase.from('rentals').select('*'),
@@ -464,14 +477,8 @@ export default function MainPage() {
       alert('대여 처리 중 오류가 발생했습니다: ' + (err.message || err));
     }
   };
-  
-  const getKSTIsoString = () => {
-  const now = new Date();
-  const kstOffset = 9 * 60 * 60 * 1000;
-  const kstDate = new Date(now.getTime() + kstOffset);
-  return kstDate.toISOString().replace('Z', '+09:00');
-  };
 
+  // ⚡ KST 자정 기준 타임스탬프로 반납 시간 생성
   const returnGame = async (rentalId: number, gameId: string) => {
     if (!currentUser) return;
     const nowIso = getKSTIsoString();
@@ -528,6 +535,7 @@ export default function MainPage() {
     }
   };
 
+  // ⚡ KST 자정 기준 타임스탬프로 일괄 반납 시간 생성
   const returnAllGames = async () => {
     if (!currentUser) return;
     const userActiveRentals = rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
@@ -606,7 +614,7 @@ export default function MainPage() {
     try {
       const existing = allRatings.find(r => r.userId === currentUser.userId && r.gameId === gameId);
       if (existing) {
-        await supabase.from('ratings').update({ score: selectedScore, updated_at: new Date().toISOString() }).eq('user_id', currentUser.userId).eq('game_id', gameId);
+        await supabase.from('ratings').update({ score: selectedScore, updated_at: getKSTIsoString() }).eq('user_id', currentUser.userId).eq('game_id', gameId);
       } else {
         await supabase.from('ratings').insert([{ user_id: currentUser.userId, game_id: gameId, score: selectedScore }]);
       }
@@ -756,7 +764,7 @@ export default function MainPage() {
         email: email, 
         password_hash: password, 
         role: '일반회원', 
-        created_at: new Date().toISOString(), 
+        created_at: getKSTIsoString(), 
         last_login_at: today 
       }]);
 

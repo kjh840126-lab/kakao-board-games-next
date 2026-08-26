@@ -5,7 +5,8 @@ import {
   Siren, Settings, Bell, X, ChevronDown, ChevronRight, Heart, Star, User, LogOut, 
   Type, Calendar, Trash2, Image, Clock, ShoppingCart, CheckCircle2, Check, Sun, Moon, Loader2 
 } from 'lucide-react';
-import { Game, Notice, ReportData, BoardSite, UserData } from '../types';
+// ⚡ 상대 경로 보정: ../ -> ../../
+import { Game, Notice, ReportData, BoardSite, UserData } from '../../types';
 // ⚡ Vercel 빌드 오류 해결: 루트 경로의 supabaseClient 모듈 상대 경로 정확히 지정 (../../)
 import { supabase, uploadGameImage, uploadNoticeImage, uploadSiteBannerImage } from '../../supabaseClient';
 
@@ -195,7 +196,7 @@ export function ModalsContainer({
       }
     } catch (err: any) {
       alert('이미지 업로드 중 오류가 발생했습니다: ' + (err.message || err));
-    } fontally {
+    } finally {
       setIsUploadingImage(false);
     }
   };
@@ -217,7 +218,7 @@ export function ModalsContainer({
       }
     } catch (err: any) {
       alert('공지 이미지 업로드 중 오류가 발생했습니다: ' + (err.message || err));
-    } fontally {
+    } finally {
       setIsUploadingNoticeImage(false);
     }
   };
@@ -239,7 +240,7 @@ export function ModalsContainer({
       }
     } catch (err: any) {
       alert('배너 이미지 업로드 중 오류가 발생했습니다: ' + (err.message || err));
-    } fontally {
+    } finally {
       setIsUploadingSiteBanner(false);
     }
   };
@@ -1094,6 +1095,7 @@ export function ModalsContainer({
                 <input type="url" required value={editingSite.url} onChange={(e) => setEditingSite({ ...editingSite, url: e.target.value })} className="w-full border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-800/60" />
               </div>
 
+              {/* ⚡ 배너 이미지 파일 첨부 및 URL 직접 입력 */}
               <div className="space-y-1.5">
                 <label className="font-bold block flex items-center gap-1"><Image size={13} /> 배너 이미지 첨부 (선택)</label>
                 <input

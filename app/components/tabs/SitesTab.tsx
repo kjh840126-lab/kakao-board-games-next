@@ -25,16 +25,39 @@ export const SitesTab = memo(({ isInitialLoaded, isDarkMode, visibleSitesList }:
           </div>
         ) : (
           visibleSitesList.map((site: BoardSite) => (
-            <a key={site.siteId} href={site.url} target="_blank" rel="noopener noreferrer" className={`w-full border rounded-2xl overflow-hidden block shadow-sm transition ${isDarkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-white border-slate-200/80'}`}>
+            <a 
+              key={site.siteId} 
+              href={site.url} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className={`w-full border rounded-2xl overflow-hidden block shadow-sm transition ${isDarkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-white border-slate-200/80'}`}
+            >
+              {/* 1. 배너 이미지 영역 (어두운 그라데이션 및 글자 오버레이 제거) */}
               <div className="h-28 bg-slate-200 relative overflow-hidden">
-                <img src={site.bannerUrl} alt={site.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=600'; }} />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent flex items-end p-3">
-                  <span className="text-white font-extrabold text-sm flex items-center gap-1.5">{site.name} <ExternalLink size={13} className="text-sky-400" /></span>
-                </div>
+                <img 
+                  src={site.bannerUrl} 
+                  alt={site.name} 
+                  className="w-full h-full object-cover" 
+                  onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=600'; }} 
+                />
               </div>
-              <div className="p-3">
-                <p className="text-xs text-slate-500">{site.description}</p>
-                <span className="text-[10px] text-sky-500 font-mono block mt-1.5 truncate">{site.url}</span>
+
+              {/* 2. 하단 정보 영역 (사이트명을 설명 위로 이동) */}
+              <div className="p-3.5 space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className={`font-extrabold text-sm flex items-center gap-1.5 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                    {site.name}
+                    <ExternalLink size={13} className="text-sky-500 flex-shrink-0" />
+                  </h3>
+                </div>
+
+                <p className={`text-xs leading-relaxed ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                  {site.description}
+                </p>
+
+                <span className="text-[10px] text-sky-500 font-mono block pt-0.5 truncate">
+                  {site.url}
+                </span>
               </div>
             </a>
           ))

@@ -17,7 +17,7 @@ const toPureDateStr = (dateStr: string | null | undefined) => {
   return String(dateStr).split('T')[0].split(' ')[0].substring(0, 10);
 };
 
-// ⚡ 8/24 - 8/20 = 정확히 4일이 산출되는 자정 기준 연체 일수 계산 함수 (버그 수정: +1 제거)
+// ⚡ 8/24 - 8/20 = 정확히 4일이 산출되는 자정 기준 연체 일수 계산 함수
 const getDaysDifference = (dateStr1: string, dateStr2: string) => {
   const clean1 = toPureDateStr(dateStr1);
   const clean2 = toPureDateStr(dateStr2);
@@ -117,7 +117,22 @@ export const AdminTab = memo(({
 
   const filteredGameAdminList = useMemo(() => (games || []).filter((g: Game) => g.title.toLowerCase().includes(gameAdminSearch.trim().toLowerCase())).sort((a: any, b: any) => b.gameId.localeCompare(a.gameId, undefined, { numeric: true })), [games, gameAdminSearch]);
   const filteredUserAdminList = useMemo(() => (users || []).sort((a: any, b: any) => b.createdAt.localeCompare(a.createdAt)).filter((u: UserData) => u.name.toLowerCase().includes(userAdminSearch.trim().toLowerCase()) || u.userId.toLowerCase().includes(userAdminSearch.trim().toLowerCase())), [users, userAdminSearch]);
-  const allReturnedRentalsAdminList = useMemo(() => (rentals || []).filter((r: Rental) => r.status === '반납완료').sort((a: any, b: any) => (b.returnedAt || b.startDate).localeCompare(a.returnedAt || a.startDate)), [rentals]);
+
+  // ⚡ 대여중 목록: 대여일(startDate) 기준 내림차순(최신순) 정렬
+  const activeRentalsAdminList = useMemo(() => 
+    (rentals || [])
+      .filter((r: Rental) => r.status === '대여중')
+      .sort((a: any, b: any) => b.startDate.localeCompare(a.startDate)), 
+    [rentals]
+  );
+
+  // ⚡ 반납완료 목록: 대여일(startDate) 기준 내림차순(최신순) 정렬
+  const allReturnedRentalsAdminList = useMemo(() => 
+    (rentals || [])
+      .filter((r: Rental) => r.status === '반납완료')
+      .sort((a: any, b: any) => b.startDate.localeCompare(a.startDate)), 
+    [rentals]
+  );
 
   const handleAdminReturn = (rental: any) => {
     if (window.confirm(`'${rental.gameTitle}' (${rental.userId} 대여) 건을 강제 반납 처리하시겠습니까?`)) {
@@ -218,7 +233,7 @@ export const AdminTab = memo(({
             <h2 className="font-bold text-sm flex items-center gap-2 text-slate-900 dark:text-white"><span className="w-2 h-4 bg-sky-400 border border-sky-500 rounded-sm inline-block"></span> 대여 및 반납 현황</h2>
           </div>
           <div className="flex p-1 rounded-xl font-bold w-full bg-slate-100 dark:bg-slate-800">
-            <button onClick={() => setAdminRentalTab('active')} className={`flex-1 py-2 rounded-lg text-xs cursor-pointer ${adminRentalTab === 'active' ? 'bg-white text-slate-900 dark:bg-slate-700 dark:text-white shadow-sm' : 'text-slate-400'}`}>대여중 ({(rentals || []).filter((r: any) => r.status === '대여중').length})</button>
+            <button onClick={() => setAdminRentalTab('active')} className={`flex-1 py-2 rounded-lg text-xs cursor-pointer ${adminRentalTab === 'active' ? 'bg-white text-slate-900 dark:bg-slate-700 dark:text-white shadow-sm' : 'text-slate-400'}`}>대여중 ({activeRentalsAdminList.length})</button>
             <button onClick={() => setAdminRentalTab('completed')} className={`flex-1 py-2 rounded-lg text-xs cursor-pointer ${adminRentalTab === 'completed' ? 'bg-white text-slate-900 dark:bg-slate-700 dark:text-white shadow-sm' : 'text-slate-400'}`}>반납완료 ({allReturnedRentalsAdminList.length})</button>
           </div>
 
@@ -229,12 +244,12 @@ export const AdminTab = memo(({
             </div>
           ) : adminRentalTab === 'active' ? (
             <div className="space-y-3 w-full">
-              {(rentals || []).filter((r: any) => r.status === '대여중').length === 0 ? (
+              {activeRentalsAdminList.length === 0 ? (
                 <div className="text-center py-12 border border-dashed border-slate-300/40 text-slate-400 rounded-2xl w-full text-xs">
                   현재 대여 중인 내역이 없습니다.
                 </div>
               ) : (
-                (rentals || []).filter((r: any) => r.status === '대여중').map((rental: any) => {
+                activeRentalsAdminList.map((rental: any) => {
                   const cleanEndDate = toPureDateStr(rental.endDate);
                   const isOverdue = today > cleanEndDate;
                   const overdueDays = isOverdue ? getDaysDifference(today, cleanEndDate) : 0;

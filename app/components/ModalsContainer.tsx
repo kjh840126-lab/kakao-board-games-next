@@ -6,7 +6,8 @@ import {
   Type, Calendar, Trash2, Image, Clock, ShoppingCart, CheckCircle2, Check, Sun, Moon, Loader2 
 } from 'lucide-react';
 import { Game, Notice, ReportData, BoardSite, UserData } from '../types';
-import { supabase, uploadGameImage, uploadNoticeImage, uploadSiteBannerImage } from '../supabaseClient';
+// ⚡ Vercel 빌드 오류 해결: 루트 경로의 supabaseClient 모듈 상대 경로 정확히 지정 (../../)
+import { supabase, uploadGameImage, uploadNoticeImage, uploadSiteBannerImage } from '../../supabaseClient';
 
 interface ModalsContainerProps {
   isAdminReportDrawerOpen: boolean;
@@ -118,21 +119,17 @@ export function ModalsContainer({
   const [isUploadingNoticeImage, setIsUploadingNoticeImage] = useState(false);
   const [isUploadingSiteBanner, setIsUploadingSiteBanner] = useState(false);
 
-  // ⚡ 이름 한글 외 문자(영문, 숫자, 특수문자, 공백) 포함 여부 실시간 검사
   const isNameHasNonKorean = editName
     ? /[^ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(editName)
     : false;
 
-  // ⚡ 새 비밀번호 6자리 미만 실시간 검사
   const isPasswordTooShort = changePassword && changePassword.length < 6;
 
-  // ⚡ 비밀번호 변경 입력값 불일치 여부 감지
   const isProfilePasswordMismatch =
     Boolean(changePassword) &&
     Boolean(changePasswordConfirm) &&
     changePassword !== changePasswordConfirm;
 
-  // ⚡ 내 정보 수정 제출 핸들러 (클라이언트 유효성 검사 차단)
   const onSubmitProfile = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -198,7 +195,7 @@ export function ModalsContainer({
       }
     } catch (err: any) {
       alert('이미지 업로드 중 오류가 발생했습니다: ' + (err.message || err));
-    } finally {
+    } fontally {
       setIsUploadingImage(false);
     }
   };
@@ -220,12 +217,11 @@ export function ModalsContainer({
       }
     } catch (err: any) {
       alert('공지 이미지 업로드 중 오류가 발생했습니다: ' + (err.message || err));
-    } finally {
+    } fontally {
       setIsUploadingNoticeImage(false);
     }
   };
 
-  // ⚡ 추천 사이트 배너 파일 업로드 핸들러
   const handleSiteBannerFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !editingSite) return;
@@ -243,7 +239,7 @@ export function ModalsContainer({
       }
     } catch (err: any) {
       alert('배너 이미지 업로드 중 오류가 발생했습니다: ' + (err.message || err));
-    } finally {
+    } fontally {
       setIsUploadingSiteBanner(false);
     }
   };
@@ -729,7 +725,7 @@ export function ModalsContainer({
         </div>
       )}
 
-      {/* 9. 프로필 수정 모달 (⚡ 다크모드 비활성화 항목 대비 완정 보정) */}
+      {/* 9. 프로필 수정 모달 */}
       {isEditProfileOpen && currentUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className={overlayClass} onClick={() => setIsEditProfileOpen(false)} />
@@ -739,7 +735,6 @@ export function ModalsContainer({
               <button onClick={() => setIsEditProfileOpen(false)} className="text-slate-400 cursor-pointer"><X size={18} /></button>
             </div>
             <form onSubmit={onSubmitProfile} className="space-y-3.5">
-              {/* ⚡ 1. 아이디 항목 */}
               <div>
                 <label className="font-bold block mb-1 text-slate-400 dark:text-slate-500">아이디</label>
                 <input 
@@ -750,7 +745,6 @@ export function ModalsContainer({
                 />
               </div>
 
-              {/* ⚡ 2. 이메일 항목 */}
               <div>
                 <label className="font-bold block mb-1 text-slate-400 dark:text-slate-500">이메일</label>
                 <input 
@@ -762,7 +756,6 @@ export function ModalsContainer({
                 />
               </div>
 
-              {/* ⚡ 3. 이름 항목 */}
               <div>
                 <label className="font-bold block mb-1 text-slate-800 dark:text-slate-200">이름</label>
                 <input 
@@ -783,11 +776,9 @@ export function ModalsContainer({
                 )}
               </div>
 
-              {/* ⚡ 4. 비밀번호 변경 영역 */}
               <div className="pt-2 border-t border-slate-200/20 dark:border-slate-800 space-y-2">
                 <label className="font-bold block text-slate-400 dark:text-slate-500">비밀번호 변경 (선택)</label>
                 
-                {/* 새 비밀번호 */}
                 <div>
                   <input 
                     type="password" 
@@ -805,7 +796,6 @@ export function ModalsContainer({
                   )}
                 </div>
 
-                {/* 새 비밀번호 확인 */}
                 <div>
                   <input 
                     type="password" 
@@ -1084,7 +1074,7 @@ export function ModalsContainer({
         </div>
       )}
 
-      {/* 12. 추천 사이트 등록 모달 (⚡ 배너 이미지 파일 첨부 및 미리보기 적용) */}
+      {/* 12. 추천 사이트 등록 모달 */}
       {isSiteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className={overlayClass} onClick={() => setIsSiteModalOpen(false)} />
@@ -1104,7 +1094,6 @@ export function ModalsContainer({
                 <input type="url" required value={editingSite.url} onChange={(e) => setEditingSite({ ...editingSite, url: e.target.value })} className="w-full border border-slate-200 dark:border-slate-800 p-2.5 rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-800/60" />
               </div>
 
-              {/* ⚡ 배너 이미지 파일 첨부 및 URL 직접 입력 */}
               <div className="space-y-1.5">
                 <label className="font-bold block flex items-center gap-1"><Image size={13} /> 배너 이미지 첨부 (선택)</label>
                 <input

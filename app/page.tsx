@@ -27,7 +27,6 @@ const checkIsIosDevice = () => {
   return /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
 };
 
-// ⚡ 1. 한국 표준시(KST) 기준 YYYY-MM-DD 자정 날짜 반환
 const getTodayKST = () => {
   const formatter = new Intl.DateTimeFormat('en-CA', { 
     timeZone: 'Asia/Seoul',
@@ -38,7 +37,6 @@ const getTodayKST = () => {
   return formatter.format(new Date());
 };
 
-// ⚡ 2. 한국 표준시(KST) 기준 ISO 타임스탬프 생성 (오전 9시 시차 오차 차단)
 const getKSTIsoString = () => {
   const now = new Date();
   const kstOffset = 9 * 60 * 60 * 1000;
@@ -250,6 +248,7 @@ export default function MainPage() {
 
   useEffect(() => { if (mounted) fetchInitialData(); }, [mounted]);
 
+  // ⚡ 반납 탭 포함 모든 탭 변경 시 스크롤 최상단 이동 완벽 제어
   const handleTabChange = useCallback((newTab: 'games' | 'returns' | 'ranking' | 'sites' | 'admin') => {
     if (newTab === activeTab) return;
 
@@ -260,24 +259,31 @@ export default function MainPage() {
     setActiveTab(newTab);
     if (typeof window !== 'undefined') localStorage.setItem('kakao_bg_activeTab', newTab);
 
-    requestAnimationFrame(() => {
+    // DOM 렌더링 후 스크롤을 최상단으로 강제 초기화
+    setTimeout(() => {
       if (newTab === 'games') {
         window.scrollTo({
           top: scrollPositions.current['games'] || 0,
           behavior: 'instant' as ScrollBehavior
         });
       } else {
-        window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
         if (mainScrollRef.current) mainScrollRef.current.scrollTop = 0;
+        if (document.documentElement) document.documentElement.scrollTop = 0;
+        if (document.body) document.body.scrollTop = 0;
       }
-    });
+    }, 10);
   }, [activeTab]);
 
   useEffect(() => {
     if (mounted && activeTab !== 'games') {
-      setTimeout(() => {
-        window.scrollTo(0, 0);
-      }, 50);
+      const scrollTimer = setTimeout(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+        if (mainScrollRef.current) mainScrollRef.current.scrollTop = 0;
+        if (document.documentElement) document.documentElement.scrollTop = 0;
+        if (document.body) document.body.scrollTop = 0;
+      }, 30);
+      return () => clearTimeout(scrollTimer);
     }
   }, [mounted, activeTab]);
 
@@ -929,7 +935,6 @@ export default function MainPage() {
     setIsNoticeModalOpen(false);
   };
 
-  // ⚡ 신규 등록 시 display_order가 기존 사이트의 최대값 + 1로 들어가도록 보정
   const saveSite = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -948,7 +953,6 @@ export default function MainPage() {
 
         if (error) throw error;
       } else {
-        // 기존 사이트 목록 중 가장 큰 displayOrder 값 + 1 추출
         const maxOrder = sites.reduce((max, s) => {
           const order = s.displayOrder ?? s.siteId;
           return order > max ? order : max;

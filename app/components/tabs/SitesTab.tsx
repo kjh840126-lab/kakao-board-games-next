@@ -32,8 +32,8 @@ export const SitesTab = memo(({ isInitialLoaded, isDarkMode, visibleSitesList }:
               rel="noopener noreferrer" 
               className={`w-full border rounded-2xl overflow-hidden block shadow-sm transition ${isDarkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-white border-slate-200/80'}`}
             >
-              {/* 1. 배너 이미지 영역 (어두운 그라데이션 및 글자 오버레이 제거) */}
-              <div className="h-24 bg-slate-200 relative overflow-hidden">
+              {/* 1. 배너 이미지 영역 (하단에 구분선 border-b 추가) */}
+              <div className={`h-24 bg-slate-200 relative overflow-hidden border-b ${isDarkMode ? 'border-slate-700/80' : 'border-slate-200/80'}`}>
                 <img 
                   src={site.bannerUrl} 
                   alt={site.name} 
@@ -42,7 +42,7 @@ export const SitesTab = memo(({ isInitialLoaded, isDarkMode, visibleSitesList }:
                 />
               </div>
 
-              {/* 2. 하단 정보 영역 (사이트명을 설명 위로 이동) */}
+              {/* 2. 하단 정보 영역 */}
               <div className="p-3.5 space-y-1">
                 <div className="flex items-center justify-between gap-2">
                   <h3 className={`font-extrabold text-sm flex items-center gap-1.5 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>

@@ -66,6 +66,8 @@ export interface BoardSite {
   bannerUrl: string;
   description: string;
   isVisible: 'Y' | 'N';
+  displayOrder?: number; // 👈 추가된 타입 정의
+  display_order?: number; // 👈 DB 대응용 타입 정의
 }
 
 export interface UserRating {

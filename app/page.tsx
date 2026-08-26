@@ -27,6 +27,7 @@ const checkIsIosDevice = () => {
   return /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
 };
 
+// ⚡ 1. 한국 표준시(KST) 기준 YYYY-MM-DD 자정 날짜 반환
 const getTodayKST = () => {
   const formatter = new Intl.DateTimeFormat('en-CA', { 
     timeZone: 'Asia/Seoul',
@@ -37,6 +38,7 @@ const getTodayKST = () => {
   return formatter.format(new Date());
 };
 
+// ⚡ 2. 한국 표준시(KST) 기준 ISO 타임스탬프 생성 (오전 9시 시차 오차 차단)
 const getKSTIsoString = () => {
   const now = new Date();
   const kstOffset = 9 * 60 * 60 * 1000;
@@ -476,6 +478,7 @@ export default function MainPage() {
     }
   };
 
+  // ⚡ KST 자정 기준 타임스탬프로 반납 시간 생성
   const returnGame = async (rentalId: number, gameId: string) => {
     if (!currentUser) return;
     const nowIso = getKSTIsoString();
@@ -532,6 +535,7 @@ export default function MainPage() {
     }
   };
 
+  // ⚡ KST 자정 기준 타임스탬프로 일괄 반납 시간 생성
   const returnAllGames = async () => {
     if (!currentUser) return;
     const userActiveRentals = rentals.filter((r: Rental) => r.userId === currentUser?.userId && r.status === '대여중');
@@ -929,50 +933,12 @@ export default function MainPage() {
 
   const saveSite = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    try {
-      if (editingSite.siteId > 0) {
-        const { error } = await supabase
-          .from('sites')
-          .update({
-            name: editingSite.name,
-            url: editingSite.url,
-            banner_url: editingSite.bannerUrl,
-            description: editingSite.description,
-            is_visible: editingSite.isVisible,
-          })
-          .eq('site_id', editingSite.siteId);
-
-        if (error) throw error;
-      } else {
-        const maxOrder = sites.reduce((max, s) => {
-          const order = s.displayOrder ?? s.siteId;
-          return order > max ? order : max;
-        }, 0);
-
-        const nextOrder = maxOrder + 1;
-        const newSiteId = Date.now();
-
-        const { error } = await supabase.from('sites').insert([
-          {
-            site_id: newSiteId,
-            name: editingSite.name,
-            url: editingSite.url,
-            banner_url: editingSite.bannerUrl,
-            description: editingSite.description,
-            is_visible: editingSite.isVisible,
-            display_order: nextOrder,
-          },
-        ]);
-
-        if (error) throw error;
-      }
-
-      fetchInitialData();
-      setIsSiteModalOpen(false);
-    } catch (err: any) {
-      alert('사이트 저장 중 오류가 발생했습니다: ' + (err.message || err));
+    if (editingSite.siteId > 0) {
+      await supabase.from('sites').update({ name: editingSite.name, url: editingSite.url, banner_url: editingSite.bannerUrl, description: editingSite.description, is_visible: editingSite.isVisible }).eq('site_id', editingSite.siteId);
+    } else {
+      await supabase.from('sites').insert([{ site_id: Date.now(), name: editingSite.name, url: editingSite.url, banner_url: editingSite.bannerUrl, description: editingSite.description, is_visible: editingSite.isVisible }]);
     }
+    fetchInitialData(); setIsSiteModalOpen(false);
   };
 
   const handleNoticeClick = (notice: Notice) => {

@@ -545,16 +545,16 @@ export function ModalsContainer({
         </div>
       </div>
 
-      {/* 3. 공지사항 목록 드로어 */}
+      {/* 3. 공지사항 드로어 */}
       <div className={`fixed inset-0 z-50 transition-all duration-200 ${isNoticeDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className={overlayClass} onClick={() => setIsNoticeDrawerOpen(false)} />
         <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm flex flex-col shadow-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs transition-transform duration-200 ease-out transform-gpu ${isNoticeDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className="p-4 bg-[#FEE500] text-slate-900 flex justify-between items-center font-bold text-base">
-            <span className="flex items-center gap-2"><Bell size={18} /> 공지사항 목록</span>
+            <span className="flex items-center gap-2"><Bell size={18} /> 공지사항 </span>
             <button onClick={() => setIsNoticeDrawerOpen(false)} className="p-1 cursor-pointer"><X size={18} /></button>
           </div>
           <div className="flex-1 p-4 overflow-y-auto space-y-3">
-            <h4 className="font-bold text-slate-400 dark:text-slate-500 text-xs">전체 공지 목록 ({notices.length})</h4>
+            <h4 className="font-bold text-slate-400 dark:text-slate-500 text-xs">전체 목록 ({notices.length})</h4>
             {notices.map((notice: Notice) => {
               const isExpanded = expandedNoticeId === notice.noticeId;
               const noticeImgUrl = (notice as any).imageUrl || (notice as any).image_url;

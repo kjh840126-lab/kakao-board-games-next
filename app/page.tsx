@@ -685,6 +685,12 @@ export default function MainPage() {
       return; 
     }
 
+      // ⚡ 탈퇴회원 로그인 차단 로직 추가
+    if (userDbData.role === '탈퇴회원' || userDbData.role === '탈퇴') {
+      alert('탈퇴 처리된 계정입니다. 서비스 이용이 불가능합니다.');
+      return;
+     }
+
     const matchedUser: UserData = {
       userId: userDbData.user_id,
       name: userDbData.name,

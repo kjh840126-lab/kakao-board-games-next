@@ -428,11 +428,10 @@ export default function MainPage() {
 
   const removeFromCart = (gameId: string) => setCart(cart.filter((item: Game) => item.gameId !== gameId));
 
-  // ⚡ 중복 대여 방지 및 실시간 DB 상태 검증 보정 완료
+  // ⚡ 중복 대여 방지 및 구문 에러 수정 완료
   const processCheckout = async () => {
     if (!currentUser) return;
 
-    // ⚡ 1차 방어: 이미 처리 중이면 중복 요청 즉시 차단
     if (isProcessingCheckout) return;
 
     const penaltyPoints = Number(currentUser.penaltyPoints || 0);
@@ -457,7 +456,6 @@ export default function MainPage() {
 
       const cartGameIds = cart.map((g: Game) => g.gameId);
 
-      // ⚡ 2차 방어: DB 실시간 조회로 장바구니 항목 중 이미 '대여중'인 게임이 있는지 검증
       const { data: currentGames, error: checkError } = await supabase
         .from('games')
         .select('game_id, title, status')
@@ -510,7 +508,7 @@ export default function MainPage() {
       setIsCartOpen(false);
     } catch (err: any) {
       alert('대여 처리 중 오류가 발생했습니다: ' + (err.message || err));
-    } font
+    } finally {
       setIsProcessingCheckout(false);
     }
   };

@@ -114,6 +114,9 @@ export default function MainPage() {
   const [isFavoritesModalOpen, setIsFavoritesModalOpen] = useState(false);
   const [isMyRatingsModalOpen, setIsMyRatingsModalOpen] = useState(false);
 
+  // ⚡ 중복 대여 요청 방지용 플래그
+  const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
+
   const [fontSize, setFontSize] = useState<'normal' | 'large'>(() => {
     if (typeof window !== 'undefined') {
       const savedFont = localStorage.getItem('kakao_bg_fontSize');
@@ -248,7 +251,6 @@ export default function MainPage() {
 
   useEffect(() => { if (mounted) fetchInitialData(); }, [mounted]);
 
-  // ⚡ 반납 탭 포함 모든 탭 변경 시 스크롤 최상단 이동 완벽 제어
   const handleTabChange = useCallback((newTab: 'games' | 'returns' | 'ranking' | 'sites' | 'admin') => {
     if (newTab === activeTab) return;
 
@@ -259,7 +261,6 @@ export default function MainPage() {
     setActiveTab(newTab);
     if (typeof window !== 'undefined') localStorage.setItem('kakao_bg_activeTab', newTab);
 
-    // DOM 렌더링 후 스크롤을 최상단으로 강제 초기화
     setTimeout(() => {
       if (newTab === 'games') {
         window.scrollTo({
@@ -427,8 +428,12 @@ export default function MainPage() {
 
   const removeFromCart = (gameId: string) => setCart(cart.filter((item: Game) => item.gameId !== gameId));
 
+  // ⚡ 중복 대여 방지 및 실시간 DB 상태 검증 보정 완료
   const processCheckout = async () => {
     if (!currentUser) return;
+
+    // ⚡ 1차 방어: 이미 처리 중이면 중복 요청 즉시 차단
+    if (isProcessingCheckout) return;
 
     const penaltyPoints = Number(currentUser.penaltyPoints || 0);
     if (penaltyPoints >= 1) {
@@ -447,16 +452,40 @@ export default function MainPage() {
       return;
     }
 
-    const endDate = new Date(); 
-    endDate.setDate(endDate.getDate() + rentalDays); 
-    const endDateStr = endDate.toISOString().split('T')[0];
-    const cartGameIds = cart.map((g: Game) => g.gameId);
-    
-    const newRentalsToInsert = cart.map((game: Game) => ({ 
-      user_id: currentUser.userId, game_id: game.gameId, game_title: game.title, status: '대여중', start_date: today, end_date: endDateStr 
-    }));
-
     try {
+      setIsProcessingCheckout(true);
+
+      const cartGameIds = cart.map((g: Game) => g.gameId);
+
+      // ⚡ 2차 방어: DB 실시간 조회로 장바구니 항목 중 이미 '대여중'인 게임이 있는지 검증
+      const { data: currentGames, error: checkError } = await supabase
+        .from('games')
+        .select('game_id, title, status')
+        .in('game_id', cartGameIds);
+
+      if (checkError) throw checkError;
+
+      const alreadyRented = currentGames?.filter(g => g.status === '대여중');
+      if (alreadyRented && alreadyRented.length > 0) {
+        const titles = alreadyRented.map(g => g.title).join(', ');
+        alert(`다음 게임은 이미 다른 사용자가 대여 중입니다:\n[${titles}]\n장바구니를 확인해 주세요.`);
+        fetchInitialData();
+        return;
+      }
+
+      const endDate = new Date(); 
+      endDate.setDate(endDate.getDate() + rentalDays); 
+      const endDateStr = endDate.toISOString().split('T')[0];
+      
+      const newRentalsToInsert = cart.map((game: Game) => ({ 
+        user_id: currentUser.userId, 
+        game_id: game.gameId, 
+        game_title: game.title, 
+        status: '대여중', 
+        start_date: today, 
+        end_date: endDateStr 
+      }));
+
       const { data: insertedData, error: rentalError } = await supabase.from('rentals').insert(newRentalsToInsert).select();
       if (rentalError) throw rentalError;
 
@@ -481,6 +510,8 @@ export default function MainPage() {
       setIsCartOpen(false);
     } catch (err: any) {
       alert('대여 처리 중 오류가 발생했습니다: ' + (err.message || err));
+    } font
+      setIsProcessingCheckout(false);
     }
   };
 
@@ -685,11 +716,10 @@ export default function MainPage() {
       return; 
     }
 
-      // ⚡ 탈퇴회원 로그인 차단 로직 추가
     if (userDbData.role === '탈퇴회원' || userDbData.role === '탈퇴') {
       alert('탈퇴 처리된 계정입니다. 서비스 이용이 불가능합니다.');
       return;
-     }
+    }
 
     const matchedUser: UserData = {
       userId: userDbData.user_id,
@@ -1094,7 +1124,7 @@ export default function MainPage() {
         theme={theme} setTheme={setTheme}
         handleLogout={handleLogout}
         isNoticeDrawerOpen={isNoticeDrawerOpen} setIsNoticeDrawerOpen={setIsNoticeDrawerOpen} notices={visibleNoticesList} expandedNoticeId={expandedNoticeId} handleNoticeClick={handleNoticeClick}
-        isCartOpen={isCartOpen} setIsCartOpen={setIsCartOpen} cart={cart} rentalDays={rentalDays} setRentalDays={setRentalDays} calculateEndDate={calculateEndDate} removeFromCart={removeFromCart} processCheckout={processCheckout}
+        isCartOpen={isCartOpen} setIsCartOpen={setIsCartOpen} cart={cart} rentalDays={rentalDays} setRentalDays={setRentalDays} calculateEndDate={calculateEndDate} removeFromCart={removeFromCart} processCheckout={processCheckout} isProcessingCheckout={isProcessingCheckout}
         isFavoritesModalOpen={isFavoritesModalOpen} toggleFavorite={toggleFavorite}
         isMyRatingsModalOpen={isMyRatingsModalOpen} handleDeleteMyRating={handleDeleteMyRating}
         ratingModalGame={ratingModalGame} setRatingModalGame={setRatingModalGame} selectedScore={selectedScore} setSelectedScore={setSelectedScore} StarRating={StarRating} handleSaveRating={handleSaveRating}

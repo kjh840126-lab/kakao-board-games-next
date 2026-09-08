@@ -213,7 +213,7 @@ export const GamesTab = memo(({
           {displayNotices.length > 0 && (
             <div 
               className={`w-full flex flex-col ${isNoticeTransition ? 'transition-transform duration-500 ease-in-out' : ''}`} 
-              style={{ transform: `translateY(-${noticeIndex * (isLargeFont ? 26 : 20)}px)` }}
+              style={{ transform: `translateY(-${noticeIndex * (isLargeFont ? 28 : 20)}px)` }}
             >
               {displayNotices.map((notice: any, idx: number) => (
                 <div 

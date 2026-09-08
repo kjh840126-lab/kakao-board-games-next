@@ -118,6 +118,14 @@ export const AdminTab = memo(({
   const filteredGameAdminList = useMemo(() => (games || []).filter((g: Game) => g.title.toLowerCase().includes(gameAdminSearch.trim().toLowerCase())).sort((a: any, b: any) => b.gameId.localeCompare(a.gameId, undefined, { numeric: true })), [games, gameAdminSearch]);
   const filteredUserAdminList = useMemo(() => (users || []).sort((a: any, b: any) => b.createdAt.localeCompare(a.createdAt)).filter((u: UserData) => u.name.toLowerCase().includes(userAdminSearch.trim().toLowerCase()) || u.userId.toLowerCase().includes(userAdminSearch.trim().toLowerCase())), [users, userAdminSearch]);
 
+  // ⚡ 탈퇴회원 제외한 총 활동 회원수 산출
+  const activeUserCount = useMemo(() => {
+    return (users || []).filter((u: UserData) => {
+      const roleStr = u.role as string;
+      return roleStr !== '탈퇴회원' && roleStr !== '탈퇴';
+    }).length;
+  }, [users]);
+
   // ⚡ 대여중 목록: 대여일(startDate) 기준 내림차순(최신순) 정렬
   const activeRentalsAdminList = useMemo(() => 
     (rentals || [])
@@ -423,9 +431,17 @@ export const AdminTab = memo(({
       {/* D. 회원 관리 */}
       {adminSubTab === 'userAdmin' && (
         <div className="space-y-4 w-full min-h-[200px] relative">
+          {/* ⚡ 회원 관리 타이틀 우측에 탈퇴 제외 활동 회원 수 뱃지 배치 */}
           <div className="flex justify-between items-center h-10 pb-2 border-b border-slate-200/80 dark:border-slate-700/80">
-            <h2 className="font-bold text-sm flex items-center gap-2 text-slate-900 dark:text-white"><span className="w-2 h-4 bg-sky-400 border border-sky-500 rounded-sm inline-block"></span> 회원 관리</h2>
+            <h2 className="font-bold text-sm flex items-center gap-2 text-slate-900 dark:text-white">
+              <span className="w-2 h-4 bg-sky-400 border border-sky-500 rounded-sm inline-block"></span> 
+              회원 관리
+              <span className="ml-1 px-2 py-0.5 text-xs rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950/80 dark:text-sky-300 font-extrabold border border-sky-200 dark:border-sky-800">
+                총 {activeUserCount}명
+              </span>
+            </h2>
           </div>
+
           <div className="relative w-full">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input type="text" placeholder="회원명 또는 ID 검색..." value={userAdminSearch} onChange={(e) => setUserAdminSearch(e.target.value)} className="w-full border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 pl-10 pr-9 py-2.5 rounded-xl text-xs dark:bg-slate-800 dark:border-slate-700 dark:text-white" />

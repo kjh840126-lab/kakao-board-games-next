@@ -218,7 +218,7 @@ export const GamesTab = memo(({
               {displayNotices.map((notice: any, idx: number) => (
                 <div 
                   key={`${notice.noticeId}-${idx}`} 
-                  className={`flex items-center justify-between flex-shrink-0 w-full ${isLargeFont ? '24' : 'h-5'}`}
+                  className={`flex items-center justify-between flex-shrink-0 w-full ${isLargeFont ? '27' : 'h-5'}`}
                 >
                   <span className={`text-[#FEE500] font-extrabold truncate block w-full ${isLargeFont ? 'text-sm' : 'text-xs'}`}>
                     {notice.title}

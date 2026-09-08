@@ -191,31 +191,31 @@ export const GamesTab = memo(({
 
   return (
     <div className="space-y-4 mt-0.5 w-full">
-      {/* ⚡ 롤링 공지사항 (isLargeFont 설정에 따라 유연하게 배너 높이 및 translateY가 조절되도록 수정) */}
+      {/* ⚡ 배너 전체 높이는 h-11(44px) 고정 + 내부 글자 이동 높이만 isLargeFont 연동 */}
       <div 
         onClick={() => { if (recentNoticesList.length > 0) handleNoticeClick(recentNoticesList[noticeIndex % recentNoticesList.length]); }} 
-        className={`w-full px-3.5 py-3 rounded-2xl flex items-center gap-2.5 shadow-sm overflow-hidden bg-slate-900 text-white cursor-pointer transition active:scale-[0.99] ${
-          isLargeFont ? 'min-h-[52px]' : 'min-h-[44px]'
-        }`}
+        className="w-full px-3.5 rounded-2xl flex items-center gap-2.5 shadow-sm overflow-hidden h-11 bg-slate-900 text-white cursor-pointer transition active:scale-[0.99]"
       >
         <Bell size={16} className="text-[#FEE500] flex-shrink-0 z-10" />
-        <div className={`flex-1 overflow-hidden relative ${isLargeFont ? 'h-7' : 'h-5'}`}>
+        
+        <div className={`flex-1 overflow-hidden relative flex items-center ${isLargeFont ? 'h-7' : 'h-5'}`}>
           {recentNoticesList.length > 0 && (
             <div 
-              className={`flex flex-col ${isNoticeTransition ? 'transition-transform duration-500 ease-in-out' : ''}`} 
+              className={`w-full flex flex-col ${isNoticeTransition ? 'transition-transform duration-500 ease-in-out' : ''}`} 
               style={{ transform: `translateY(-${noticeIndex * (isLargeFont ? 28 : 20)}px)` }}
             >
               {[...recentNoticesList, recentNoticesList[0]].map((notice: any, idx: number) => (
                 <div 
                   key={`${notice.noticeId}-${idx}`} 
-                  className={`flex items-center justify-between flex-shrink-0 ${isLargeFont ? 'h-7 text-sm' : 'h-5 text-xs'}`}
+                  className={`flex items-center justify-between flex-shrink-0 w-full ${isLargeFont ? 'h-7 text-sm' : 'h-5 text-xs'}`}
                 >
-                  <span className="text-[#FEE500] font-extrabold truncate block w-full">{notice.title}</span>
+                  <span className="text-[#FEE500] font-extrabold truncate block w-full leading-none">{notice.title}</span>
                 </div>
               ))}
             </div>
           )}
         </div>
+        
         {recentNoticesList.length > 0 && <ChevronRight size={14} className="text-slate-400 flex-shrink-0" />}
       </div>
 

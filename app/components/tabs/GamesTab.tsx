@@ -189,25 +189,29 @@ export const GamesTab = memo(({
     });
   }, [games, gameListSearch, playerFilters, genreFilters, difficultyFilters, sortOption]);
 
+  // ⚡ 폰트 크기 상태에 따른 한 줄 높이(px) 분기 연산
+  const noticeLineHeight = isLargeFont ? 28 : 20;
+
   return (
     <div className="space-y-4 mt-0.5 w-full">
-      {/* ⚡ 배너 전체 높이 h-11(44px) 고정 + % 순환 이동으로 오차 없는 상단 롤링 구현 */}
+      {/* ⚡ 폰트 크기에 따라 이동 거리(20px / 28px)를 분기 태운 수직 롤링 공지사항 */}
       <div 
         onClick={() => { if (recentNoticesList.length > 0) handleNoticeClick(recentNoticesList[noticeIndex % recentNoticesList.length]); }} 
         className="w-full px-3.5 rounded-2xl flex items-center gap-2.5 shadow-sm overflow-hidden h-11 bg-slate-900 text-white cursor-pointer transition active:scale-[0.99]"
       >
         <Bell size={16} className="text-[#FEE500] flex-shrink-0 z-10" />
         
-        <div className="flex-1 overflow-hidden relative h-6">
+        <div className={`flex-1 overflow-hidden relative flex items-center ${isLargeFont ? 'h-[28px]' : 'h-[20px]'}`}>
           {recentNoticesList.length > 0 && (
             <div 
               className={`w-full flex flex-col ${isNoticeTransition ? 'transition-transform duration-500 ease-in-out' : ''}`} 
-              style={{ transform: `translateY(-${(noticeIndex % recentNoticesList.length) * 24}px)` }}
+              style={{ transform: `translateY(-${(noticeIndex % recentNoticesList.length) * noticeLineHeight}px)` }}
             >
               {recentNoticesList.map((notice: any, idx: number) => (
                 <div 
                   key={`${notice.noticeId}-${idx}`} 
-                  className="h-6 flex items-center justify-between flex-shrink-0 w-full"
+                  style={{ height: `${noticeLineHeight}px` }}
+                  className="flex items-center justify-between flex-shrink-0 w-full"
                 >
                   <span className={`text-[#FEE500] font-extrabold truncate block w-full leading-none ${isLargeFont ? 'text-sm' : 'text-xs'}`}>
                     {notice.title}

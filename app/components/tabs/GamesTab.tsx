@@ -189,22 +189,33 @@ export const GamesTab = memo(({
     });
   }, [games, gameListSearch, playerFilters, genreFilters, difficultyFilters, sortOption]);
 
+  // ⚡ 자연스러운 무한 롤링을 위한 순환 목록 구조 (마지막에 첫 항목 복제)
+  const displayNotices = useMemo(() => {
+    if (!recentNoticesList || recentNoticesList.length === 0) return [];
+    return [...recentNoticesList, recentNoticesList[0]];
+  }, [recentNoticesList]);
+
   return (
     <div className="space-y-4 mt-0.5 w-full">
-      {/* ⚡ 배너 전체 높이는 h-11(44px) 고정 + % 상대 이동으로 첫 화면 상단 잘림 현상을 완전 교정한 수직 롤링 */}
+      {/* ⚡ 배너 전체 높이는 h-11(44px) 고정 + 타이머 박자에 맞춰 1칸씩 일정하게 롤링 */}
       <div 
-        onClick={() => { if (recentNoticesList.length > 0) handleNoticeClick(recentNoticesList[noticeIndex % recentNoticesList.length]); }} 
+        onClick={() => { 
+          if (recentNoticesList && recentNoticesList.length > 0) {
+            const currentRealNotice = recentNoticesList[noticeIndex % recentNoticesList.length];
+            handleNoticeClick(currentRealNotice); 
+          }
+        }} 
         className="w-full px-3.5 rounded-2xl flex items-center gap-2.5 shadow-sm overflow-hidden h-11 bg-slate-900 text-white cursor-pointer transition active:scale-[0.99]"
       >
         <Bell size={16} className="text-[#FEE500] flex-shrink-0 z-10" />
         
         <div className={`flex-1 overflow-hidden relative ${isLargeFont ? 'h-7' : 'h-5'}`}>
-          {recentNoticesList.length > 0 && (
+          {displayNotices.length > 0 && (
             <div 
               className={`w-full flex flex-col ${isNoticeTransition ? 'transition-transform duration-500 ease-in-out' : ''}`} 
-              style={{ transform: `translateY(-${(noticeIndex % recentNoticesList.length) * 100}%)` }}
+              style={{ transform: `translateY(-${noticeIndex * (isLargeFont ? 28 : 20)}px)` }}
             >
-              {recentNoticesList.map((notice: any, idx: number) => (
+              {displayNotices.map((notice: any, idx: number) => (
                 <div 
                   key={`${notice.noticeId}-${idx}`} 
                   className={`flex items-center justify-between flex-shrink-0 w-full ${isLargeFont ? 'h-7' : 'h-5'}`}
@@ -218,7 +229,7 @@ export const GamesTab = memo(({
           )}
         </div>
         
-        {recentNoticesList.length > 0 && <ChevronRight size={14} className="text-slate-400 flex-shrink-0 z-10" />}
+        {recentNoticesList && recentNoticesList.length > 0 && <ChevronRight size={14} className="text-slate-400 flex-shrink-0 z-10" />}
       </div>
 
       {/* 검색 & 필터 */}

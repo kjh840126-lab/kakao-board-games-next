@@ -191,34 +191,32 @@ export const GamesTab = memo(({
 
   return (
     <div className="space-y-4 mt-0.5 w-full">
-      {/* ⚡ 배너 전체 높이 h-11(44px) 고정 + 정중앙 이동 위치 보정 적용 */}
+      {/* ⚡ 배너 전체 높이 h-11(44px) 고정 + 누적 위치 이동 어긋남을 근본적으로 차단하는 Fade 전환 기법 */}
       <div 
         onClick={() => { if (recentNoticesList.length > 0) handleNoticeClick(recentNoticesList[noticeIndex % recentNoticesList.length]); }} 
         className="w-full px-3.5 rounded-2xl flex items-center gap-2.5 shadow-sm overflow-hidden h-11 bg-slate-900 text-white cursor-pointer transition active:scale-[0.99]"
       >
         <Bell size={16} className="text-[#FEE500] flex-shrink-0 z-10" />
         
-        <div className={`flex-1 overflow-hidden relative flex items-center ${isLargeFont ? 'h-7' : 'h-5'}`}>
-          {recentNoticesList.length > 0 && (
-            <div 
-              className={`w-full flex flex-col ${isNoticeTransition ? 'transition-transform duration-500 ease-in-out' : ''}`} 
-              style={{ transform: `translateY(-${noticeIndex * (isLargeFont ? 28 : 20)}px)` }}
-            >
-              {[...recentNoticesList, recentNoticesList[0]].map((notice: any, idx: number) => (
-                <div 
-                  key={`${notice.noticeId}-${idx}`} 
-                  className={`flex items-center justify-between flex-shrink-0 w-full ${isLargeFont ? 'h-7 text-sm' : 'h-5 text-xs'}`}
-                >
-                  <span className="text-[#FEE500] font-extrabold truncate block w-full leading-none translate-y-[0.5px]">
-                    {notice.title}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
+        <div className="flex-1 overflow-hidden relative h-full flex items-center">
+          {recentNoticesList.length > 0 && recentNoticesList.map((notice: any, idx: number) => {
+            const isCurrent = (noticeIndex % recentNoticesList.length) === idx;
+            return (
+              <div 
+                key={`${notice.noticeId}-${idx}`} 
+                className={`absolute inset-0 flex items-center justify-between w-full transition-opacity duration-700 ease-in-out ${
+                  isCurrent ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 pointer-events-none z-0'
+                }`}
+              >
+                <span className={`text-[#FEE500] font-extrabold truncate block w-full leading-none ${isLargeFont ? 'text-sm' : 'text-xs'}`}>
+                  {notice.title}
+                </span>
+              </div>
+            );
+          })}
         </div>
         
-        {recentNoticesList.length > 0 && <ChevronRight size={14} className="text-slate-400 flex-shrink-0" />}
+        {recentNoticesList.length > 0 && <ChevronRight size={14} className="text-slate-400 flex-shrink-0 z-10" />}
       </div>
 
       {/* 검색 & 필터 */}

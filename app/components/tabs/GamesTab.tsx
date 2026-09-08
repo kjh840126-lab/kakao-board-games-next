@@ -191,7 +191,7 @@ export const GamesTab = memo(({
 
   return (
     <div className="space-y-4 mt-0.5 w-full">
-      {/* ⚡ 배너 전체 높이는 h-11(44px) 고정 + 내부 글자 이동 높이만 isLargeFont 연동 */}
+      {/* ⚡ 배너 전체 높이 h-11(44px) 고정 + 정중앙 이동 위치 보정 적용 */}
       <div 
         onClick={() => { if (recentNoticesList.length > 0) handleNoticeClick(recentNoticesList[noticeIndex % recentNoticesList.length]); }} 
         className="w-full px-3.5 rounded-2xl flex items-center gap-2.5 shadow-sm overflow-hidden h-11 bg-slate-900 text-white cursor-pointer transition active:scale-[0.99]"
@@ -209,7 +209,9 @@ export const GamesTab = memo(({
                   key={`${notice.noticeId}-${idx}`} 
                   className={`flex items-center justify-between flex-shrink-0 w-full ${isLargeFont ? 'h-7 text-sm' : 'h-5 text-xs'}`}
                 >
-                  <span className="text-[#FEE500] font-extrabold truncate block w-full leading-none">{notice.title}</span>
+                  <span className="text-[#FEE500] font-extrabold truncate block w-full leading-none translate-y-[0.5px]">
+                    {notice.title}
+                  </span>
                 </div>
               ))}
             </div>

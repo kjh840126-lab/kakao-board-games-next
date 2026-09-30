@@ -1,0 +1,277 @@
+@import "tailwindcss";
+
+/* 1. Tailwind v4 전용 다크모드 커스텀 바리언트 선언 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* 2. 카카오 폰트 매핑 */
+@font-face {
+  font-family: 'Kakao';
+  font-style: normal;
+  font-weight: 300;
+  src: url('/fonts/KakaoLight.woff2') format('woff2');
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Kakao';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/fonts/KakaoRegular.woff2') format('woff2');
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Kakao';
+  font-style: normal;
+  font-weight: 700;
+  src: url('/fonts/KakaoBold.woff2') format('woff2');
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'KakaoBig';
+  font-style: normal;
+  font-weight: 700;
+  src: url('/fonts/KakaoBold.woff2') format('woff2');
+  font-display: block;
+}
+
+/* 3. Tailwind v4 기본 폰트 등록 */
+@theme {
+  --font-sans: 'Kakao', 'KakaoBig', -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+}
+
+/* 4. 전체 렌더링 및 기본 설정 (라이트모드 기존 유지) */
+html, body {
+  font-family: 'Kakao', 'KakaoBig', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*, ::after, ::before, button, input, select, textarea {
+  font-family: 'Kakao', 'KakaoBig', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  box-sizing: border-box;
+}
+
+html.text-large {
+  font-size: 115% !important;
+}
+
+/* 라이트 모드 전용 세부 스타일 */
+html:not(.dark) main h3,
+html:not(.dark) main h4 {
+  color: #0f172a !important;
+}
+
+/* ========================================================= */
+/* ⚡ 5. 다크모드 전용(html.dark) 스타일 */
+/* ========================================================= */
+
+html.dark {
+  color-scheme: dark;
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+html.dark body,
+html.dark main {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+/* [다크모드 전용] 텍스트 가독성 강제 적용 */
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark strong,
+html.dark .text-slate-900,
+html.dark .text-slate-800 {
+  color: #ffffff !important;
+}
+
+html.dark p,
+html.dark span,
+html.dark div,
+html.dark label,
+html.dark .text-slate-700,
+html.dark .text-slate-600 {
+  color: #e2e8f0 !important;
+}
+
+/* [다크모드 전용] 보조 텍스트 (날짜, ID 등) */
+html.dark .text-slate-400,
+html.dark .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+html.dark .text-slate-300 {
+  color: #cbd5e1 !important;
+}
+
+/* [다크모드 전용] 배경 및 모달 카드 */
+html.dark .bg-white {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+html.dark .bg-slate-50,
+html.dark .bg-slate-100 {
+  background-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+/* [다크모드 전용] 드로어 내부 박스 보정 */
+html.dark .bg-amber-50\/60,
+html.dark .bg-amber-50\/40,
+html.dark .bg-amber-50 {
+  background-color: #2e2815 !important;
+  color: #fef08a !important;
+}
+
+html.dark .bg-sky-50\/70,
+html.dark .bg-sky-50 {
+  background-color: #1a314b !important;
+  color: #e0f2fe !important;
+}
+
+html.dark .bg-rose-50\/40,
+html.dark .bg-rose-50 {
+  background-color: #3f1922 !important;
+  color: #fecdd3 !important;
+}
+
+/* [다크모드 전용] 입력창/검색창 */
+html.dark input[type="text"],
+html.dark input[type="number"],
+html.dark input[type="password"],
+html.dark input[type="url"],
+html.dark textarea,
+html.dark select {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+  border-color: #475569 !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* [다크모드 전용] 테두리 구분선 */
+html.dark .border-slate-200,
+html.dark .border-slate-100,
+html.dark .border-slate-300,
+html.dark .border-slate-200\/80 {
+  border-color: #334155 !important;
+}
+
+/* [다크모드 전용] 뱃지 */
+html.dark .bg-rose-100 {
+  background-color: #881337 !important;
+}
+html.dark .text-rose-600,
+html.dark .text-rose-500 {
+  color: #fda4af !important;
+}
+
+html.dark .bg-amber-100 {
+  background-color: #713f12 !important;
+}
+html.dark .text-amber-600,
+html.dark .text-amber-500 {
+  color: #fde047 !important;
+}
+
+/* [다크모드 전용] 드로어 하단 '닫기' 버튼 */
+html.dark .bg-slate-900 {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+  border: 1px solid #475569;
+}
+
+/* ========================================================= */
+/* ⚡ 6. 상단 네비게이션 & 드로어 상단 헤더 */
+/* ========================================================= */
+
+html.dark header,
+html.dark div.bg-\[\#FEE500\],
+html.dark div.bg-sky-400 {
+  background-color: var(--bg-header) !important;
+}
+
+html.dark header,
+html.dark header *,
+html.dark div.bg-\[\#FEE500\],
+html.dark div.bg-\[\#FEE500\] *,
+html.dark div.bg-sky-400,
+html.dark div.bg-sky-400 * {
+  color: #0f172a !important;
+}
+
+html.dark header button.bg-slate-900\/5,
+html.dark header button.bg-white\/80 {
+  background-color: rgba(255, 255, 255, 0.4) !important;
+  border: none !important;
+}
+
+html.dark header .bg-rose-600,
+html.dark header .bg-rose-600 * {
+  color: #ffffff !important;
+}
+
+/* 7. 스크롤바 숨김 */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ========================================================= */
+/* ⚡ 마스터 뱃지 다크모드 가독성 전용 보정 */
+/* ========================================================= */
+
+html.dark .bg-purple-100 {
+  background-color: #4c1d95 !important;
+  color: #ddd6fe !important;
+  border: 1px solid #7c3aed !important;
+}
+
+html.dark .bg-purple-100 * {
+  color: #ddd6fe !important;
+}
+
+/* ========================================================= */
+/* ⚡ 접수함 드로어 뱃지 가독성 & 컬러 보정 */
+/* ========================================================= */
+
+/* ⚡ :has-text 에러 방지용으로 비표준 셀렉터 수정 */
+span.bg-amber-500,
+.bg-orange-500,
+.bg-amber-500 {
+  background-color: #e11d48 !important;
+  color: #ffffff !important;
+}
+
+/* [다크모드] 드로어 상단 카테고리 뱃지 가독성 보정 */
+html.dark div[class*="bg-sky"],
+html.dark span[class*="bg-sky"],
+html.dark .bg-sky-100,
+html.dark .bg-sky-200 {
+  background-color: #0c4a6e !important;
+  color: #38bdf8 !important;
+  border: 1px solid #0284c7 !important;
+}
+
+html.dark div[class*="bg-sky"] *,
+html.dark span[class*="bg-sky"] * {
+  color: #38bdf8 !important;
+}
